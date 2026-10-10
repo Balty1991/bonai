@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.209
+
+- **„Din nerepartizat” rămâne în afara plicului și la un bon scanat.** Bonul scanat deschide formularul cu o ciornă gata completată; la salvare, alegerea „Din nerepartizat” nu se mai ținea minte, iar cheltuiala ajungea singură în plicul Alimente și scădea din limita săptămânii (raport real, 11 oct: Mega Image 23,16 pe bonuri). Acum alegerea făcută în formular se păstrează.
+
 ## 1.1.208
 
 - **Analiză pe articole.** Un bon cu detergent, mâncare și bere intra în „Unde au mers banii” cu totul la o singură categorie (bonul Mega de 165,51 tot la „Casă & facturi”). Acum fiecare articol de pe bon merge la categoria lui: Băuturi, Apă, Dulciuri, Alimente. Un bon plătit din două surse nu se numără de două ori; unul deja împărțit pe categorii nu se mai desface (raport real, 10 oct).
