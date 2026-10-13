@@ -4896,4 +4896,9 @@ export const en: Record<string, string> = {
   "voucher": "voucher",
   "card": "card",
   "transfer": "transfer",
+  "Mai mult din Analiză": "More in Analysis",
+  "Înapoi la Analiză": "Back to Analysis",
+  "Tendințe": "Trends",
+  "luna, raportul, grafice, tendințe, calendar, plan pe 12 luni": "the month, report, charts, trends, calendar, 12-month plan",
+  "investiții, avere, datorii, prețuri, reguli": "investments, net worth, debts, prices, rules",
 };

@@ -9,7 +9,7 @@ import "../atelier-review-final.css";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { warmLazy } from "@/lib/lazy-safe";
 import { recapReady, recapYearFor, yearRecap } from "@/lib/year-recap";
-import { ChartSpline, CalendarRange, FileBarChart, Landmark, TrendingDown, Activity, CalendarHeart, Sparkles, Sprout, MessageSquareWarning, BarChart3, Bell, BellRing, BrainCircuit, BookOpen, CalendarClock, Check, Inbox, ChevronLeft, ChevronRight, Cloud, Download, ListChecks, Search, Palette, PiggyBank, Plane, Plus, ReceiptText, Settings, ShieldCheck, ShoppingBasket, Store, PiggyBank as PiggyBankIcon, Trash2 } from "lucide-react";
+import { ChartSpline, Landmark, TrendingDown, Sparkles, Sprout, MessageSquareWarning, BarChart3, Bell, BellRing, BrainCircuit, BookOpen, CalendarClock, Check, Inbox, ChevronLeft, ChevronRight, Cloud, Download, ListChecks, Search, Palette, PiggyBank, Plane, Plus, ReceiptText, Settings, ShieldCheck, ShoppingBasket, Store, PiggyBank as PiggyBankIcon, Trash2 } from "lucide-react";
 import { createEmptyAppData, isReceiptGapLabel, isoToday, type AppData, type Debt, type Receipt, type SavingsGoal } from "@/lib/finance-data";
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 import { setSimpleMode } from "@/lib/ui-prefs";
@@ -135,9 +135,8 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
         <p className="bf-kicker bf-more-section-label" id="more-screens-title">{t("BANII FAMILIEI")}</p>
         <div className="bf-more-grid bf-settings-group">
           <button type="button" className="bf-settings-row" onClick={() => onGo("obligations")}><Bell size={20} /><span className="bf-settings-copy"><b>{t("Obligații")}</b><small>{t("scadențe, rate, datorii")}</small></span><ChevronRight className="bf-settings-chevron" size={18} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => onGo("insights")}><BarChart3 size={20} /><span className="bf-settings-copy"><b>{t("Analiză")}</b><small>{t("unde se duc banii, lună de lună")}</small></span><ChevronRight className="bf-settings-chevron" size={18} /></button>
+          <button type="button" className="bf-settings-row" onClick={() => onGo("insights")}><BarChart3 size={20} /><span className="bf-settings-copy"><b>{t("Analiză")}</b><small>{t("luna, raportul, grafice, tendințe, calendar, plan pe 12 luni")}</small></span><ChevronRight className="bf-settings-chevron" size={18} /></button>
           <button type="button" className="bf-settings-row" onClick={() => onGo("goals")}><PiggyBankIcon size={20} /><span className="bf-settings-copy"><b>{t("Obiective")}</b><small>{t("economii și ținte pe termen lung")}</small></span><ChevronRight className="bf-settings-chevron" size={18} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => setTab("advisor")}><FileBarChart size={20} /><span className="bf-settings-copy"><b>{t("Raportul lunii")}</b><small>{t("ce a mers, ce nu, ce să faceți")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
         </div>
       </section>}
       {/* Ce așteaptă o decizie urcă sus, doar cât e ceva de confirmat. */}
@@ -164,13 +163,9 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
       </section>
       {/* Ecranele pentru cine vrea mai mult stau strânse: un om obișnuit vede doar ce folosește zilnic. */}
       <details className="bf-more-group bf-more-advanced">
-        <summary className="bf-settings-row" id="more-plan-title" style={{ cursor: "pointer", listStyle: "none" }}><ChartSpline size={20} /><span className="bf-settings-copy"><b>{t("Instrumente avansate")}</b><small>{t("grafice, tendințe, plan pe un an, investiții, prețuri")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></summary>
+        <summary className="bf-settings-row" id="more-plan-title" style={{ cursor: "pointer", listStyle: "none" }}><ChartSpline size={20} /><span className="bf-settings-copy"><b>{t("Instrumente avansate")}</b><small>{t("investiții, avere, datorii, prețuri, reguli")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></summary>
         <div className="bf-more-grid bf-settings-group">
           {story && <button type="button" className="bf-settings-row" onClick={() => setStoryOpen(true)}><Sparkles size={20} /><span className="bf-settings-copy"><b>{t("Povestea anului {year}", { year: story.year })}</b><small>{t("anul familiei în cifre, ecran cu ecran")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>}
-          <button type="button" className="bf-settings-row" onClick={() => setTab("charts")}><ChartSpline size={20} /><span className="bf-settings-copy"><b>{t("Grafice")}</b><small>{t("fluxul banilor, categorii, harta anului")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => setTab("trends")}><Activity size={20} /><span className="bf-settings-copy"><b>{t("Tendințe și obiceiuri")}</b><small>{t("ce crește, ce scade, ziua cea mai scumpă")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => setTab("money-calendar")}><CalendarHeart size={20} /><span className="bf-settings-copy"><b>{t("Calendarul banilor")}</b><small>{t("luna ca o hartă: zile scumpe, facturi, sold")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => setTab("year-plan")}><CalendarRange size={20} /><span className="bf-settings-copy"><b>{t("Planul pe 12 luni")}</b><small>{t("lună cu lună, cu scenarii „ce-ar fi dacă”")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("invest")}><Sprout size={20} /><span className="bf-settings-copy"><b>{t("Investiții și pensie")}</b><small>{t("simulator: dobândă compusă, inflație, pensie")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("net-worth")}><Landmark size={20} /><span className="bf-settings-copy"><b>{t("Averea familiei")}</b><small>{t("ce aveți minus ce datorați")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           {data.debts.some((debt) => debt.remaining > 0) && <button type="button" className="bf-settings-row" onClick={() => setTab("debt-exit")}><TrendingDown size={20} /><span className="bf-settings-copy"><b>{t("Ieșirea din datorii")}</b><small>{t("data în care sunteți liberi, dobânda economisită")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>}
@@ -195,7 +190,7 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
           <button type="button" className="bf-settings-row" onClick={() => setTab("guide")}><BookOpen size={20} /><span className="bf-settings-copy"><b>{t("Tutorial")}</b><small>{t("cum notezi, cum citești cifra")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button><button type="button" className="bf-settings-row" onClick={() => setTab("feedback")}><MessageSquareWarning size={20} /><span className="bf-settings-copy"><b>{t("Spune-ne ce nu merge")}</b><small>{t("o problemă sau o idee, direct la noi")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
         </div>
       </section>
-      <footer style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 14px", margin: "40px 0 -84px", color: "var(--cf-muted)", fontSize: 12 }}>
+      <footer style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 14px", margin: "40px 0 0", color: "var(--cf-muted)", fontSize: 12 }}>
         <span style={FOOT_LINK}>{t("Buget Familie {version}", { version: APP_VERSION })}</span>
         <a href={publicLegalUrl(APP_PRIVACY_PATH)} target="_blank" rel="noreferrer" style={FOOT_LINK}>{t("Confidențialitate")}</a>
         <a href={publicLegalUrl(APP_TERMS_PATH)} target="_blank" rel="noreferrer" style={FOOT_LINK}>{t("Termeni")}</a>

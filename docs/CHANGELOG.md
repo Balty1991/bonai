@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.211
+
+- **Analiza într-un singur loc.** În Mai mult, analiza era împărțită în cinci intrări (Raportul lunii, Grafice, Tendințe, Calendarul banilor, Planul pe 12 luni), pe lângă Analiză. Acum e o singură intrare, „Analiză”, iar cele cinci se deschid din ea, dintr-un rând de butoane de sub file; „Înapoi” te duce tot în Analiză. Nimic nu s-a șters (raportul de testare din 13 oct).
+- **Mai mult, mai scurt.** „Instrumente avansate” păstrează doar investițiile, averea, ieșirea din datorii, prețurile și regulile.
+- **Subsolul din Mai mult stă la locul lui**, fără marginea negativă care îl trăgea sub bara de jos.
+- **Stiluri:** scoase ultimele reguli pentru o pictogramă de bon care nu mai există.
+
 ## 1.1.210
 
 - **Permisiunea și programarea notificărilor nu se mai agață pe Android.** Pluginul de notificări era întors direct dintr-o promisiune, iar telefonul îl lua drept promisiune: citirea permisiunii și programarea prin pluginul Capacitor nu se terminau niciodată și raportau „LocalNotifications.then() is not implemented on android” (Sentry #89). Acum pluginul e întors într-o cutie, ca celelalte pluginuri native.
