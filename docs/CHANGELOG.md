@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.210
+
+- **Analiza într-un singur loc.** În Mai mult, analiza era împărțită în cinci intrări (Raportul lunii, Grafice, Tendințe, Calendarul banilor, Planul pe 12 luni), pe lângă Analiză. Acum e o singură intrare, „Analiză”, iar cele cinci se deschid din ea, dintr-un rând de butoane de sub file; „Înapoi” te duce tot în Analiză. Nimic nu s-a șters (raportul de testare din 13 oct).
+- **Mai mult, mai scurt.** „Instrumente avansate” păstrează doar investițiile, averea, ieșirea din datorii, prețurile și regulile.
+- **Subsolul din Mai mult stă la locul lui**, fără marginea negativă care îl trăgea sub bara de jos.
+- **Stiluri:** scoase ultimele reguli pentru o pictogramă de bon care nu mai există.
+
 ## 1.1.209
 
 - **„Din nerepartizat” rămâne în afara plicului și la un bon scanat.** Bonul scanat deschide formularul cu o ciornă gata completată; la salvare, alegerea „Din nerepartizat” nu se mai ținea minte, iar cheltuiala ajungea singură în plicul Alimente și scădea din limita săptămânii (raport real, 11 oct: Mega Image 23,16 pe bonuri). Acum alegerea făcută în formular se păstrează.

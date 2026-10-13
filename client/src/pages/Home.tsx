@@ -40,6 +40,7 @@ import {
   money,
   type MainView,
   type MoreView,
+  ANALYSIS_TOOLS,
 } from "@/pages/home-kit";
 import { markWhatsNewSeen, shouldShowWhatsNew } from "@/lib/theme-default";
 import { markFirstWeekTourSeen, shouldOfferFirstWeekTour } from "@/lib/first-week-tour";
@@ -248,8 +249,11 @@ export default function Home() {
     window.addEventListener("buget-familie:open-year-plan", openYearPlan);
     const openCharts = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("charts"); showTools(); };
     window.addEventListener("buget-familie:open-charts", openCharts);
+    // Din Analiză: raportul lunii, graficele, tendințele, calendarul și planul pe 12 luni; „Înapoi” duce tot în Analiză.
+    const openAnalysisTool = (event: Event) => { const tab = (event as CustomEvent<MoreView>).detail; if (!ANALYSIS_TOOLS.includes(tab)) return; setMoreReturn({ view: "insights", label: t("Înapoi la Analiză") }); setMore(tab); showTools(); };
+    window.addEventListener("buget-familie:open-analysis-tool", openAnalysisTool);
     window.addEventListener("buget-familie:open-afford", openAfford);
-    return () => { window.removeEventListener("buget-familie:open-expense", openExpense); window.removeEventListener("buget-familie:open-charts", openCharts); window.removeEventListener("buget-familie:open-shopping", openShopping); window.removeEventListener("buget-familie:open-trip", openTrip); window.removeEventListener("buget-familie:open-afford", openAfford); window.removeEventListener("buget-familie:open-transfer", openTransfer); window.removeEventListener("buget-familie:open-advisor", openAdvisor); window.removeEventListener("buget-familie:open-year-plan", openYearPlan); };
+    return () => { window.removeEventListener("buget-familie:open-expense", openExpense); window.removeEventListener("buget-familie:open-charts", openCharts); window.removeEventListener("buget-familie:open-analysis-tool", openAnalysisTool); window.removeEventListener("buget-familie:open-shopping", openShopping); window.removeEventListener("buget-familie:open-trip", openTrip); window.removeEventListener("buget-familie:open-afford", openAfford); window.removeEventListener("buget-familie:open-transfer", openTransfer); window.removeEventListener("buget-familie:open-advisor", openAdvisor); window.removeEventListener("buget-familie:open-year-plan", openYearPlan); };
   }, []);
   useEffect(() => {
     const openEvents = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("events"); showTools(); };
