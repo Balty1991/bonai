@@ -113,7 +113,12 @@ function setNotificationsArmed(armed: boolean) {
   }
 }
 
-const loadNativeNotifications = () => import("@capacitor/local-notifications").then((module) => module.LocalNotifications);
+/*
+ * Pluginul Capacitor e un Proxy care răspunde la orice nume, și la „then”: întors direct dintr-o
+ * promisiune, JS îl lua drept promisiune, chema LocalNotifications.then() (neimplementat pe Android),
+ * iar apelul rămânea agățat și raporta eroarea (Sentry #89). Îl întoarcem într-o cutie.
+ */
+const loadNativeNotifications = () => import("@capacitor/local-notifications").then((module) => ({ plugin: module.LocalNotifications }));
 
 const nativePermissionFromBridge = (): NotificationPref | undefined => {
   const bridge = nativeReminders();
@@ -145,7 +150,7 @@ async function readPermissionsApi(): Promise<NotificationPref | undefined> {
 export async function getNotificationPermission(): Promise<NotificationPref> {
   if (isNative()) {
     try {
-      const plugin = await loadNativeNotifications();
+      const { plugin } = await loadNativeNotifications();
       const status = await plugin.checkPermissions();
       if (status.display === "granted") return "granted";
       if (status.display === "denied") {
@@ -304,7 +309,7 @@ export async function requestNotificationPermission(): Promise<NotificationPref>
       return bridge.hasPermission?.() ? "granted" : "unknown";
     }
     try {
-      const plugin = await loadNativeNotifications();
+      const { plugin } = await loadNativeNotifications();
       const current = await plugin.checkPermissions();
       const status = current.display === "granted" ? current : await plugin.requestPermissions();
       if (status.display === "granted") return "granted";
@@ -643,7 +648,7 @@ const NOTIFY_ICON_COLOR = "#1B4F42";
 async function tryCapacitorSchedule(alerts: PlannedAlert[]): Promise<boolean> {
   try {
     if (!isNative()) return false;
-    const LocalNotifications = await loadNativeNotifications();
+    const { plugin: LocalNotifications } = await loadNativeNotifications();
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== "granted") return false;
     // Tot ce era programat înainte pleacă: o alertă care nu mai e în listă nu mai e adevărată.
@@ -773,7 +778,7 @@ async function showNow(title: string, rawBody: string, tag: string) {
   }
   if (isNative()) {
     try {
-      const LocalNotifications = await loadNativeNotifications();
+      const { plugin: LocalNotifications } = await loadNativeNotifications();
       const permission = await LocalNotifications.checkPermissions();
       if (permission.display !== "granted") return;
       await LocalNotifications.schedule({ notifications: [{ id: Math.floor(Math.random() * 100000) + 5000, title, body, isExactNotification: false, smallIcon: "ic_stat_notify", iconColor: NOTIFY_ICON_COLOR, extra: { tag } }] });
@@ -979,7 +984,7 @@ export function disableLocalAlerts(): void {
   }
   if (!isNative()) return;
   void loadNativeNotifications()
-    .then((plugin) => plugin.cancel({ notifications: [{ id: 4090 }] }))
+    .then(({ plugin }) => plugin.cancel({ notifications: [{ id: 4090 }] }))
     .catch(() => undefined);
 }
 

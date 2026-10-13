@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.210
+
+- **Permisiunea și programarea notificărilor nu se mai agață pe Android.** Pluginul de notificări era întors direct dintr-o promisiune, iar telefonul îl lua drept promisiune: citirea permisiunii și programarea prin pluginul Capacitor nu se terminau niciodată și raportau „LocalNotifications.then() is not implemented on android” (Sentry #89). Acum pluginul e întors într-o cutie, ca celelalte pluginuri native.
+
 ## 1.1.209
 
 - **„Din nerepartizat” rămâne în afara plicului și la un bon scanat.** Bonul scanat deschide formularul cu o ciornă gata completată; la salvare, alegerea „Din nerepartizat” nu se mai ținea minte, iar cheltuiala ajungea singură în plicul Alimente și scădea din limita săptămânii (raport real, 11 oct: Mega Image 23,16 pe bonuri). Acum alegerea făcută în formular se păstrează.
