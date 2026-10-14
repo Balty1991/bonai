@@ -5,6 +5,7 @@
  */
 import { CategoryGlyph } from "@/components/CategoryGlyph";
 import { WeekRetune } from "@/components/WeekRetune";
+import { SimpleEnvelopesCard } from "@/components/SimpleEnvelopesCard";
 import { categoryColor } from "@/lib/category-color";
 import "../envelope-weekly-toggle.css";
 import "../week-transfer.css";
@@ -497,6 +498,7 @@ export function PlanStudio({ data, onChange, simpleMode = false }: { data: AppDa
     </header>
 
     {/* Lista plicurilor e primul lucru de pe ecran; înainte începea abia după ~3.400 px de setări. */}
+    <SimpleEnvelopesCard data={data} onChange={onChange} />
     <section className="bf-envelope-list-first" aria-labelledby="bf-envelope-list-title">
       <div className="bf-plan-sheet-heading"><div><p className="bf-kicker">{t("PLICURILE TALE")}</p><h2 id="bf-envelope-list-title">{envelopesLabel(envelopes.length)} · {money(allocated)}</h2></div><button type="button" className="bf-primary bf-add-envelope" onClick={() => { resetAllocationBuilder(); openBuilder(); }}><Plus size={17} /> {t("Plic")}</button></div>
       <div className="bf-allocation-list bf-envelope-desk" aria-live="polite">
@@ -517,14 +519,14 @@ export function PlanStudio({ data, onChange, simpleMode = false }: { data: AppDa
             // D11: „în ritm” e starea obișnuită; eticheta apare doar când spune ceva.
             if (tone === "healthy" && !fixed) return null;
             return <span className={`bf-allocation-state ${tone}`} title={burn?.reason}>{label}</span>;
-          })()}<EnvelopeConflictBadge allocationId={item.id} data={data} /></div><span className="bf-envelope-name"><span className="bf-envelope-ring is-small" style={{ ["--bf-used" as string]: String(Math.min(100, Math.round(Math.max(0, usage) * 100))) }} aria-hidden="true"><CategoryGlyph category={item.category || item.label} size={15} /></span><b>{item.label}</b></span>{(item.memberId || item.sourceId || item.note) && <small>{personName(data, item.memberId)} · {sourceName(data, item.sourceId)}{item.note ? ` · ${item.note}` : ""}</small>}</div>
+          })()}<EnvelopeConflictBadge allocationId={item.id} data={data} /></div><span className="bf-envelope-name"><span className="bf-envelope-ring is-small" style={{ ["--bf-used" as string]: String(Math.min(100, Math.round(Math.max(0, usage) * 100))) }} aria-hidden="true"><CategoryGlyph category={item.category || item.label} size={15} /></span><b>{item.label}</b></span>{(item.memberId || item.sourceId || item.note) && <small>{personName(data, item.memberId)} · {item.anySource ? t("din orice card") : sourceName(data, item.sourceId)}{item.note ? ` · ${item.note}` : ""}</small>}</div>
           <div className="bf-allocation-list-total"><strong>{money(Math.max(0, remaining))}</strong><small>{t("rămași din {amount}", { amount: money(budget) })}</small>{(() => {
             // Plic din mai multe surse: cât mai e din partea fiecăreia, ca să știi cu ce plătești.
             const parts = allocationSourceParts(data, item);
             if (parts.length > 1) return parts.map((part) => <small key={part.sourceId} className="bf-allocation-meal">{t("{source}: {left} din {share}", { source: sourceName(data, part.sourceId), left: money(Math.max(0, part.left)), share: money(part.share) })}</small>);
             // Tichetele care nu sunt în plic se pot folosi în plus; cele puse în plic sunt deja în suma lui.
             const inEnvelope = parts.some((part) => data.settings.paymentSources.find((source) => source.id === part.sourceId)?.kind === "meal");
-            return mealLeft > 0 && !inEnvelope && isFoodCategory(item.category) ? <small className="bf-allocation-meal">{t("+ tichete în afara plicului: {amount}", { amount: money(mealLeft) })}</small> : null;
+            return mealLeft > 0 && !inEnvelope && !item.anySource && isFoodCategory(item.category) ? <small className="bf-allocation-meal">{t("+ tichete în afara plicului: {amount}", { amount: money(mealLeft) })}</small> : null;
           })()}</div>
           <div className={`bf-envelope-meter${(week ? week.state : state) === "over" ? " is-over" : (!fixed && (week ? week.budget : budget) > 0 && (week ? week.spent : spent) / (week ? week.budget : budget) >= (item.alertThreshold || 80) / 100) ? " is-watch" : ""}`}><span>{week ? t("Săptămâna S{index}", { index: week.index }) : t("Tot plicul")}{" · "}{t("cheltuit")}</span><b>{money(week ? week.spent : spent)} <small>/ {money(week ? week.budget : budget)}</small></b><i aria-hidden="true"><em style={{ width: `${Math.min(100, Math.max(0, ((week ? week.budget : budget) > 0 ? (week ? week.spent : spent) / (week ? week.budget : budget) : 0) * 100))}%` }} />{!fixed && (() => { const mark = todayMark(week ? week.start : plan.periodStart, week ? week.end : plan.nextPayday); return mark === undefined ? null : <u className="bf-meter-today" style={{ left: `${mark}%` }} title={t("Aici ar trebui să fii azi")} />; })()}</i></div>
           <details className="bf-envelope-more" onToggle={(event) => { const open = event.currentTarget.open; setOpenDetails((current) => { if (open === current.has(item.id)) return current; const next = new Set(current); if (open) next.add(item.id); else next.delete(item.id); return next; }); }}><summary>{t("Detalii")}<ChevronDown size={15} aria-hidden="true" /></summary>

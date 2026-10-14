@@ -173,7 +173,8 @@ export function TransactionForm({ data, initial, scan, onSave, onClose }: { data
     format: money,
   }) : undefined;
   const unrepartized = planAllocationMath(data).unrepartized;
-  const askWhere = kind === "expense" && !splitOpen && envelopeMatched.length > 0 && unrepartized > 0.009;
+  // Plicurile simple („din orice card”) nu mai întreabă „din plic sau din nerepartizat”: cheltuiala intră în plic.
+  const askWhere = kind === "expense" && !splitOpen && envelopeMatched.length > 0 && !envelopeMatched[0].anySource && unrepartized > 0.009;
   const freeShort = proposedAmount > 0.009 ? Math.max(0, Math.round((proposedAmount - unrepartized) * 100) / 100) : 0;
   const suggestedEnvelope = envelopeMatched[0];
   const suggestedWeek = suggestedEnvelope && isWeeklyPaced(suggestedEnvelope, data.settings.salaryPlan) ? allocationWeekStatus(data, suggestedEnvelope, date) : undefined;

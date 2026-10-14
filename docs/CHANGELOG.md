@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.216
+
+- **Plicuri mai simple, dintr-o atingere** (în Plicuri). Alimente devine **Cumpărături** (alimente, dulciuri, băuturi, apă, SGR, sacoșe), apar **Copil** (consumabile copil, pe lună) și **Altele** (haine, farmacie, timp liber, pe lună), cu sumele alese de tine; Taxi rămâne.
+- **Plicurile iau plata din orice card, al oricui**, cu bonuri sau cash: cheltuiala intră singură în plicul ei, fără „din plic sau din nerepartizat”. Plicul arată doar cât mai ai; cardul arată unde sunt banii.
+- Înainte să aplici vezi cât ai cheltuit deja în ciclul ăsta pe Copil și pe Altele (intră în plic).
+- **Bonurile pe tipul lor:** „Card de bunuri” devine card de tichete, „Voucher SGR” devine voucher; tichetele nu mai apar ca bani liberi.
+
 ## 1.1.215
 
 - **Plicuri: „Reglează săptămânile”** (în „Toate săptămânile”). Spui cât mai ai săptămâna asta, de azi până duminică, și cât vrei pe săptămână de acum încolo (ex. 400, apoi 600). Plicul se reface singur: săptămânile trecute rămân cu cât s-a cheltuit, cea scurtă de dinaintea salariului primește partea zilelor ei, iar diferența se ia din nerepartizat (din card, nu din bonuri) sau se eliberează. Vezi suma nouă înainte să aplici.
