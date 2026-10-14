@@ -6,7 +6,7 @@ import "../objective-edit.css";
 import "../mobile-obligations-pass.css";
 import { useState } from "react";
 import { BellRing, Bot, CalendarClock, CalendarDays, Check, ChevronRight, Gift, Pencil, PiggyBank, Plus, Trash2 } from "lucide-react";
-import { addIsoDays, allocationStatus, debtPaymentHistory, isoDate, isoToday, newId, pendingRecurringInPlan, type AppData, type Debt, type RecurringPayment, type SavingsGoal } from "@/lib/finance-data";
+import { addIsoDays, nextDebtDue, allocationStatus, debtPaymentHistory, isoDate, isoToday, newId, pendingRecurringInPlan, type AppData, type Debt, type RecurringPayment, type SavingsGoal } from "@/lib/finance-data";
 import { dateText, money } from "@/pages/home-kit";
 import { amortize, buildDebtSchedule, monthAfter, orderDebts, payoffPlan, recommendedStrategy, type DebtScheduleRow, type PayoffStrategy } from "@/lib/debt-plan";
 import { getLocale, monthsLabel, t } from "@/lib/i18n";
@@ -122,7 +122,7 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
     ...data.debts.filter((item) => item.remaining > 0).map((item) => ({
       id: `debt-${item.id}`,
       kind: "debt" as const,
-      date: inferDue(item),
+      date: item.dueDate ? nextDebtDue(data, item, today) : inferDue(item),
       label: item.name,
       detail: t("Rată {amount}/lună", { amount: money(item.monthly) }),
       amount: item.monthly || item.remaining,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.212
+
+- **Rata confirmată nu mai rămâne „Întârziată”.** În Obligații (și în scadențele de pe Astăzi) rata se arăta după data ei fixă din lună, fără să se uite la plăți: după „Confirmă plata”, banii ieșeau corect din card, dar rata rămânea în listă ca întârziată (raport real, 14 oct: Emag fier de călcat, 90,25). Acum, după plată, rata trece pe scadența de luna viitoare; o plată acoperă o singură lună.
+- **Titlul plății e clar.** „Rată plată parțială — …” suna ca o rată plătită pe jumătate; însemna doar că datoria nu e încă stinsă. Acum: „Rată — Emag (fier călcat)”, iar nota spune cât mai rămâne din datorie; la ultima: „Rată achitată integral”.
+
 ## 1.1.211
 
 - **Analiza într-un singur loc.** În Mai mult, analiza era împărțită în cinci intrări (Raportul lunii, Grafice, Tendințe, Calendarul banilor, Planul pe 12 luni), pe lângă Analiză. Acum e o singură intrare, „Analiză”, iar cele cinci se deschid din ea, dintr-un rând de butoane de sub file; „Înapoi” te duce tot în Analiză. Nimic nu s-a șters (raportul de testare din 13 oct).

@@ -1798,7 +1798,7 @@ export const debtPaymentHistory = (data: AppData, debtId: string) => data.transa
 export const recordDebtPayment = (data: AppData, input: { debtId: string; amount: number; sourceId: string; memberId: string; date?: string; note?: string }) => {
   const debt = data.debts.find((item) => item.id === input.debtId); const source = data.settings.paymentSources.find((item) => item.id === input.sourceId); const member = data.settings.members.find((item) => item.id === input.memberId); const amount = roundedMoney(input.amount);
   if (!debt || !source || !member || (source.memberId && source.memberId !== member.id) || amount <= 0 || amount > debt.remaining) return undefined;
-  const now = new Date().toISOString(); const remainingAfter = roundedMoney(debt.remaining - amount); const paymentState = remainingAfter === 0 ? t("achitată integral") : t("plată parțială"); const transaction: Transaction = { id: newId("debt-payment"), debtId: debt.id, debtRemainingAfter: remainingAfter, title: t("Rată {state} — {name}", { state: paymentState, name: debt.name }), amount, kind: "expense", category: "Rate produse", sourceId: source.id, source: source.name, memberId: member.id, person: member.name, date: input.date || isoToday(), note: input.note?.trim() || t("Rată {state}; sold rămas {amount} RON", { state: paymentState, amount: remainingAfter.toFixed(2) }), allocationId: resolveExpenseAllocationId(data, { category: "Rate produse", memberId: member.id, sourceId: source.id }), createdAt: now, updatedAt: now };
+  const now = new Date().toISOString(); const remainingAfter = roundedMoney(debt.remaining - amount); const transaction: Transaction = { id: newId("debt-payment"), debtId: debt.id, debtRemainingAfter: remainingAfter, title: remainingAfter === 0 ? t("Rată achitată integral — {name}", { name: debt.name }) : t("Rată — {name}", { name: debt.name }), amount, kind: "expense", category: "Rate produse", sourceId: source.id, source: source.name, memberId: member.id, person: member.name, date: input.date || isoToday(), note: input.note?.trim() || (remainingAfter === 0 ? t("Datoria e achitată integral.") : t("Din datorie mai rămân {amount} RON.", { amount: remainingAfter.toFixed(2) })), allocationId: resolveExpenseAllocationId(data, { category: "Rate produse", memberId: member.id, sourceId: source.id }), createdAt: now, updatedAt: now };
   const next = commitLedgerEntry(data, transaction);
   return { ...next, debts: next.debts.map((item) => item.id === debt.id ? { ...item, remaining: remainingAfter, updatedAt: now } : item) };
 };
@@ -1946,6 +1946,34 @@ export const pendingDebtsInPlan = (data: AppData) => {
     const paid = planPeriodTransactions(data).some((transaction) => transaction.debtId === debt.id);
     return dueDate && !paid ? [{ ...debt, amount, dueDate }] : [];
   });
+};
+
+/** Aceeași zi, cu `months` luni mai târziu; ziua 31 devine ultima zi a unei luni scurte. */
+const shiftMonths = (iso: string, months: number) => {
+  const [year, month, day] = iso.split("-").map(Number);
+  const target = new Date(year, month - 1 + months, 1, 12);
+  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  return isoDate(new Date(target.getFullYear(), target.getMonth(), Math.min(day, last), 12));
+};
+
+/**
+ * Următoarea scadență a unei rate, după plăți. `dueDate` e o zi fixă din lună care nu avansează
+ * singură: fără asta, o rată confirmată rămânea „Întârziată” în Obligații pentru totdeauna.
+ * Rata scadentă (cea mai recentă zi trecută, sau prima, dacă e încă în viitor) e socotită plătită
+ * dacă există o plată a ei cel mult cu 20 de zile înainte; atunci urmează luna următoare.
+ */
+export const nextDebtDue = (data: AppData, debt: Pick<Debt, "id" | "dueDate">, today = isoToday()) => {
+  if (!debt.dueDate || !/^\d{4}-\d{2}-\d{2}$/.test(debt.dueDate)) return "";
+  let due = debt.dueDate;
+  for (let guard = 0; guard < 600 && shiftMonths(due, 1) <= today; guard += 1) due = shiftMonths(due, 1);
+  const payments = data.transactions.filter((item) => item.debtId === debt.id && item.kind === "expense");
+  for (let guard = 0; guard < 24 && payments.some((item) => item.date >= addIsoDays(due, -20)); guard += 1) {
+    const next = shiftMonths(due, 1);
+    // O plată acoperă o singură scadență: după ea, următoarea cere o plată nouă.
+    if (!payments.some((item) => item.date >= addIsoDays(next, -20))) return next;
+    due = next;
+  }
+  return due;
 };
 
 /**
