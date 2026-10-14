@@ -1,4 +1,5 @@
 /** Atelierul Financiar 2.0 — plăți recurente rezervate în planul până la salariu. */
+import { setRecurringAmount } from "@/lib/monthly-bills";
 import "../recurring.css";
 import { useMemo, useState } from "react";
 import { CalendarClock, Check, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -208,6 +209,8 @@ export function RecurringPanel({ data, onChange }: { data: AppData; onChange: (n
               )}
               <div className="bf-recurring-actions">
                 <button className="bf-secondary" onClick={() => pay(item)}><Check size={16} /> {payingId === item.id ? t("Confirmă plata") : t("Plătită")}</button>
+                {/* Factura a venit, dar se plătește mai târziu: doar suma estimată devine cea reală. */}
+                {item.variable && payingId === item.id && <button type="button" className="bf-link-button" onClick={() => { const real = parseRomanianAmount(paidAmount); if (!(real > 0)) return setError(t("Scrie suma de pe factură.")); onChange(setRecurringAmount(data, item.id, real)); setPayingId(null); setPaidAmount(""); setError(""); }}>{t("Doar actualizez suma (plătesc mai târziu)")}</button>}
                 <button type="button" className="bf-recurring-edit" aria-label={t("Modifică {name}", { name: item.name })} onClick={() => startEdit(item)}><Pencil size={16} /></button>
               </div>
             </article>

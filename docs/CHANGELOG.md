@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.214
+
+- **Facturile notate devin plăți lunare dintr-o atingere.** În Obligații, „Să nu le mai scrii în fiecare lună” arată facturile scrise de mână în ultimele 45 de zile (lumină, apă, telefon, grădiniță, abonamente) și le face lunare cu un buton: se pun deoparte din salariu și apar la „de plătit”. Plata deja notată luna asta se leagă de ele, deci nu apar a doua oară (raport real, 14 oct: 7 facturi scrise una câte una).
+  - Utilitățile (lumină, apă, gaz, întreținere) sunt „sumă aproximativă”: le confirmi cu suma de pe factură. Butonul se poate schimba pe „sumă fixă”.
+  - La Scadențe, pe o plată aproximativă: „Doar actualizez suma (plătesc mai târziu)”, când factura a venit dar n-ai plătit-o încă.
+- **Dobânda de overdraft se mută la plăți lunare aproximative, fără dată de final**, în loc să stea la Datorii ca o datorie care se termină.
+
 ## 1.1.213
 
 - **Reducerea pe tot bonul se împarte pe articole.** La Pepco, „Reducere pentru angajați 25%” / „DISCOUNT 23,23” stă sub SUBTOTAL, nu sub un produs; cititorul de bonuri o lăsa pe dinafară și rândurile dădeau 92,90 lei, cu 23,23 peste totalul de 69,67 (raport real, 14 oct). Acum:

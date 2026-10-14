@@ -1,6 +1,7 @@
 /**
  * Ecranul Obligații. Se încarcă singur, fără Setări, Sync sau bon.
  */
+import { BillsToMonthly } from "@/components/BillsToMonthly";
 import { nextNeedDue } from "@/lib/cashflow-projection";
 import "../objective-edit.css";
 import "../mobile-obligations-pass.css";
@@ -89,7 +90,7 @@ function DebtPayoffSimulator({ data }: { data: AppData }) {
         {hasRates && other.months !== null && withExtra.totalInterest - other.totalInterest > 1 && <p className="bf-helper">{t("Cealaltă ordine ar costa cu {amount} mai puțin în dobânzi.", { amount: money(withExtra.totalInterest - other.totalInterest) })}</p>}</>}
     <div className="bf-debt-simulator-summary"><span><b>{base.months ?? "∞"}</b><small>{t("luni acum")}</small></span><span><b>{withExtra.months ?? "∞"}</b><small>{t("luni cu extra")}</small></span><span><b>{money(minimum + extra)}</b><small>{t("efort lunar")}</small></span></div></section>;
 }
-export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, onPayDebt, onDeleteDebt, onDeleteSaving, openDebt, openSaving, onOpenRecurring, onPayRecurring, onAddRecurring, onOpenGoals, onOpenCalendar, onOpenEvents, onOpenAssistant, onAddSaving }: { data: AppData; onAddSaving?: (goal: SavingsGoal) => void; onAddRecurring?: (item: RecurringPayment) => void; onSaveToGoal?: (id: string, amount: number) => void; onEditDebt: (item: Debt) => void; onEditSaving: (item: SavingsGoal) => void; onPayDebt: (item: Debt) => void; onDeleteDebt: (id: string) => void; onDeleteSaving: (id: string) => void; openDebt: () => void; openSaving: () => void; onOpenRecurring: () => void; onPayRecurring: (id: string) => void; onOpenGoals: () => void; onOpenCalendar: () => void; onOpenEvents: () => void; onOpenAssistant: () => void }) {
+export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, onPayDebt, onDeleteDebt, onDeleteSaving, openDebt, openSaving, onOpenRecurring, onPayRecurring, onAddRecurring, onOpenGoals, onOpenCalendar, onOpenEvents, onOpenAssistant, onAddSaving, onUpdate }: { data: AppData; onUpdate?: (change: (current: AppData) => AppData) => void; onAddSaving?: (goal: SavingsGoal) => void; onAddRecurring?: (item: RecurringPayment) => void; onSaveToGoal?: (id: string, amount: number) => void; onEditDebt: (item: Debt) => void; onEditSaving: (item: SavingsGoal) => void; onPayDebt: (item: Debt) => void; onDeleteDebt: (id: string) => void; onDeleteSaving: (id: string) => void; openDebt: () => void; openSaving: () => void; onOpenRecurring: () => void; onPayRecurring: (id: string) => void; onOpenGoals: () => void; onOpenCalendar: () => void; onOpenEvents: () => void; onOpenAssistant: () => void }) {
   const [laterIds, setLaterIds] = useState<string[]>([]);
   /** Obiectivele alimentate acum: butonul devine „Pus deoparte”, ca o dublă atingere să nu pună de două ori. */
   const [savedNow, setSavedNow] = useState<string[]>([]);
@@ -202,6 +203,7 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
           <button className="bf-goals-link" aria-label={t("Calendar de scadențe")} onClick={onOpenCalendar}><CalendarDays size={16} /> {t("Calendar")}</button>
           <button className="bf-goals-link" aria-label={t("Evenimente viitoare")} onClick={onOpenEvents}><Gift size={16} /> {t("Evenimente")}</button>
         </div>
+        {onUpdate && <BillsToMonthly data={data} onUpdate={onUpdate} />}
         <section className="bf-sub-board" aria-label={t("Abonamente")}>
           <div className="bf-section-heading">
             <div>
