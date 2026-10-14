@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.215
+
+- **Plicuri: „Reglează săptămânile”** (în „Toate săptămânile”). Spui cât mai ai săptămâna asta, de azi până duminică, și cât vrei pe săptămână de acum încolo (ex. 400, apoi 600). Plicul se reface singur: săptămânile trecute rămân cu cât s-a cheltuit, cea scurtă de dinaintea salariului primește partea zilelor ei, iar diferența se ia din nerepartizat (din card, nu din bonuri) sau se eliberează. Vezi suma nouă înainte să aplici.
+
 ## 1.1.214
 
 - **Facturile notate devin plăți lunare dintr-o atingere.** În Obligații, „Să nu le mai scrii în fiecare lună” arată facturile scrise de mână în ultimele 45 de zile (lumină, apă, telefon, grădiniță, abonamente) și le face lunare cu un buton: se pun deoparte din salariu și apar la „de plătit”. Plata deja notată luna asta se leagă de ele, deci nu apar a doua oară (raport real, 14 oct: 7 facturi scrise una câte una).

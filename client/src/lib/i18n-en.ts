@@ -4927,4 +4927,12 @@ export const en: Record<string, string> = {
   "Dobânda de overdraft nu are dată de final: nu știi când scapi. Rămâne la Datorii, ca s-o urmărești, cu plată lunară aproximativă; plata nu scade soldul și nu-ți mai promite „scapi în…”.": "Overdraft interest has no end date: you can't know when you'll be free of it. It stays in Debts so you can track it, with an approximate monthly payment; paying doesn't lower the balance and no \"debt-free by…\" date is promised.",
   "Din bonurile tale": "From your receipts",
   "Altă zi": "Another day",
+  "Reglează săptămânile": "Adjust weeks",
+  "Săptămâna asta mai am (de azi până duminică)": "Left this week (today to Sunday)",
+  "Din săptămâna viitoare, pe săptămână": "From next week, per week",
+  "Plicul devine {total} (acum {before}).": "The envelope becomes {total} (now {before}).",
+  "Se iau {amount} din nerepartizat.": "{amount} comes from unallocated money.",
+  "Se eliberează {amount} în nerepartizat.": "{amount} goes back to unallocated money.",
+  "Săptămâna scurtă de dinaintea salariului primește partea zilelor ei.": "The short week before payday gets its share of days.",
+  "Nu ajung banii nerepartizați: lipsesc {amount}.": "Not enough unallocated money: {amount} short.",
 };
