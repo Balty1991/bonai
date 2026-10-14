@@ -1,13 +1,13 @@
 /**
  * „Fă-le plăți lunare”: facturile notate de mână (lumină, apă, telefon, grădiniță, abonamente)
- * devin plăți lunare dintr-o atingere, iar dobânda de overdraft trece din Datorii în plăți
- * lunare aproximative, fără dată de final. Utilitățile sunt bifate „sumă aproximativă”: suma de
+ * devin plăți lunare dintr-o atingere, iar dobânda de overdraft rămâne la Datorii, cu plată
+ * lunară aproximativă, fără dată de final. Utilitățile sunt bifate „sumă aproximativă”: suma de
  * pe factură se scrie când vine, la Scadențe.
  */
 import { useMemo, useState } from "react";
 import { CalendarClock, Check } from "lucide-react";
 import { type AppData } from "@/lib/finance-data";
-import { applyBills, billCandidates, overdraftDebts, overdraftToMonthly, type BillPick } from "@/lib/monthly-bills";
+import { applyBills, billCandidates, markOpenEnded, overdraftDebts, type BillPick } from "@/lib/monthly-bills";
 import { t } from "@/lib/i18n";
 import { lei } from "@/lib/money-format";
 
@@ -53,12 +53,12 @@ export function BillsToMonthly({ data, onUpdate }: { data: AppData; onUpdate: (c
         <button type="button" className="bf-primary" disabled={!kept.length} onClick={save} style={{ marginTop: 10 }}><Check size={16} aria-hidden="true" /> {t("Fă-le lunare ({count})", { count: kept.length })}</button>
       </>}
       {overdrafts.length > 0 && <div style={{ marginTop: merged.length ? 16 : 0 }}>
-        <p className="bf-helper">{t("Dobânda de overdraft nu e o datorie care se termină: e o sumă aproximativă în fiecare lună. Mut-o la plăți lunare, cu sumă aproximativă și fără dată de final.")}</p>
+        <p className="bf-helper">{t("Dobânda de overdraft nu are dată de final: nu știi când scapi. Rămâne la Datorii, ca s-o urmărești, cu plată lunară aproximativă; plata nu scade soldul și nu-ți mai promite „scapi în…”.")}</p>
         {overdrafts.map((debt) => (
           <div key={debt.id} style={{ ...row, gridTemplateColumns: "1fr auto auto" }}>
             <b style={{ overflowWrap: "anywhere" }}>{debt.name}</b>
             <span style={{ fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>~{lei(debt.monthly)}</span>
-            <button type="button" className="bf-secondary" onClick={() => { onUpdate((current) => overdraftToMonthly(current, debt.id)); setDone((count) => count + 1); }}>{t("Mută la lunare")}</button>
+            <button type="button" className="bf-secondary" onClick={() => { onUpdate((current) => markOpenEnded(current, debt.id)); }}>{t("Lunar, fără dată de final")}</button>
           </div>
         ))}
       </div>}

@@ -74,7 +74,7 @@ export type Transaction = {
   tag?: string;
 };
 
-export type Debt = { id: string; name: string; remaining: number; monthly: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; updatedAt?: string; /** Dobânda anuală, în procente (DAE sau dobânda din contract). */ annualRate?: number; /** Credit bancar, card de credit, IFN sau bani de la persoane. */ kind?: "credit" | "card" | "ifn" | "persoane"; /** Data ultimei rate din contract, dacă e știută. */ endDate?: string };
+export type Debt = { id: string; name: string; remaining: number; monthly: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; updatedAt?: string; /** Dobânda anuală, în procente (DAE sau dobânda din contract). */ annualRate?: number; /** Credit bancar, card de credit, IFN sau bani de la persoane. */ kind?: "credit" | "card" | "ifn" | "persoane"; /** Data ultimei rate din contract, dacă e știută. */ endDate?: string; /** Fără dată de final (dobânda de overdraft): se plătește lunar, iar plata nu scade soldul. */ openEnded?: boolean };
 export type SavingsGoal = { id: string; name: string; current: number; target: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; /** „Scrisoare pentru viitor”: se arată abia când obiectivul e atins. */ message?: string; updatedAt?: string };
 export type RecurringFrequency = "monthly" | "quarterly" | "yearly";
 export type RecurringPayment = { id: string; name: string; amount: number; category: string; sourceId: string; memberId: string; dueDay: number; active: boolean; /** Lipsă = lunar. Trimestrial/anual: RCA, impozit, abonamente anuale. */ frequency?: RecurringFrequency; /** Luna (1–12) a unei scadențe, pentru trimestrial și anual. */ month?: number; /** Suma e o estimare (curent, gaz): valoarea reală se scrie la plată și nu se adaugă automat. */ variable?: boolean; /** Creează local plata la prima deschidere din ziua scadenței sau după aceasta. */ autoPost?: boolean; note?: string; updatedAt?: string };
@@ -1797,9 +1797,10 @@ export const debtPaymentHistory = (data: AppData, debtId: string) => data.transa
 
 export const recordDebtPayment = (data: AppData, input: { debtId: string; amount: number; sourceId: string; memberId: string; date?: string; note?: string }) => {
   const debt = data.debts.find((item) => item.id === input.debtId); const source = data.settings.paymentSources.find((item) => item.id === input.sourceId); const member = data.settings.members.find((item) => item.id === input.memberId); const amount = roundedMoney(input.amount);
-  if (!debt || !source || !member || (source.memberId && source.memberId !== member.id) || amount <= 0 || amount > debt.remaining) return undefined;
-  const now = new Date().toISOString(); const remainingAfter = roundedMoney(debt.remaining - amount); const transaction: Transaction = { id: newId("debt-payment"), debtId: debt.id, debtRemainingAfter: remainingAfter, title: remainingAfter === 0 ? t("Rată achitată integral — {name}", { name: debt.name }) : t("Rată — {name}", { name: debt.name }), amount, kind: "expense", category: "Rate produse", sourceId: source.id, source: source.name, memberId: member.id, person: member.name, date: input.date || isoToday(), note: input.note?.trim() || (remainingAfter === 0 ? t("Datoria e achitată integral.") : t("Din datorie mai rămân {amount} RON.", { amount: remainingAfter.toFixed(2) })), allocationId: resolveExpenseAllocationId(data, { category: "Rate produse", memberId: member.id, sourceId: source.id }), createdAt: now, updatedAt: now };
+  if (!debt || !source || !member || (source.memberId && source.memberId !== member.id) || amount <= 0 || (!debt.openEnded && amount > debt.remaining)) return undefined;
+  const now = new Date().toISOString(); const remainingAfter = debt.openEnded ? debt.remaining : roundedMoney(debt.remaining - amount); const transaction: Transaction = { id: newId("debt-payment"), debtId: debt.id, debtRemainingAfter: remainingAfter, title: debt.openEnded ? t("Dobândă — {name}", { name: debt.name }) : remainingAfter === 0 ? t("Rată achitată integral — {name}", { name: debt.name }) : t("Rată — {name}", { name: debt.name }), amount, kind: "expense", category: "Rate produse", sourceId: source.id, source: source.name, memberId: member.id, person: member.name, date: input.date || isoToday(), note: input.note?.trim() || (debt.openEnded ? t("Plată lunară, fără dată de final.") : remainingAfter === 0 ? t("Datoria e achitată integral.") : t("Din datorie mai rămân {amount} RON.", { amount: remainingAfter.toFixed(2) })), allocationId: resolveExpenseAllocationId(data, { category: "Rate produse", memberId: member.id, sourceId: source.id }), createdAt: now, updatedAt: now };
   const next = commitLedgerEntry(data, transaction);
+  if (debt.openEnded) return next;
   return { ...next, debts: next.debts.map((item) => item.id === debt.id ? { ...item, remaining: remainingAfter, updatedAt: now } : item) };
 };
 
@@ -1834,7 +1835,7 @@ export const adjustDebtsForLedgerEdits = (previous: AppData, next: AppData): App
     debts: next.debts.map((debt) => {
       const change = delta.get(debt.id) || 0;
       const old = previousDebt.get(debt.id);
-      if (Math.abs(change) < 0.005 || !old || old.remaining !== debt.remaining) return debt;
+      if (Math.abs(change) < 0.005 || !old || old.remaining !== debt.remaining || debt.openEnded) return debt;
       return { ...debt, remaining: money2(Math.max(0, debt.remaining + change)), updatedAt: now };
     }),
   };

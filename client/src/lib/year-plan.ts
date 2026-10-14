@@ -70,7 +70,7 @@ export function yearPlan(data: AppData, today: string, scenarios: ReadonlyArray<
     return round(total / 3);
   })();
   const living = monthlyLiving(data, today);
-  const debtRows = data.debts.filter((debt) => debt.remaining > 0 && debt.monthly > 0).map((debt) => ({ debt, rows: amortize(debt.remaining, debt.annualRate, debt.monthly).rows }));
+  const debtRows = data.debts.filter((debt) => debt.remaining > 0 && debt.monthly > 0 && !debt.openEnded).map((debt) => ({ debt, rows: amortize(debt.remaining, debt.annualRate, debt.monthly).rows }));
   const goals = data.savings.filter((goal) => goal.current < goal.target).map((goal) => ({ goal, monthly: savingsSuggestion(data, goal, today)?.monthly || 0, left: goal.target - goal.current }));
   const months: PlanMonth[] = [];
   let balance = start;

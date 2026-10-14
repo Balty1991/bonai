@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createEmptyAppData, pendingRecurringInPlan, type AppData, type Transaction } from "./finance-data";
-import { applyBills, billCandidates, overdraftDebts, overdraftToMonthly, setRecurringAmount } from "./monthly-bills";
+import { createEmptyAppData, pendingRecurringInPlan, recordDebtPayment, type AppData, type Transaction } from "./finance-data";
+import { addExtraBill, applyBills, billCandidates, markOpenEnded, overdraftDebts, setRecurringAmount } from "./monthly-bills";
 
 const bill = (id: string, title: string, amount: number, category: string, date = "2026-10-14"): Transaction => ({ id, title, amount, kind: "expense", category, source: "Card", sourceId: "card", memberId: "m1", person: "Alin", date });
 const family = (): AppData => {
@@ -39,11 +39,25 @@ describe("facturile notate devin plăți lunare", () => {
     expect(setRecurringAmount(next, next.recurring[0].id, 287.4).recurring[0].amount).toBe(287.4);
   });
 
-  it("dobânda de overdraft trece la plăți lunare aproximative, fără final", () => {
+  it("dobânda de overdraft rămâne datorie urmărită, lunară, fără dată de final", () => {
     const data = family();
     expect(overdraftDebts(data).map((debt) => debt.id)).toEqual(["od"]);
-    const next = overdraftToMonthly(data, "od");
-    expect(next.debts).toHaveLength(0);
-    expect(next.recurring[0]).toMatchObject({ name: "Dobânda Overdraft Angi", amount: 26, variable: true, dueDay: 28 });
+    const next = markOpenEnded(data, "od");
+    expect(next.debts[0]).toMatchObject({ id: "od", openEnded: true, remaining: 312, monthly: 26 });
+    expect(overdraftDebts(next)).toHaveLength(0);
+    const paid = recordDebtPayment(next, { debtId: "od", amount: 28.4, sourceId: "card", memberId: "m1", date: "2026-10-31" })!;
+    expect(paid.debts[0].remaining).toBe(312);
+    expect(paid.transactions.find((item) => item.debtId === "od")).toMatchObject({ debtId: "od", amount: 28.4, debtRemainingAfter: 312 });
+    // Plata poate fi și peste sold: dobânda nu are legătură cu cât mai e de dat.
+    expect(recordDebtPayment({ ...next, debts: [{ ...next.debts[0], remaining: 10 }] }, { debtId: "od", amount: 26, sourceId: "card", memberId: "m1" })).toBeDefined();
+  });
+
+  it("a doua factură de lumină în aceeași lună se notează pe aceeași plată lunară", () => {
+    const made = applyBills(family(), billCandidates(family(), "2026-10-14").map((item) => ({ ...item, keep: true })));
+    const light = made.recurring.find((item) => item.name === "Factura lumină")!;
+    const next = addExtraBill(made, light.id, 142.5, "2026-10-28")!;
+    const bills = next.transactions.filter((item) => item.recurringId === light.id);
+    expect(bills.map((item) => item.amount).sort((a, b) => a - b)).toEqual([142.5, 300]);
+    expect(pendingRecurringInPlan(next)).toHaveLength(0);
   });
 });

@@ -5,7 +5,9 @@
 - **Facturile notate devin plăți lunare dintr-o atingere.** În Obligații, „Să nu le mai scrii în fiecare lună” arată facturile scrise de mână în ultimele 45 de zile (lumină, apă, telefon, grădiniță, abonamente) și le face lunare cu un buton: se pun deoparte din salariu și apar la „de plătit”. Plata deja notată luna asta se leagă de ele, deci nu apar a doua oară (raport real, 14 oct: 7 facturi scrise una câte una).
   - Utilitățile (lumină, apă, gaz, întreținere) sunt „sumă aproximativă”: le confirmi cu suma de pe factură. Butonul se poate schimba pe „sumă fixă”.
   - La Scadențe, pe o plată aproximativă: „Doar actualizez suma (plătesc mai târziu)”, când factura a venit dar n-ai plătit-o încă.
-- **Dobânda de overdraft se mută la plăți lunare aproximative, fără dată de final**, în loc să stea la Datorii ca o datorie care se termină.
+- **Dobânda de overdraft rămâne la Datorii, urmărită, dar „lunar, fără dată de final”**: plata lunară (aproximativă) se confirmă cu suma reală și nu scade soldul; dispar „scapi de ea în…”, graficul de rate și locul din ordinea de plată.
+- **Două facturi într-o lună** (la lumină se întâmplă): la Scadențe, pe o plată aproximativă deja plătită luna asta, „+ Încă o factură luna asta” o notează pe aceeași plată lunară, fără să fie luată drept dublură.
+- **Obligații:** Obiective, Calendar și Evenimente stau pe un rând, trei butoane egale, cu iconița deasupra.
 
 ## 1.1.213
 

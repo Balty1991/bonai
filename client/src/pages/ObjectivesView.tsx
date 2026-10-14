@@ -23,7 +23,7 @@ const subscriptionSpendAll = (data: AppData) => { const monthly = data.recurring
 import { daysBetween, upcomingPlannedEvents } from "@/lib/planned-events";
 import { activeNeeds, reserveOf } from "@/lib/monthly-needs";
 
-export function DebtPaymentHistory({ data, debt }: { data: AppData; debt: Debt }) { const history = debtPaymentHistory(data, debt.id); if (!history.length) return <p className="bf-debt-history empty">{t("Nu există încă plăți confirmate pentru această datorie.")}</p>; return <div className="bf-debt-history"><p>{t("PLĂȚI ÎNREGISTRATE")}</p>{history.slice(0, 4).map((payment) => <div key={payment.id}><span><b>{payment.title.includes("achitată integral") ? t("Achitată integral") : t("Plată parțială")}</b><small>{dateText(payment.date, true)} · {payment.source}</small></span><span><strong>{money(payment.amount)}</strong><small>{t("rămân {amount}", { amount: money(payment.debtRemainingAfter ?? debt.remaining) })}</small></span></div>)}</div>; }
+export function DebtPaymentHistory({ data, debt }: { data: AppData; debt: Debt }) { const history = debtPaymentHistory(data, debt.id); if (!history.length) return <p className="bf-debt-history empty">{t("Nu există încă plăți confirmate pentru această datorie.")}</p>; return <div className="bf-debt-history"><p>{t("PLĂȚI ÎNREGISTRATE")}</p>{history.slice(0, 4).map((payment) => <div key={payment.id}><span><b>{debt.openEnded ? t("Plată lunară") : payment.title.includes("achitată integral") ? t("Achitată integral") : t("Plată parțială")}</b><small>{dateText(payment.date, true)} · {payment.source}</small></span><span><strong>{money(payment.amount)}</strong><small>{t("rămân {amount}", { amount: money(payment.debtRemainingAfter ?? debt.remaining) })}</small></span></div>)}</div>; }
 
 function debtScheduleRows(data: AppData, debt: Debt) {
   return buildDebtSchedule({ monthly: debt.monthly, remaining: debt.remaining, annualRate: debt.annualRate, dueDate: debt.dueDate, payments: debtPaymentHistory(data, debt.id) });
@@ -67,7 +67,7 @@ function PayoffChart({ base, withExtra }: { base: number[]; withExtra: number[] 
 /** Simulatorul: cu dobândă, în ordinea care costă cel mai puțin, și data în care scapi de datorii. */
 function DebtPayoffSimulator({ data }: { data: AppData }) {
   const [extra, setExtra] = useState(0);
-  const active = data.debts.filter((debt) => debt.remaining > 0);
+  const active = data.debts.filter((debt) => debt.remaining > 0 && !debt.openEnded);
   const [strategy, setStrategy] = useState<PayoffStrategy>(() => recommendedStrategy(active));
   const minimum = active.reduce((sum, debt) => sum + Math.max(0, debt.monthly), 0);
   if (!active.length || !minimum) return null;
@@ -98,10 +98,11 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
   const totalSavings = data.savings.reduce((sum, item) => sum + item.current, 0);
   const monthlyRates = data.debts.reduce((sum, item) => sum + item.monthly, 0);
   // Ordinea de plată: cu dobânzi cunoscute, avalanșa (costă cel mai puțin); altfel soldul cel mai mic.
-  const openDebts = data.debts.filter((item) => item.remaining > 0);
+  // Overdraftul nu are dată de final: stă la coadă, fără ordine de plată și fără „scapi în…”.
+  const openDebts = data.debts.filter((item) => item.remaining > 0 && !item.openEnded);
   const ordered = orderDebts(openDebts, recommendedStrategy(openDebts));
   const snowball = { next: ordered[0] ? { debt: ordered[0] } : undefined };
-  const rankedDebts = ordered.length ? [...ordered, ...data.debts.filter((item) => item.remaining <= 0)] : data.debts;
+  const rankedDebts = ordered.length ? [...ordered, ...data.debts.filter((item) => item.remaining <= 0 || item.openEnded)] : data.debts;
   const today = isoToday();
   const inferDue = (item: { dueDate?: string; due?: string }) => {
     if (item.dueDate) return item.dueDate;
@@ -198,10 +199,13 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
             <div className="bf-due-scale" aria-hidden="true"><span>{t("azi")}</span><span>{dateText(addIsoDays(today, 15), true)}</span><span>{dateText(horizon, true)}</span></div>
           </div> : <p>{t("Rate, facturi și obiective pe o singură listă. Confirmarea creează mișcarea — nu trimite bani din bancă.")}</p>}
         </div>
-        <div className="bf-obligations-links">
-          <button className="bf-goals-link" aria-label={t("Obiective pe termen lung")} onClick={onOpenGoals}><PiggyBank size={16} /> {t("Obiective")}</button>
-          <button className="bf-goals-link" aria-label={t("Calendar de scadențe")} onClick={onOpenCalendar}><CalendarDays size={16} /> {t("Calendar")}</button>
-          <button className="bf-goals-link" aria-label={t("Evenimente viitoare")} onClick={onOpenEvents}><Gift size={16} /> {t("Evenimente")}</button>
+        {/* Trei uși egale pe un rând, iconița deasupra: pe telefon nu se mai rup pe două rânduri strâmbe. */}
+        <div className="bf-obligations-links" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          {[
+            { label: t("Obiective"), aria: t("Obiective pe termen lung"), icon: PiggyBank, open: onOpenGoals },
+            { label: t("Calendar"), aria: t("Calendar de scadențe"), icon: CalendarDays, open: onOpenCalendar },
+            { label: t("Evenimente"), aria: t("Evenimente viitoare"), icon: Gift, open: onOpenEvents },
+          ].map(({ label, aria, icon: Icon, open }) => <button key={label} className="bf-goals-link" aria-label={aria} onClick={open} style={{ width: "100%", minWidth: 0, minHeight: 68, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 4px", textAlign: "center", fontSize: 14, whiteSpace: "normal" }}><Icon size={20} aria-hidden="true" /> {label}</button>)}
         </div>
         {onUpdate && <BillsToMonthly data={data} onUpdate={onUpdate} />}
         <section className="bf-sub-board" aria-label={t("Abonamente")}>
@@ -316,13 +320,14 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
                 <div>
                   <b>{debt.name}</b>
                   {snowball.next?.debt.id === debt.id ? <em className="bf-snowball-tag">{t("01 · următoarea")}</em> : null}
-                  <small>{debt.due} · {t("rată {amount}/lună", { amount: money(debt.monthly) })}</small>
-                  {(() => { const months = debt.monthly > 0 ? amortize(debt.remaining, debt.annualRate, debt.monthly).months : null; return months ? <small className="bf-debt-free">{t("Scapi de ea în {month}", { month: monthYear(monthAfter(months)) })}</small> : null; })()}
+                  <small>{debt.due} · {debt.openEnded ? t("~{amount}/lună, fără dată de final", { amount: money(debt.monthly) }) : t("rată {amount}/lună", { amount: money(debt.monthly) })}</small>
+                  {debt.openEnded ? <small className="bf-debt-free">{t("Plata lunară nu scade soldul; îl schimbi din Editează când se modifică.")}</small> : null}
+                  {(() => { const months = debt.monthly > 0 && !debt.openEnded ? amortize(debt.remaining, debt.annualRate, debt.monthly).months : null; return months ? <small className="bf-debt-free">{t("Scapi de ea în {month}", { month: monthYear(monthAfter(months)) })}</small> : null; })()}
                 </div>
                 <strong>{money(debt.remaining)}</strong>
               </div>
               <DebtPaymentHistory data={data} debt={debt} />
-              <DebtSchedule data={data} debt={debt} onPay={() => onPayDebt(debt)} />
+              {!debt.openEnded && <DebtSchedule data={data} debt={debt} onPay={() => onPayDebt(debt)} />}
               <div className="bf-obligation-entry-actions">
                 <button className="pay" onClick={() => onPayDebt(debt)}><Check size={16} /> {t("Confirmă plata")}</button>
                 <button onClick={() => onEditDebt(debt)}><Pencil size={15} /> {t("Editează")}</button>
