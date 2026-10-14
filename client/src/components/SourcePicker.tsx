@@ -69,6 +69,8 @@ export function SourcePicker({ data, sources = data.settings.paymentSources, val
   const source = data.settings.paymentSources.find((item) => item.id === value);
   const Icon = (source && ICON[source.kind]) || Wallet;
   const owner = source?.memberId ? data.settings.members.find((member) => member.id === source.memberId)?.name : undefined;
+  // Sursele goale (fără nicio mișcare și cu sold 0, ca Revolut-urile nefolosite) nu încarcă lista; cea aleasă rămâne mereu.
+  const shown = sources.filter((item) => item.id === value || Math.abs(balanceOf(item.id)) >= 0.005 || data.transactions.some((entry) => entry.sourceId === item.id));
   return (
     <div className="bf-field">
       <span>{label}</span>
@@ -81,7 +83,7 @@ export function SourcePicker({ data, sources = data.settings.paymentSources, val
         {source && <span style={amountStyle(Math.abs(balanceOf(source.id)) < 0.005)}>{format(balanceOf(source.id), source)}</span>}
         <ChevronDown size={18} aria-hidden="true" style={{ flex: "0 0 auto", color: "var(--cf-muted)" }} />
       </button>
-      {open && <Sheet data={data} sources={sources} value={value} title={label} memberId={memberId} balanceOf={balanceOf} format={format} onPick={(id) => { onChange(id); setOpen(false); }} onClose={() => setOpen(false)} />}
+      {open && <Sheet data={data} sources={shown.length ? shown : sources} value={value} title={label} memberId={memberId} balanceOf={balanceOf} format={format} onPick={(id) => { onChange(id); setOpen(false); }} onClose={() => setOpen(false)} />}
     </div>
   );
 }

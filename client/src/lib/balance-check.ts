@@ -11,9 +11,11 @@
  * să vadă mai târziu de ce nu se potriveau cifrele.
  */
 import {
+  isBalanceAdjustment,
   isoToday,
   newId,
   planEndDate,
+  resolveExpenseAllocationId,
   sourceBalance,
   type AppData,
   type PaymentSource,
@@ -31,7 +33,22 @@ const ZILE_INTRE_VERIFICARI = 7;
 const MISCARI_MINIME = 4;
 
 export type BalanceCheckRow = { id: string; name: string; kind: PaymentSource["kind"]; balance: number };
-export type BalanceCheckPrompt = { due: boolean; why: string; rows: BalanceCheckRow[] };
+export type BalanceCheckPrompt = { due: boolean; why: string; rows: BalanceCheckRow[]; /** N-a mai notat nimic de câteva zile: diferența e, cel mai probabil, cumpărături nenotate. */ gap?: number };
+/** Ce înseamnă diferența dintre bancă și aplicație. */
+export type BalanceMeaning = "correction" | "unlogged" | "opening";
+
+/** După atâtea zile fără nicio cheltuială notată, întrebarea vine fără să aștepte săptămâna. */
+const ZILE_FARA_NOTARI = 3;
+
+/** Câte zile au trecut de la ultima cheltuială notată (corecțiile și mutările nu contează). */
+export function daysWithoutEntries(data: AppData, today = isoToday()): number {
+  const last = data.transactions.reduce((latest, item) => {
+    if (item.kind !== "expense" || isBalanceAdjustment(item)) return latest;
+    const day = (item.createdAt || "").slice(0, 10) || item.date;
+    return day > latest ? day : latest;
+  }, "");
+  return last ? zile(last, today) : 0;
+}
 
 const zile = (from: string, to: string) =>
   Math.round((new Date(`${to}T12:00:00`).getTime() - new Date(`${from}T12:00:00`).getTime()) / 86400000);
@@ -65,6 +82,9 @@ export function balanceCheckDue(data: AppData, lastCheck: string | null, today =
   const minus = rows.find((row) => row.balance < -0.005);
   if (minus && lastCheck !== today) return { due: true, why: t("„{name}” a ajuns pe minus. Spune cât ai de fapt și potrivesc soldul.", { name: minus.name }), rows };
   if (!rows.length || data.transactions.length < MISCARI_MINIME) return gol;
+  // „Am lipsit câteva zile”: o singură întrebare pe card, în loc să refaci zilele din memorie.
+  const gap = daysWithoutEntries(data, today);
+  if (gap >= ZILE_FARA_NOTARI && (!lastCheck || zile(lastCheck, today) >= ZILE_FARA_NOTARI)) return { due: true, gap, why: t("N-ai mai notat nimic de {days} zile. Spune cât arată banca; ce lipsește trec la cumpărături nenotate.", { days: String(gap) }), rows };
   const plan = data.settings.salaryPlan;
   if (!plan.periodStart || !planEndDate(plan)) return gol;
   if (!lastCheck) return { due: true, why: t("Prima verificare: potrivim cifrele cu realitatea."), rows };
@@ -80,16 +100,43 @@ export function balanceCheckDue(data: AppData, lastCheck: string | null, today =
 }
 
 /**
- * Cât spune omul că are, scris ca mișcare adevărată. Se adaugă doar diferența, deci soldul
- * ajunge exact la suma spusă, iar a doua declarație a aceleiași sume nu mai scrie nimic.
+ * Cât spune omul că are. Se adaugă doar diferența, deci soldul ajunge exact la suma spusă, iar
+ * a doua declarație a aceleiași sume nu mai scrie nimic. Diferența poate însemna trei lucruri:
+ * - „correction”: o corecție de sold, care nu apare în analiză (ca până acum);
+ * - „unlogged”: cumpărături făcute și nenotate în zilele lipsă; intră ca cheltuială la Alimente,
+ *   deci în plicul de cumpărături și în analiză;
+ * - „opening”: soldul de pornire era greșit; se îndreaptă el, fără nicio mișcare în registru
+ *   (în backup-ul din 14 oct erau 8 corecții de sold doar pentru asta).
  */
-export function applyDeclaredBalance(data: AppData, sourceId: string, amount: number, today = isoToday()): AppData {
+export function applyDeclaredBalance(data: AppData, sourceId: string, amount: number, today = isoToday(), meaning: BalanceMeaning = "correction"): AppData {
   const target = data.settings.paymentSources.find((item) => item.id === sourceId);
   if (!target || !Number.isFinite(amount) || amount < 0) return data;
   const diferenta = Math.round((amount - sourceBalance(data, sourceId)) * 100) / 100;
   if (Math.abs(diferenta) < 0.005) return data;
+  const now = new Date().toISOString();
+  if (meaning === "opening" && !target.currency) {
+    return { ...data, settings: { ...data.settings, paymentSources: data.settings.paymentSources.map((item) => item.id === sourceId ? { ...item, openingBalance: Math.round((item.openingBalance + diferenta) * 100) / 100, updatedAt: now } : item) } };
+  }
   const urcare = diferenta > 0;
   const persoana = data.settings.members.find((item) => item.id === target.memberId) || data.settings.members[0];
+  if (meaning === "unlogged" && !urcare) {
+    const cheltuiala: Transaction = {
+      id: newId("unlogged"),
+      title: t("Cumpărături nenotate"),
+      amount: Math.abs(diferenta),
+      kind: "expense",
+      category: "Alimente",
+      sourceId: target.id,
+      source: target.name,
+      memberId: persoana?.id,
+      person: persoana?.name || "",
+      date: today,
+      allocationId: resolveExpenseAllocationId(data, { category: "Alimente", memberId: persoana?.id, sourceId: target.id }),
+      note: t("Diferența față de bancă după câteva zile fără notări."),
+      createdAt: now,
+    };
+    return { ...data, transactions: [cheltuiala, ...data.transactions] };
+  }
   const miscare: Transaction = {
     id: newId("balance-check"),
     title: t("Corecție de sold"),
@@ -104,7 +151,7 @@ export function applyDeclaredBalance(data: AppData, sourceId: string, amount: nu
     date: today,
     allocationId: urcare ? undefined : "outside",
     note: t("Sold verificat — diferența față de cât vedea aplicația."),
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   };
   return { ...data, transactions: [miscare, ...data.transactions] };
 }

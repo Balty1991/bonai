@@ -20,6 +20,7 @@ import {
 import { calendarBudget } from "@/lib/calendar-budget";
 import { daysLabel, getLocale, t } from "./i18n";
 import { envelopeUntilPayday, monthTitle, weekDayCap, weekTooFast } from "./household-insights";
+import { proposePayday } from "./payday";
 import { lei } from "@/lib/money-format";
 import { isAppLockEnabled } from "@/lib/app-lock";
 import { loggingStreak } from "@/lib/logging-habits";
@@ -534,7 +535,7 @@ function buildAlerts(data: AppData): PlannedAlert[] {
         alerts.push({
           id: id++,
           title: t("Ziua venitului"),
-          body: t("Astăzi e data tipică a venitului ({date}). Confirmă încasarea când ajung banii.", { date: formatDate(payday) }),
+          body: paydayBody(data, payday),
           at: when,
           tag: `payday-day-${payday}`,
         });
@@ -638,6 +639,22 @@ function buildAlerts(data: AppData): PlannedAlert[] {
 }
 
 /** Expus pentru teste: aceleași alerte ca programarea locală. */
+/**
+ * Notificarea din ziua salariului spune deja sumele de luna trecută („Alin 4.270, Angi 2.868,
+ * tichete 1.790”), ca „A intrat salariul” să fie doar o verificare și o atingere.
+ */
+function paydayBody(data: AppData, payday: string) {
+  const fallback = t("Astăzi e data tipică a venitului ({date}). Confirmă încasarea când ajung banii.", { date: formatDate(payday) });
+  try {
+    const incomes = proposePayday(data, payday).incomes.filter((item) => !item.notedId && item.amount > 0).slice(0, 4);
+    if (!incomes.length) return fallback;
+    const list = incomes.map((item) => `${item.title} ${money(item.amount)}`).join(", ");
+    return t("Pe ce a venit luna trecută: {list}. Deschide „A intrat salariul” și confirmi dintr-o atingere.", { list });
+  } catch {
+    return fallback;
+  }
+}
+
 export function buildLocalAlerts(data: AppData) {
   return buildAlerts(data).map((item) => ({ id: item.id, title: item.title, body: item.body, tag: item.tag, at: item.at.toISOString() }));
 }
