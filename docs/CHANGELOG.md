@@ -5,6 +5,7 @@
 - **Reducerea pe tot bonul se împarte pe articole.** La Pepco, „Reducere pentru angajați 25%” / „DISCOUNT 23,23” stă sub SUBTOTAL, nu sub un produs; cititorul de bonuri o lăsa pe dinafară și rândurile dădeau 92,90 lei, cu 23,23 peste totalul de 69,67 (raport real, 14 oct). Acum:
   - cititorul de bonuri împarte reducerea pe toate articolele, proporțional, ca rândurile să dea totalul;
   - pe telefon, dacă tot rămâne o diferență care e un procent rotund din bon (5%, 10%, … 50%), o împărțim noi, iar „Reduceri” o arată. O diferență fără procent rotund rămâne de verificat, fiindcă e mai probabil un rând citit greșit.
+  - **Produs gratuit** (Lidl, 14 oct: „Reducere Lidl Plus / DISCOUNT 25,99” sub un Prosecco de 25,99): când diferența e exact un rând, sau reducerea citită a unui rând nescăzută din preț, acel rând ajunge la 0 și reducerea apare la „Reduceri”.
 
 ## 1.1.212
 

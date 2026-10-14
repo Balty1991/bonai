@@ -120,11 +120,18 @@ export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?:
  * Reducerea pe tot bonul („Reducere pentru angajați 25%”, „DISCOUNT 23,23” sub SUBTOTAL) nu ține de
  * un articol: modelul o lasă uneori pe dinafară, iar rândurile fac mai mult decât totalul (Pepco:
  * 92,90 față de 69,67). Când diferența e un procent rotund din tot bonul (5%, 10%, … 50%), o împărțim
- * pe articole, proporțional; altfel e mai probabil un rând citit greșit și rămâne avertizarea.
+ * pe articole, proporțional; când e exact un rând (produs gratuit), îl scade din el; altfel e mai
+ * probabil un rând citit greșit și rămâne avertizarea.
  */
 export function spreadReceiptDiscount<T extends { amount: number; discount?: number }>(lines: T[], itemsSum: number, total: number): T[] | undefined {
   const gap = round(itemsSum - total);
   if (!lines.length || gap <= 0.05 || total <= 0) return undefined;
+  // Reducerea unui singur articol, citită dar nescăzută din preț, sau un produs dat gratis
+  // („Reducere Lidl Plus / DISCOUNT 25,99” sub un Prosecco de 25,99): diferența e chiar acel rând.
+  const same = (value: number) => Math.abs(value - gap) <= 0.01;
+  const unsubtracted = lines.findIndex((line) => same(line.discount || 0) && line.amount >= gap - 0.01);
+  const free = unsubtracted >= 0 ? unsubtracted : lines.map((line) => same(line.amount)).lastIndexOf(true);
+  if (free >= 0) return lines.map((line, index) => index !== free ? line : { ...line, amount: round(Math.max(0, line.amount - gap)), discount: round(Math.max(line.discount || 0, gap)) });
   const percent = (gap / itemsSum) * 100;
   const nearest = Math.round(percent / 5) * 5;
   if (nearest < 5 || nearest > 50 || Math.abs(percent - nearest) > 0.15) return undefined;
