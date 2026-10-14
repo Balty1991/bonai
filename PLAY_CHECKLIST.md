@@ -80,7 +80,7 @@ Abonamentele Casa (gratuit) / Familia (19,99 lei/lună sau 149 lei/an) se adaug�
 
 Play cere testers reali, nu doar CI.
 
-- [ ] AAB semnat, `versionCode` 214 / `versionName` 1.1.213, pachet `ro.balty1991.bugetfamilie`
+- [ ] AAB semnat, `versionCode` 215 / `versionName` 1.1.214, pachet `ro.balty1991.bugetfamilie`
 - [ ] Privacy, terms, delete-data publicate pe GitHub Pages
 - [ ] Data safety completat (financiare pe dispozitiv, sync opțional AES-GCM, fără ads)
 - [ ] Financial features: evidență, nu sfat de investiții / credit / plăți

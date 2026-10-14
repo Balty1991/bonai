@@ -26,7 +26,7 @@ function Curve({ plans }: { plans: Array<{ plan: PayoffPlan; color: string; dash
 }
 
 export function DebtExitPanel({ data }: { data: AppData }) {
-  const open = useMemo(() => data.debts.filter((debt) => debt.remaining > 0), [data.debts]);
+  const open = useMemo(() => data.debts.filter((debt) => debt.remaining > 0 && !debt.openEnded), [data.debts]);
   const [extra, setExtra] = useState(100);
   const [strategy, setStrategy] = useState<PayoffStrategy | undefined>(undefined);
   const exit = useMemo(() => debtExit(open, extra, strategy), [open, extra, strategy]);

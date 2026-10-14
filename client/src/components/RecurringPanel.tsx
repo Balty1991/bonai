@@ -1,4 +1,5 @@
 /** Atelierul Financiar 2.0 — plăți recurente rezervate în planul până la salariu. */
+import { addExtraBill, setRecurringAmount } from "@/lib/monthly-bills";
 import "../recurring.css";
 import { useMemo, useState } from "react";
 import { CalendarClock, Check, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -41,6 +42,8 @@ export function RecurringPanel({ data, onChange }: { data: AppData; onChange: (n
   /** Scadența variabilă confirmată acum: suma reală de pe factură. */
   const [payingId, setPayingId] = useState<string | null>(null);
   const [paidAmount, setPaidAmount] = useState("");
+  const [extraId, setExtraId] = useState<string | null>(null);
+  const [extraAmount, setExtraAmount] = useState("");
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const pending = pendingRecurringInPlan(data);
@@ -208,6 +211,8 @@ export function RecurringPanel({ data, onChange }: { data: AppData; onChange: (n
               )}
               <div className="bf-recurring-actions">
                 <button className="bf-secondary" onClick={() => pay(item)}><Check size={16} /> {payingId === item.id ? t("Confirmă plata") : t("Plătită")}</button>
+                {/* Factura a venit, dar se plătește mai târziu: doar suma estimată devine cea reală. */}
+                {item.variable && payingId === item.id && <button type="button" className="bf-link-button" onClick={() => { const real = parseRomanianAmount(paidAmount); if (!(real > 0)) return setError(t("Scrie suma de pe factură.")); onChange(setRecurringAmount(data, item.id, real)); setPayingId(null); setPaidAmount(""); setError(""); }}>{t("Doar actualizez suma (plătesc mai târziu)")}</button>}
                 <button type="button" className="bf-recurring-edit" aria-label={t("Modifică {name}", { name: item.name })} onClick={() => startEdit(item)}><Pencil size={16} /></button>
               </div>
             </article>
@@ -234,6 +239,10 @@ export function RecurringPanel({ data, onChange }: { data: AppData; onChange: (n
                 </div>
                 <strong>{money(item.amount)}</strong>
                 <span className={paid ? "done" : ""}>{paid ? t("Înregistrată") : item.autoPost ? t("Automată") : item.active ? t("Confirmare manuală") : t("Oprită")}</span>
+                {/* Lumina vine uneori de două ori într-o lună: a doua factură se notează pe aceeași plată lunară. */}
+                {paid && item.variable && item.active && (extraId === item.id
+                  ? <label className="bf-recurring-paid-amount" style={{ gridColumn: "1 / -1" }}>{t("Suma celei de-a doua facturi")}<span style={{ display: "flex", gap: 8 }}><input inputMode="decimal" autoFocus value={extraAmount} onChange={(event) => setExtraAmount(event.target.value)} /><button type="button" className="bf-secondary" onClick={() => { const next = addExtraBill(data, item.id, parseRomanianAmount(extraAmount)); if (!next) return setError(t("Scrie suma de pe factură.")); onChange(next); setExtraId(null); setExtraAmount(""); setError(""); }}><Check size={16} /> {t("Notează")}</button></span></label>
+                  : <button type="button" className="bf-link-button" style={{ gridColumn: "1 / -1", justifySelf: "start" }} onClick={() => { setExtraId(item.id); setExtraAmount(""); }}>{t("+ Încă o factură luna asta")}</button>)}
                 <div className="bf-recurring-actions">
                   <button className="bf-recurring-toggle" onClick={toggleAuto}>{item.autoPost ? t("Treci pe manual") : t("Treci pe automat")}</button>
                   <button type="button" className="bf-recurring-edit" aria-label={t("Modifică {name}", { name: item.name })} onClick={() => startEdit(item)}><Pencil size={16} /></button>
