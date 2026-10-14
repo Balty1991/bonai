@@ -137,7 +137,7 @@ export function QuickEntryPanel({ data, onSave, onClose, onMore, onSaveTemplate,
   const typedAmount = parseRomanianAmount(amount);
   const ledgerAmount = entryLedgerAmount(typedAmount, isForeign, entryRate);
   const hideUnallocated = kind === "expense" && matched.length > 0 && ledgerAmount != null && unrepartized < Math.max(0.005, ledgerAmount || 0);
-  const askWhere = kind === "expense" && !tripOn && matched.length > 0 && unrepartized > 0.009;
+  const askWhere = kind === "expense" && !tripOn && matched.length > 0 && !matched[0].anySource && unrepartized > 0.009;
   const freeShort = ledgerAmount != null && ledgerAmount > 0.009 ? Math.max(0, Math.round((ledgerAmount - unrepartized) * 100) / 100) : 0;
   const suggestedEnvelope = matched[0];
   const suggestedWeek = suggestedEnvelope && isWeeklyPaced(suggestedEnvelope, data.settings.salaryPlan) ? allocationWeekStatus(data, suggestedEnvelope) : undefined;
