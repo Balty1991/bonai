@@ -44,6 +44,7 @@ import {
   untrackedSourceIds,
   envelopeDayAmount,
   spreadPart,
+  nextDebtDue,
 } from "./finance-data";
 import { statementMerchant } from "./statement-merchant";
 import { floorCents, lei as leiExact, perDay } from "./money-format";
@@ -1035,15 +1036,18 @@ const todayBriefUncached = (data: AppData, asOf: string): TodayBrief => {
         daysLeft: daysBetween(asOf, item.dueDate),
         confirmable: true,
       })),
+    // Scadența de după plăți: rata confirmată trece pe luna următoare, nu rămâne „Întârziată”.
     ...data.debts
-      .filter((item) => item.dueDate && item.dueDate <= horizon)
-      .map((item) => ({
+      .filter((item) => item.remaining > 0)
+      .map((item) => ({ item, due: nextDebtDue(data, item, asOf) }))
+      .filter(({ due }) => due && due <= horizon)
+      .map(({ item, due }) => ({
         id: item.id,
         kind: "debt" as const,
         name: item.name,
         amount: item.monthly || item.remaining,
-        dueDate: item.dueDate as string,
-        daysLeft: daysBetween(asOf, item.dueDate as string),
+        dueDate: due,
+        daysLeft: daysBetween(asOf, due),
         confirmable: false,
       })),
   ].sort((left, right) => left.dueDate.localeCompare(right.dueDate) || right.amount - left.amount).slice(0, 4);

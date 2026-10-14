@@ -4901,4 +4901,8 @@ export const en: Record<string, string> = {
   "Tendințe": "Trends",
   "luna, raportul, grafice, tendințe, calendar, plan pe 12 luni": "the month, report, charts, trends, calendar, 12-month plan",
   "investiții, avere, datorii, prețuri, reguli": "investments, net worth, debts, prices, rules",
+  "Rată achitată integral — {name}": "Installment, paid in full — {name}",
+  "Rată — {name}": "Installment — {name}",
+  "Datoria e achitată integral.": "The debt is paid in full.",
+  "Din datorie mai rămân {amount} RON.": "{amount} RON of the debt is left.",
 };
