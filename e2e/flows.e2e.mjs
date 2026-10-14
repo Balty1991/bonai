@@ -2,7 +2,7 @@
  * Fluxurile de bază, pe aplicația reală, cu date de test (fără Firebase). Fiecare pas face ce face
  * omul — atinge butoane, completează câmpuri — și verifică apoi registrul salvat, nu doar ecranul.
  *
- *   1. Notează o cheltuială → apare în registru și pe Astăzi; „Anulează” o scoate.
+ *   1. Notează o cheltuială → apare în registru și pe Astăzi; „Anulează” o scoate. Ziua „Ieri” se alege din formă.
  *   2. Plan → „Pornește rapid” → „Adaugă plicul” → „Confirmă repartizarea” → plicul există.
  *   3. Obligații → „Confirmă plata” la o rată → datoria scade, plata e în Mișcări.
  *   4. Mișcări → coșul unei mișcări → confirmare → mișcarea dispare.
@@ -109,6 +109,21 @@ async function main() {
       await waitFor(async () => (await ledger(page)).transactions.some((item) => item.amount === 42.5 && item.kind === "expense"), "42,50 în registru");
       await page.locator(".bf-undo-bar button", { hasText: "Anulează" }).click();
       await waitFor(async () => !(await ledger(page)).transactions.some((item) => item.amount === 42.5), "„Anulează” scoate mișcarea");
+      allErrors.push(...errors);
+      await context.close();
+    }
+
+    step("Notează pe „Ieri”, direct din formă");
+    {
+      const { page, context, errors } = await phone(browser);
+      await page.getByRole("button", { name: /^Notează$/ }).first().click();
+      await page.locator(".bf-modal input[inputmode=\"decimal\"]").first().fill("17,30");
+      const fromEnvelope = page.locator(".bf-spend-from button").first();
+      if (await fromEnvelope.count()) await fromEnvelope.click();
+      await page.getByRole("button", { name: "Ieri", exact: true }).click();
+      await page.getByRole("button", { name: "Gata" }).last().click();
+      const yesterday = await page.evaluate(() => { const d = new Date(); d.setDate(d.getDate() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; });
+      await waitFor(async () => (await ledger(page)).transactions.some((item) => item.amount === 17.3 && item.date === yesterday), "17,30 notat pe ieri");
       allErrors.push(...errors);
       await context.close();
     }

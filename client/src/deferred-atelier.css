@@ -350,6 +350,7 @@ html.bf-high-contrast{--cf-muted:var(--cf-ink);--cf-line:color-mix(in srgb,var(-
 .bf-amount-suggestions > span { flex: 0 0 100%; color: var(--cf-muted); font-size:12px; font-weight:600; letter-spacing: .05em; text-transform: uppercase; }
 .bf-amount-suggestions button { min-height: 36px; padding: 0 9px; border: 1px solid var(--cf-line); border-radius: 999px; color: var(--cf-primary-strong); background: var(--cf-surface-alt); font: 600 11px/1 "IBM Plex Sans", sans-serif; }
 .bf-amount-suggestions button:active { transform: scale(.97); }
+.bf-amount-suggestions button.is-on{background:var(--cf-primary-strong);color:var(--cf-surface)}
 .bf-quick-source-preview { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--cf-primary); color: var(--cf-muted); background: color-mix(in srgb, var(--cf-primary) 8%, var(--cf-surface)); font-size: 12px; line-height: 1.4; }
 .bf-quick-source-preview b { color: var(--cf-ink); }
 .bf-quick-source-preview.over { border-left-color: var(--cf-danger); background: color-mix(in srgb, var(--cf-danger) 9%, var(--cf-surface)); }

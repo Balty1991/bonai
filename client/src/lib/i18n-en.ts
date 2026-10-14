@@ -4925,4 +4925,6 @@ export const en: Record<string, string> = {
   "Plată lunară": "Monthly payment",
   "Lunar, fără dată de final": "Monthly, no end date",
   "Dobânda de overdraft nu are dată de final: nu știi când scapi. Rămâne la Datorii, ca s-o urmărești, cu plată lunară aproximativă; plata nu scade soldul și nu-ți mai promite „scapi în…”.": "Overdraft interest has no end date: you can't know when you'll be free of it. It stays in Debts so you can track it, with an approximate monthly payment; paying doesn't lower the balance and no \"debt-free by…\" date is promised.",
+  "Din bonurile tale": "From your receipts",
+  "Altă zi": "Another day",
 };

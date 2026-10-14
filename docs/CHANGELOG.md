@@ -6,6 +6,7 @@
   - Utilitățile (lumină, apă, gaz, întreținere) sunt „sumă aproximativă”: le confirmi cu suma de pe factură. Butonul se poate schimba pe „sumă fixă”.
   - La Scadențe, pe o plată aproximativă: „Doar actualizez suma (plătesc mai târziu)”, când factura a venit dar n-ai plătit-o încă.
 - **Dobânda de overdraft rămâne la Datorii, urmărită, dar „lunar, fără dată de final”**: plata lunară (aproximativă) se confirmă cu suma reală și nu scade soldul; dispar „scapi de ea în…”, graficul de rate și locul din ordinea de plată.
+- **Notează: ziua se alege direct** (Azi, Ieri, Alaltăieri sau Altă zi), fără „Cine, sursă, categorie”. **„Ce ai cumpărat” nu mai deschide lista automat**: scrii liber, iar produsele din bonuri apar ca sugestii mici abia după 2 litere.
 - **Două facturi într-o lună** (la lumină se întâmplă): la Scadențe, pe o plată aproximativă deja plătită luna asta, „+ Încă o factură luna asta” o notează pe aceeași plată lunară, fără să fie luată drept dublură.
 - **Obligații:** Obiective, Calendar și Evenimente stau pe un rând, trei butoane egale, cu iconița deasupra.
 
