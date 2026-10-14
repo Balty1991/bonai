@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData, financialBalance, sourceBalance, unappliedSalaryIncomes, type AppData } from "./finance-data";
-import { applyDeclaredBalance, balanceCheckDue, balanceCheckRows } from "./balance-check";
+import { applyDeclaredBalance, balanceCheckDue, balanceCheckRows, daysWithoutEntries } from "./balance-check";
 
 const casa = (miscari = 6): AppData => {
   const data = createEmptyAppData();
@@ -103,5 +103,32 @@ describe("tichete și cash pe minus (utilizator #10)", () => {
     expect(prompt.rows[0].id).toBe("tichete");
     expect(matchingAllocationsForExpense(data, { category: "Alimente", sourceId: "tichete" })).toEqual([]);
     expect(matchingAllocationsForExpense(data, { category: "Alimente", sourceId: "card" }).map((item) => item.id)).toEqual(["food"]);
+  });
+
+  it("după 3 zile fără notări întreabă singur, o singură dată pe 3 zile", () => {
+    const data = casa();
+    data.transactions = data.transactions.map((item) => ({ ...item, createdAt: "2026-09-18T10:00:00.000Z" }));
+    expect(daysWithoutEntries(data, "2026-09-21")).toBe(3);
+    const prompt = balanceCheckDue(data, "2026-09-18", "2026-09-21");
+    expect(prompt.due).toBe(true);
+    expect(prompt.gap).toBe(3);
+    expect(balanceCheckDue(data, "2026-09-21", "2026-09-22").due).toBe(false);
+  });
+
+  it("„am cheltuit fără să notez”: diferența devine cheltuială la Alimente, nu corecție", () => {
+    const data = casa();
+    const next = applyDeclaredBalance(data, "card", 1500, "2026-09-21", "unlogged");
+    const added = next.transactions[0];
+    expect(added).toMatchObject({ kind: "expense", category: "Alimente", amount: 200 });
+    expect(added.adjustment).toBeUndefined();
+    expect(sourceBalance(next, "card")).toBeCloseTo(1500, 2);
+  });
+
+  it("„soldul de pornire era greșit”: se îndreaptă soldul, fără nicio mișcare", () => {
+    const data = casa();
+    const next = applyDeclaredBalance(data, "card", 2500, "2026-09-21", "opening");
+    expect(next.transactions).toHaveLength(data.transactions.length);
+    expect(sourceBalance(next, "card")).toBeCloseTo(2500, 2);
+    expect(next.settings.paymentSources.find((item) => item.id === "card")?.openingBalance).toBe(2800);
   });
 });

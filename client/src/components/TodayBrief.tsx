@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { answerReviewPrompt, requestInAppReview, reviewPromptDue } from "@/lib/review-prompt";
 import { applySalaryAllocationRules, activeSalaryApplications, revertSalaryAllocationApplication, autoPostDueRecurring, confirmRecurringPayment, eligibleSalaryAllocationRules, isoToday, parseRomanianAmount, unappliedSalaryIncomes, type AppData } from "@/lib/finance-data";
-import { applyDeclaredBalance, balanceCheckDue, markBalanceChecked, readLastBalanceCheck, retireIgnoredBalanceCheck, type BalanceCheckRow } from "@/lib/balance-check";
+import { applyDeclaredBalance, balanceCheckDue, markBalanceChecked, readLastBalanceCheck, retireIgnoredBalanceCheck, type BalanceCheckRow, type BalanceMeaning } from "@/lib/balance-check";
 import { cycleClose } from "@/lib/cycle-close";
 import { pendingSplitIncome } from "@/lib/monthly-needs";
 import { IncomeSplitCard } from "@/components/IncomeSplitCard";
@@ -95,10 +95,10 @@ export function TodayBrief({ data, onGo, onChange, onOpenWeek, onOpenRecurring, 
     setCheckedNow([]);
     setDraft("");
   };
-  const raspunde = (row: BalanceCheckRow, spus: string) => {
+  const raspunde = (row: BalanceCheckRow, spus: string, meaning: BalanceMeaning = "correction") => {
     const valoare = spus.trim() ? parseRomanianAmount(spus) : row.balance;
     const amount = valoare !== undefined && Number.isFinite(valoare) && valoare >= 0 ? valoare : row.balance;
-    if (spus.trim() && Number.isFinite(valoare) && valoare >= 0) onChange(applyDeclaredBalance(data, row.id, valoare));
+    if (spus.trim() && Number.isFinite(valoare) && valoare >= 0) onChange(applyDeclaredBalance(data, row.id, valoare, isoToday(), meaning));
     setConfirmat({ name: row.name, amount });
     setDraft("");
     if (deVerificat.length <= 1) inchideVerificarea();
@@ -197,10 +197,22 @@ export function TodayBrief({ data, onGo, onChange, onOpenWeek, onOpenRecurring, 
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
             />
-            <button type="button" className="bf-primary" onClick={() => raspunde(acum, draft)}>
-              {draft.trim() ? t("Salvez diferența") : t("Așa e")}
-            </button>
+            {!draft.trim() && <button type="button" className="bf-primary" onClick={() => raspunde(acum, draft)}>{t("Așa e")}</button>}
           </div>
+          {draft.trim() && (() => {
+            // Ce înseamnă diferența: cumpărături nenotate, sold de pornire greșit sau doar o corecție.
+            const spus = parseRomanianAmount(draft);
+            if (!Number.isFinite(spus) || spus < 0 || Math.abs(spus - acum.balance) < 0.005) return <div className="bf-brief-check-row"><button type="button" className="bf-primary" onClick={() => raspunde(acum, "")}>{t("Așa e")}</button></div>;
+            const less = spus < acum.balance;
+            return (
+              <div style={{ display: "grid", gap: 8 }}>
+                <small>{less ? t("Lipsesc {amount}. De unde?", { amount: money(acum.balance - spus) }) : t("Sunt cu {amount} mai mulți. De unde?", { amount: money(spus - acum.balance) })}</small>
+                {less && <button type="button" className="bf-primary" onClick={() => raspunde(acum, draft, "unlogged")}>{t("Am cheltuit fără să notez")}</button>}
+                <button type="button" className={less ? "bf-secondary" : "bf-primary"} onClick={() => raspunde(acum, draft, "opening")}>{t("Soldul de pornire era greșit")}</button>
+                <button type="button" className="bf-brief-check-later" onClick={() => raspunde(acum, draft, "correction")}>{t("Doar corectez soldul")}</button>
+              </div>
+            );
+          })()}
           <button type="button" className="bf-brief-check-later" onClick={inchideVerificarea}>{t("Mai târziu")}</button>
         </div>
       )}

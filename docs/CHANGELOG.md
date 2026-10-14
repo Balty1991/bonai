@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.217
+
+- **„Am lipsit câteva zile”:** după 3 zile fără nicio cheltuială notată, Astăzi întreabă singur cât arată banca pe fiecare card. La o diferență alegi ce înseamnă: **„Am cheltuit fără să notez”** (intră ca „Cumpărături nenotate” în plicul de cumpărături și în analiză), **„Soldul de pornire era greșit”** (se îndreaptă soldul de pornire, fără nicio mișcare în registru) sau „Doar corectez soldul”.
+- **Sursele goale nu mai încarcă lista „Plătit din”:** cardurile fără nicio mișcare și cu sold 0 (de ex. un Revolut nefolosit) nu mai apar; cel ales rămâne mereu.
+- **Obligații → „Se eliberează”:** ratele care se termină în cel mult 3 luni și cât rămâne liber pe lună după ele, ca suma să primească un loc.
+- **Overdraftul folosit**, lângă dobânda „lunar, fără dată de final”: cardul aceleiași persoane care e pe minus și cu cât.
+- **Obligații: Obiective / Calendar / Evenimente stau acum chiar pe un rând** (o regulă veche le întindea pe toată lățimea, unul sub altul).
+- **Notificarea din ziua salariului** spune deja sumele de luna trecută (salarii, tichete, alocație); „A intrat salariul” e doar o verificare și o atingere.
+
 ## 1.1.216
 
 - **Plicuri mai simple, dintr-o atingere** (în Plicuri). Alimente devine **Cumpărături** (alimente, dulciuri, băuturi, apă, SGR, sacoșe), apar **Copil** (consumabile copil, pe lună) și **Altele** (haine, farmacie, timp liber, pe lună), cu sumele alese de tine; Taxi rămâne.

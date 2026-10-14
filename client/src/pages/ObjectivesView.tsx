@@ -2,6 +2,7 @@
  * Ecranul Obligații. Se încarcă singur, fără Setări, Sync sau bon.
  */
 import { BillsToMonthly } from "@/components/BillsToMonthly";
+import { endingDebts, freedPerMonth, overdraftInUse } from "@/lib/debt-relief";
 import { nextNeedDue } from "@/lib/cashflow-projection";
 import "../objective-edit.css";
 import "../mobile-obligations-pass.css";
@@ -205,8 +206,18 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
             { label: t("Obiective"), aria: t("Obiective pe termen lung"), icon: PiggyBank, open: onOpenGoals },
             { label: t("Calendar"), aria: t("Calendar de scadențe"), icon: CalendarDays, open: onOpenCalendar },
             { label: t("Evenimente"), aria: t("Evenimente viitoare"), icon: Gift, open: onOpenEvents },
-          ].map(({ label, aria, icon: Icon, open }) => <button key={label} className="bf-goals-link" aria-label={aria} onClick={open} style={{ width: "100%", minWidth: 0, minHeight: 68, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 4px", textAlign: "center", fontSize: 14, whiteSpace: "normal" }}><Icon size={20} aria-hidden="true" /> {label}</button>)}
+          ].map(({ label, aria, icon: Icon, open }) => <button key={label} className="bf-goals-link" aria-label={aria} onClick={open} style={{ gridColumn: "auto", width: "100%", minWidth: 0, minHeight: 68, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 4px", textAlign: "center", fontSize: 14, whiteSpace: "normal" }}><Icon size={20} aria-hidden="true" /> {label}</button>)}
         </div>
+        {(() => {
+          // Ratele care se termină curând: suma lor rămâne liberă și trebuie să aibă un loc.
+          const ending = endingDebts(data);
+          if (!ending.length) return null;
+          return <section className="bf-sub-board" aria-labelledby="bf-debt-relief-title" style={{ marginTop: 12 }}>
+            <div className="bf-section-heading"><div><p className="bf-kicker">{t("SE ELIBEREAZĂ")}</p><h2 id="bf-debt-relief-title">{t("~{amount} pe lună, în curând", { amount: money(freedPerMonth(ending)) })}</h2></div><PiggyBank size={20} aria-hidden="true" /></div>
+            {ending.map(({ debt, months }) => <p key={debt.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, margin: 0, padding: "8px 0", borderTop: "1px solid var(--cf-line)" }}><span><b>{debt.name}</b><br /><small style={{ color: "var(--cf-muted)" }}>{months <= 1 ? t("mai are o rată") : t("mai are {count} rate", { count: months })}</small></span><b style={{ whiteSpace: "nowrap" }}>{money(debt.monthly)}</b></p>)}
+            <p className="bf-helper">{t("Când se termină, dă suma un loc (economii, fondul de urgență sau o rată mai mare), ca să nu se topească în cheltuieli mărunte.")}</p>
+          </section>;
+        })()}
         {onUpdate && <BillsToMonthly data={data} onUpdate={onUpdate} />}
         <section className="bf-sub-board" aria-label={t("Abonamente")}>
           <div className="bf-section-heading">
@@ -322,6 +333,7 @@ export function ObjectivesView({ data, onSaveToGoal, onEditDebt, onEditSaving, o
                   {snowball.next?.debt.id === debt.id ? <em className="bf-snowball-tag">{t("01 · următoarea")}</em> : null}
                   <small>{debt.due} · {debt.openEnded ? t("~{amount}/lună, fără dată de final", { amount: money(debt.monthly) }) : t("rată {amount}/lună", { amount: money(debt.monthly) })}</small>
                   {debt.openEnded ? <small className="bf-debt-free">{t("Plata lunară nu scade soldul; îl schimbi din Editează când se modifică.")}</small> : null}
+                  {debt.openEnded ? overdraftInUse(data, debt).map((card) => <small key={card.name} className="bf-debt-free">{t("Overdraft folosit acum pe {card}: {amount}", { card: card.name, amount: money(card.used) })}</small>) : null}
                   {(() => { const months = debt.monthly > 0 && !debt.openEnded ? amortize(debt.remaining, debt.annualRate, debt.monthly).months : null; return months ? <small className="bf-debt-free">{t("Scapi de ea în {month}", { month: monthYear(monthAfter(months)) })}</small> : null; })()}
                 </div>
                 <strong>{money(debt.remaining)}</strong>
