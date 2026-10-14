@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData, type AppData } from "./finance-data";
-import { receiptCategories, scanToPrefill, type ScannedReceipt } from "./receipt-scan";
+import { receiptCategories, scanToPrefill, spreadReceiptDiscount, type ScannedReceipt } from "./receipt-scan";
 
 function family(): AppData {
   const data = createEmptyAppData();
@@ -186,5 +186,52 @@ describe("sursa „Voucher SGR” salvată ca tip card", () => {
     const prefill = scanToPrefill({ store: "Exflor", date: null, total: 20.36, items: [{ name: "Kinder", quantity: 1, amount: 20.36, category: "Dulciuri" }], payments: [{ method: "voucher", amount: 12 }, { method: "card", amount: 8.36 }], confidence: "high" }, data, undefined, "2026-10-08");
     expect(prefill.sourceId).toBe("v");
     expect(prefill.second).toEqual({ sourceId: "card", amount: 8.36 });
+  });
+});
+
+describe("reducerea pe tot bonul (Pepco, 14 oct)", () => {
+  const pepco: ScannedReceipt = {
+    store: "Pepco", date: "2026-10-14", total: 69.67, confidence: "high", payments: [{ method: "card", amount: 69.67 }],
+    items: [
+      { name: "Accesorii păpuși", quantity: 1, amount: 50, category: "Altele" },
+      { name: "Pulover bebeluși", quantity: 1, amount: 30, category: "Altele" },
+      { name: "Papuci barefoot", quantity: 1, amount: 12, category: "Altele" },
+      { name: "Sacoșă mică", quantity: 1, amount: 0.9, category: "Altele" },
+    ],
+  };
+
+  it("25% de pe tot bonul se împarte pe articole și rândurile dau totalul", () => {
+    const prefill = scanToPrefill(pepco, createEmptyAppData(), undefined, "2026-10-14");
+    const sum = Math.round(prefill.lines.reduce((total, line) => total + line.amount, 0) * 100) / 100;
+    expect(sum).toBe(69.67);
+    expect(prefill.lines[0]).toMatchObject({ amount: 37.5, discount: 12.5 });
+    expect(prefill.discount).toBeCloseTo(23.23, 2);
+    expect(prefill.warning).toBeUndefined();
+  });
+
+  it("o diferență care nu e un procent rotund rămâne de verificat (probabil un rând citit greșit)", () => {
+    expect(spreadReceiptDiscount([{ amount: 50 }, { amount: 30 }], 80, 71.3)).toBeUndefined();
+    expect(scanToPrefill({ ...pepco, total: 81.5 }, createEmptyAppData(), undefined, "2026-10-14").warning).toBeDefined();
+  });
+});
+
+describe("produs gratuit cu Lidl Plus (14 oct)", () => {
+  const lidl = (discount: number): ScannedReceipt => ({
+    store: "Lidl", date: "2026-10-14", total: 218.88, confidence: "high", payments: [{ method: "card", amount: 218.88 }],
+    items: [
+      { name: "Ceafă de porc", quantity: 1.03, amount: 33.89, category: "Alimente" },
+      { name: "Cărbuni din lemn", quantity: 1, amount: 18.29, category: "Altele" },
+      { name: "Prosecco DOC Frizzante", quantity: 1, amount: 25.99, discount, category: "Băuturi" },
+      { name: "Restul bonului", quantity: 1, amount: 166.7, category: "Alimente" },
+    ],
+  });
+
+  it("reducerea de 100% nescăzută: Prosecco ajunge la 0, rândurile dau totalul", () => {
+    for (const discount of [0, 25.99]) {
+      const prefill = scanToPrefill(lidl(discount), createEmptyAppData(), undefined, "2026-10-14");
+      expect(prefill.lines[2]).toMatchObject({ amount: 0, discount: 25.99 });
+      expect(Math.round(prefill.lines.reduce((sum, line) => sum + line.amount, 0) * 100) / 100).toBe(218.88);
+      expect(prefill.warning).toBeUndefined();
+    }
   });
 });

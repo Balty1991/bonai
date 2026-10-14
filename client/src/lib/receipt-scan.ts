@@ -71,8 +71,10 @@ export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?:
       category: known.has(item.category) ? item.category : fallback,
       ...((item.discount || 0) > 0.004 ? { discount: round(item.discount || 0) } : {}),
     }));
-  const itemsSum = round(lines.reduce((sum, line) => sum + line.amount, 0));
+  let itemsSum = round(lines.reduce((sum, line) => sum + line.amount, 0));
   const total = receipt.total > 0 ? round(receipt.total) : itemsSum;
+  const spread = spreadReceiptDiscount(lines, itemsSum, total);
+  if (spread) { lines.splice(0, lines.length, ...spread); itemsSum = total; }
   const byCategory = new Map<string, number>();
   for (const line of lines) byCategory.set(line.category, (byCategory.get(line.category) || 0) + line.amount);
   const category = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "Alimente";
@@ -109,9 +111,41 @@ export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?:
     second: secondSource && secondAmount > 0 && secondAmount < total ? { sourceId: secondSource.id, amount: secondAmount } : undefined,
     warning,
     ...(receipt.model ? { readBy: receipt.model.startsWith("claude") ? "claude" as const : "gemini" as const } : {}),
-    discount: round(receipt.items.reduce((sum, item) => sum + (item.discount && item.discount > 0 && item.amount > 0 ? item.discount : 0), 0)),
+    discount: round(lines.reduce((sum, line) => sum + (line.discount || 0), 0)),
     count: lines.length,
   };
+}
+
+/**
+ * Reducerea pe tot bonul („Reducere pentru angajați 25%”, „DISCOUNT 23,23” sub SUBTOTAL) nu ține de
+ * un articol: modelul o lasă uneori pe dinafară, iar rândurile fac mai mult decât totalul (Pepco:
+ * 92,90 față de 69,67). Când diferența e un procent rotund din tot bonul (5%, 10%, … 50%), o împărțim
+ * pe articole, proporțional; când e exact un rând (produs gratuit), îl scade din el; altfel e mai
+ * probabil un rând citit greșit și rămâne avertizarea.
+ */
+export function spreadReceiptDiscount<T extends { amount: number; discount?: number }>(lines: T[], itemsSum: number, total: number): T[] | undefined {
+  const gap = round(itemsSum - total);
+  if (!lines.length || gap <= 0.05 || total <= 0) return undefined;
+  // Reducerea unui singur articol, citită dar nescăzută din preț, sau un produs dat gratis
+  // („Reducere Lidl Plus / DISCOUNT 25,99” sub un Prosecco de 25,99): diferența e chiar acel rând.
+  const same = (value: number) => Math.abs(value - gap) <= 0.01;
+  const unsubtracted = lines.findIndex((line) => same(line.discount || 0) && line.amount >= gap - 0.01);
+  const free = unsubtracted >= 0 ? unsubtracted : lines.map((line) => same(line.amount)).lastIndexOf(true);
+  if (free >= 0) return lines.map((line, index) => index !== free ? line : { ...line, amount: round(Math.max(0, line.amount - gap)), discount: round(Math.max(line.discount || 0, gap)) });
+  const percent = (gap / itemsSum) * 100;
+  const nearest = Math.round(percent / 5) * 5;
+  if (nearest < 5 || nearest > 50 || Math.abs(percent - nearest) > 0.15) return undefined;
+  const spread = lines.map((line) => {
+    const cut = round((line.amount * gap) / itemsSum);
+    return { ...line, amount: round(line.amount - cut), discount: round((line.discount || 0) + cut) };
+  });
+  // Bănuții din rotunjire merg pe rândul cel mai mare, ca rândurile să dea exact totalul.
+  const drift = round(total - spread.reduce((sum, line) => sum + line.amount, 0));
+  if (Math.abs(drift) >= 0.005) {
+    const biggest = spread.reduce((best, line, index) => line.amount > spread[best].amount ? index : best, 0);
+    spread[biggest] = { ...spread[biggest], amount: round(spread[biggest].amount + drift), discount: round((spread[biggest].discount || 0) - drift) };
+  }
+  return spread;
 }
 
 /** Categoriile pe care le primește modelul: ale aplicației și cele create de familie. */
