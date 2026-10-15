@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.218
+
+- **„Modifică plicul” nu mai refuză salvarea cu „Pe Card bonuri sunt liberi doar 0 RON”.** Tichetele deja cheltuite din plic (la Lidl, Mega) au soldul 0, dar partea lor din plic e acoperită; acum contează ca atare.
+- **Editarea păstrează ce a setat „Plicuri mai simple” și „Reglează săptămânile”:** „din orice card”, categoriile adăugate (dulciuri, băuturi, apă…) și suma pe săptămână nu se mai pierd la „Salvează plicul”.
+- La un plic „din orice card”, formularul spune că sursa arată doar din ce bani se pune deoparte suma.
+
 ## 1.1.217
 
 - **„Am lipsit câteva zile”:** după 3 zile fără nicio cheltuială notată, Astăzi întreabă singur cât arată banca pe fiecare card. La o diferență alegi ce înseamnă: **„Am cheltuit fără să notez”** (intră ca „Cumpărături nenotate” în plicul de cumpărături și în analiză), **„Soldul de pornire era greșit”** (se îndreaptă soldul de pornire, fără nicio mișcare în registru) sau „Doar corectez soldul”.
