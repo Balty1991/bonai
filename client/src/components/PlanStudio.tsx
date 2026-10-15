@@ -28,7 +28,7 @@ import { AllocationRecommendationsPanel } from "@/components/AllocationRecommend
 import { EnvelopeTransferPanel } from "@/components/EnvelopeTransferPanel";
 import { MonthlyAllocationWizard } from "@/components/MonthlyAllocationWizard";
 import { SalaryRitualPanel } from "@/components/SalaryRitualPanel";
-import { allocationSourceParts, amountInput, debtsOutsideTrackedMoney, sourceBalance, allocationStatus, allocationWeekStatus, allocationWeeksStatus, addIsoDays, appendAllocationHistory, expenseCategories, formatDate, isoDate, isoToday, isWeeklyPaced, newId, parseRomanianAmount, paydayWindow, planAllocationMath, planEndDate, planWeeklyCycle, sourceFreeBalance, transferBetweenWeeks, type AppData, type BudgetAllocation } from "@/lib/finance-data";
+import { allocationSourceParts, allocationSpentFromSource, amountInput, debtsOutsideTrackedMoney, sourceBalance, allocationStatus, allocationWeekStatus, allocationWeeksStatus, addIsoDays, appendAllocationHistory, expenseCategories, formatDate, isoDate, isoToday, isWeeklyPaced, newId, parseRomanianAmount, paydayWindow, planAllocationMath, planEndDate, planWeeklyCycle, sourceFreeBalance, transferBetweenWeeks, type AppData, type BudgetAllocation } from "@/lib/finance-data";
 import { applyPlanRows, parsePlanTable } from "@/lib/plan-import";
 import { nextCycleIncomeArrived, envelopeBurnPace, envelopeMonthlyHistory, envelopeRunOut, envelopeUntilPayday, weekDayCap, envelopeBurndown} from "@/lib/household-insights";
 import { MonthlyNeedsSection, NextPayday } from "@/components/MonthlyNeedsPanel";
@@ -270,7 +270,17 @@ export function PlanStudio({ data, onChange, simpleMode = false }: { data: AppDa
    * plicuri plătite din sursa asta nu mai e disponibil pentru un plic nou. Când editezi un
    * plic, propria lui rezervă intră la loc în disponibil — altfel n-ai putea să-l salvezi.
    */
-  const sourceAvailable = (sourceId: string) => sourceFreeBalance(data, sourceId, editingAllocationId || undefined);
+  /**
+   * Cât poate da o sursă plicului editat: banii ei liberi plus ce a cheltuit deja plicul din ea.
+   * Tichetele de 600 cheltuite la Lidl din plicul de cumpărături au soldul 0, dar partea lor din
+   * plic e acoperită; fără asta, „Modifică plicul” refuza salvarea cu „liberi doar 0 RON”.
+   */
+  const sourceAvailable = (sourceId: string) => {
+    const base = sourceFreeBalance(data, sourceId, editingAllocationId || undefined);
+    const editing = editingAllocationId ? plan.allocations.find((item) => item.id === editingAllocationId) : undefined;
+    const spent = editing ? Math.max(0, allocationSpentFromSource(data, editing, sourceId)) : 0;
+    return { ...base, free: Math.round((base.free + spent) * 100) / 100 };
+  };
   const wholeLei = (value: number) => Math.round(value).toLocaleString(getLocale());
   const sourceOptionLabel = (source: { id: string; name: string }) => {
     const { balance, free } = sourceAvailable(source.id);
@@ -382,7 +392,10 @@ export function PlanStudio({ data, onChange, simpleMode = false }: { data: AppDa
       return setAllocationError(t("Casa include până la {n} plicuri. Planul Familia deblochează plicuri nelimitate.", { n: String(PLANS.casa.envelopes) }));
     }
     const label = allocationLabel.trim() || `${allocationCategory}${member ? ` · ${member.name}` : ""}`;
-    const next: BudgetAllocation = { id: editingAllocationId || newId("allocation"), label, amount, category: allocationCategory, memberId: member?.id, sourceId: source.id, funding: fundingEntries.length ? fundingEntries : undefined, note: allocationNote.trim() || undefined, alertThreshold: allocationThreshold, weeklyPace: allocationWeeklyPace ? true : false };
+    // Editarea păstrează ce nu e în formular: „din orice card”, categoriile adăugate, suma pe săptămână.
+    const kept = editingAllocationId ? plan.allocations.find((item) => item.id === editingAllocationId) : undefined;
+    const keptExtras = kept ? { ...(kept.anySource ? { anySource: true } : {}), ...(kept.categories?.length ? { categories: kept.categories } : {}), ...(kept.weeklyAmount && allocationWeeklyPace && amount === kept.amount ? { weeklyAmount: kept.weeklyAmount } : {}) } : {};
+    const next: BudgetAllocation = { ...keptExtras, id: editingAllocationId || newId("allocation"), label, amount, category: allocationCategory, memberId: member?.id, sourceId: source.id, funding: fundingEntries.length ? fundingEntries : undefined, note: allocationNote.trim() || undefined, alertThreshold: allocationThreshold, weeklyPace: allocationWeeklyPace ? true : false };
     const previous = editingAllocationId ? plan.allocations.find((item) => item.id === editingAllocationId) : undefined;
     const nextAllocations = editingAllocationId ? plan.allocations.map((item) => item.id === editingAllocationId ? next : item) : [...plan.allocations, next];
     const nextData = { ...data, settings: { ...data.settings, salaryPlan: { ...plan, allocations: nextAllocations, totalLimit: nextAllocations.reduce((sum, item) => sum + item.amount, 0), updatedAt: new Date().toISOString() } } };
@@ -631,6 +644,7 @@ export function PlanStudio({ data, onChange, simpleMode = false }: { data: AppDa
             layout numără copiii, așa că un element în plus ar muta coloanele celorlalte câmpuri. */}
         <div className={`bf-source-field${allocationTotal > 0 && (shortfall > 0.5 || allocationFunding.length > 0) ? " is-funding" : ""}`}>
         <PlanField label={t("Plătit din")} hint={sourceFreeHint}><select value={allocationSourceId} onChange={(event) => setAllocationSourceId(event.target.value)}>{currentSourceOptions.map((source) => <option key={source.id} value={source.id}>{sourceOptionLabel(source)}</option>)}</select></PlanField>
+        {previewPrevious?.anySource && <small className="bf-helper" style={{ display: "block" }}>{t("Plicul ia plata din orice card, tichete sau cash. Sursa de aici spune doar din ce bani se pune deoparte suma.")}</small>}
         {/* Plicul se plătește din surse reale. Când cea aleasă nu ajunge, diferența se ia
             explicit din alta — 1.800 din cashul tău și 100 din al partenerei — în loc să fie
             promisă din bani care nu există. */}

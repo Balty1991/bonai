@@ -1284,7 +1284,7 @@ export const allocationFundingShares = (item: BudgetAllocation): AllocationFundi
 };
 
 /** Cât din plic s-a plătit chiar din sursa asta, în perioada planului. */
-const allocationSpentFromSource = (data: AppData, allocation: BudgetAllocation, sourceId: string) => {
+export const allocationSpentFromSource = (data: AppData, allocation: BudgetAllocation, sourceId: string) => {
   const plan = data.settings.salaryPlan;
   const start = plan.periodStart;
   const end = planCoverEndDate(plan);

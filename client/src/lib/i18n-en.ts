@@ -4971,4 +4971,5 @@ export const en: Record<string, string> = {
   "mai are {count} rate": "{count} payments left",
   "Când se termină, dă suma un loc (economii, fondul de urgență sau o rată mai mare), ca să nu se topească în cheltuieli mărunte.": "When they end, give the amount a place (savings, the emergency fund or a bigger loan payment), so it doesn't melt into small spending.",
   "Overdraft folosit acum pe {card}: {amount}": "Overdraft in use on {card}: {amount}",
+  "Plicul ia plata din orice card, tichete sau cash. Sursa de aici spune doar din ce bani se pune deoparte suma.": "The envelope takes payments from any card, meal vouchers or cash. The source here only says which money the amount is set aside from.",
 };
