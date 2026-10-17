@@ -15,6 +15,8 @@ import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
 import { listShareText, whatsappShareUrl } from "@/lib/list-share";
+import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
+import { saveExport } from "@/lib/save-export";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
@@ -143,6 +145,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { d
       <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, temă")} onClick={() => onOpenMore("settings")} />
     </div>
     <div className="sh-rows">
+      {hasLegacyData(data) && <Row icon={<Download size={20} />} title={t("Exportă arhiva veche")} hint={t("fișier JSON cu bugetul de dinainte")} onClick={() => void saveExport(`bonut-arhiva-${isoToday()}.json`, new Blob([JSON.stringify(buildLegacyArchive(data), null, 2)], { type: "application/json" }))} />}
       <Row icon={<Wallet size={20} />} title={t("Arhiva veche (buget)")} hint={t("plicurile, conturile și veniturile de dinainte, păstrate întregi")} onClick={onOpenBudget} />
       <Row icon={<PiggyBank size={20} />} title={t("Toate uneltele")} hint={t("rapoarte, avere, investiții")} onClick={() => onOpenMore("overview")} />
     </div>

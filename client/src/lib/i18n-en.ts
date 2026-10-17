@@ -5109,6 +5109,8 @@ export const en: Record<string, string> = {
   "fișier pe telefon": "file on the phone",
   "limbă, notificări, temă": "language, notifications, theme",
   "Buget (vechi)": "Budget (classic)",
+  "Exportă arhiva veche": "Export the old archive",
+  "fișier JSON cu bugetul de dinainte": "JSON file with your former budget",
   "Înapoi la Gospodărie": "Back to Household",
   "Lista de cumpărături:": "Shopping list:",
   "Trimisă din Bonuț, lista care îți arată cât economisești.": "Sent from Bonuț, the list that shows how much you save.",
