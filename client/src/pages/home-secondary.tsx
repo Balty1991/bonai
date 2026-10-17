@@ -25,6 +25,7 @@ import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { t } from "@/lib/i18n";
 import { askConfirm } from "@/lib/confirm-dialog";
 import { visibleShopping } from "@/lib/shopping-list";
+import { liveWarranties, warrantyCandidates } from "@/lib/warranties";
 import { APP_PRIVACY_PATH, APP_SUPPORT_EMAIL, APP_TERMS_PATH, APP_VERSION, publicLegalUrl } from "@/lib/app-version";
 
 /** Subsolul din Mai mult: linkuri mici la vedere, dar cu loc de atins de 44 px. */
@@ -33,6 +34,7 @@ const ReportsPanel = lazy(() => import("@/components/ReportsPanel").then((module
 const RecurringPanel = lazy(() => import("@/components/RecurringPanel").then((module) => ({ default: module.RecurringPanel })));
 const ReviewCenterPanel = lazy(() => import("@/components/ReviewCenterPanel").then((module) => ({ default: module.ReviewCenterPanel })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
+const WarrantiesPanel = lazy(() => import("@/components/WarrantiesPanel").then((module) => ({ default: module.WarrantiesPanel })));
 const PocketPanel = lazy(() => import("@/components/PocketPanel").then((module) => ({ default: module.PocketPanel })));
 const PlannedEventsPanel = lazy(() => import("@/components/PlannedEventsPanel").then((module) => ({ default: module.PlannedEventsPanel })));
 const AdvisorPanel = lazy(() => import("@/components/AdvisorPanel").then((module) => ({ default: module.AdvisorPanel })));
@@ -59,7 +61,7 @@ const TAB_PANELS: Partial<Record<MoreView, (object | (() => Promise<unknown>))[]
   receipts: [ReceiptsStudio], catalog: [ProductCatalogPanel], review: [ReviewCenterPanel], "year-plan": [YearPlanPanel],
   "net-worth": [NetWorthPanel], "debt-exit": [DebtExitPanel], charts: [ChartsPanel], trends: [TrendsPanel], invest: [InvestSimPanel],
   "money-calendar": [MoneyCalendarPanel], advisor: [MonthAdvisorPanel], trip: [TripPanel], shopping: [ShoppingListPanel],
-  prices: [PriceWatchPanel], pocket: [PocketPanel], events: [PlannedEventsPanel], recurring: [RecurringPanel], reports: [ReportsPanel],
+  prices: [PriceWatchPanel], warranties: [WarrantiesPanel], pocket: [PocketPanel], events: [PlannedEventsPanel], recurring: [RecurringPanel], reports: [ReportsPanel],
   assistant: [AdvisorPanel], learned: [LearnedRulesPanel], settings: [SettingsPanel, () => import("./SettingsPanel").then((module) => module.preloadSettingsParts())], guide: [FamilyGuide], sync: [SyncPanel], overview: [YearRecapStory],
 };
 const warmTabs = new Set<MoreView>(["debts", "savings", "feedback"]);
@@ -107,6 +109,19 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
   const [storyOpen, setStoryOpen] = useState(false);
   const story = useMemo(() => { if (tab !== "overview") return undefined; const today = isoToday(); const recap = yearRecap(data.transactions, recapYearFor(today), today); return recapReady(recap) ? recap : undefined; }, [data.transactions, tab]);
   const shoppingCount = visibleShopping(data.settings.shoppingList || []).todo.length;
+  // Ce spune rândul „Garanții și retururi”: ultima zi de retur sau garanția care expiră, altfel câte sunt.
+  const { warrantyHint, warrantyUrgent } = useMemo(() => {
+    if (tab !== "overview") return { warrantyHint: "", warrantyUrgent: false };
+    const today = isoToday();
+    const live = liveWarranties(data, today);
+    const urgent = live.find((item) => item.status.state === "return" || item.status.state === "expiring");
+    if (urgent?.status.state === "return") return { warrantyHint: t("{name}: retur până pe {date}", { name: urgent.warranty.name, date: dateText(urgent.status.returnUntil || today, true) }), warrantyUrgent: true };
+    if (urgent?.status.until) return { warrantyHint: t("{name}: garanția expiră pe {date}", { name: urgent.warranty.name, date: dateText(urgent.status.until, true) }), warrantyUrgent: true };
+    const proposed = warrantyCandidates(data, today, 9).length;
+    const active = live.filter((item) => item.status.state === "active").length;
+    if (proposed) return { warrantyHint: t("{count} produse din bonuri par să aibă garanție", { count: proposed }), warrantyUrgent: false };
+    return { warrantyHint: active ? t("{count} produse în garanție", { count: active }) : t("bonul păstrat, amintire înainte de retur"), warrantyUrgent: false };
+  }, [data, tab]);
   const content = () => {
     if (tab === "overview") return <div className="bf-more-overview">
       {simpleMode ? (
@@ -151,6 +166,7 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
         <div className="bf-more-grid bf-settings-group">
           <button type="button" className="bf-settings-row" onClick={() => setTab("shopping")}><ListChecks size={20} /><span className="bf-settings-copy"><b>{t("Lista de cumpărături")}</b><small>{shoppingCount ? t("{count} de luat", { count: shoppingCount }) : t("comună pentru toată familia")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("prices")}><ShoppingBasket size={20} /><span className="bf-settings-copy"><b>{t("Produsele tale")}</b><small>{t("prețul fiecăruia, inflația ta, shrinkflation")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
+          <button type="button" className={warrantyUrgent ? "bf-settings-row has-badge" : "bf-settings-row"} onClick={() => setTab("warranties")}><ShieldCheck size={20} /><span className="bf-settings-copy"><b>{t("Garanții și retururi")}</b><small>{warrantyHint}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("receipts")}><ReceiptText size={20} /><span className="bf-settings-copy"><b>{t("Bonuri")}</b><small>{t("produse, catalog și alimente vs nealimentare")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("catalog")}><Search size={20} /><span className="bf-settings-copy"><b>{t("Catalog")}</b><small>{t("caută Napolact, Ariel, lapte — liste online")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           {!data.pendingReview.length && <button type="button" className={data.pendingReview.length ? "bf-settings-row has-badge" : "bf-settings-row"} onClick={() => setTab("review")}><Inbox size={20} /><span className="bf-settings-copy"><b>{t("De verificat")}{data.pendingReview.length > 0 && <span className="bf-nav-count">{data.pendingReview.length}</span>}</b><small>{data.pendingReview.length ? t("{count} propuneri de confirmat", { count: data.pendingReview.length }) : t("import și confirmări")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>}
@@ -215,6 +231,7 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
     if (tab === "trip") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim vacanța…")}</div>}><TripPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "shopping") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "prices") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PriceWatchPanel data={data} onChange={onChange} /></Suspense>;
+    if (tab === "warranties") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim garanțiile…")}</div>}><WarrantiesPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "pocket") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim buzunarul…")}</div>}><PocketPanel data={data} /></Suspense>;
     if (tab === "events") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim evenimentele…")}</div>}><PlannedEventsPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "recurring") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim scadențele…")}</div>}><RecurringPanel data={data} onChange={onChange} /></Suspense>;

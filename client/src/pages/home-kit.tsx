@@ -10,7 +10,7 @@ import { moneyFormat, t } from "@/lib/i18n";
 import { lei } from "@/lib/money-format";
 
 export type MainView = "today" | "journal" | "plan" | "obligations" | "goals" | "habits" | "calendar" | "insights" | "utilities";
-export type MoreView = "overview" | "review" | "shopping" | "trip" | "year-plan" | "net-worth" | "debt-exit" | "advisor" | "trends" | "invest" | "money-calendar" | "charts" | "prices" | "pocket" | "debts" | "savings" | "events" | "receipts" | "catalog" | "recurring" | "reports" | "assistant" | "learned" | "settings" | "sync" | "guide" | "feedback";
+export type MoreView = "overview" | "review" | "shopping" | "trip" | "year-plan" | "net-worth" | "debt-exit" | "advisor" | "trends" | "invest" | "money-calendar" | "charts" | "prices" | "warranties" | "pocket" | "debts" | "savings" | "events" | "receipts" | "catalog" | "recurring" | "reports" | "assistant" | "learned" | "settings" | "sync" | "guide" | "feedback";
 /** Uneltele de analiză din Mai mult se deschid din ecranul Analiză, nu ca cinci intrări separate. */
 export const ANALYSIS_TOOLS: MoreView[] = ["advisor", "charts", "trends", "money-calendar", "year-plan"];
 /** Aurora și Cyber au fost scoase; cine le avea trece pe Navy, respectiv Întunecat (theme-default). */

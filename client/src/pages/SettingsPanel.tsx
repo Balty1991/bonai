@@ -180,6 +180,7 @@ function LocalAlertsSettings({ data }: { data: AppData }) {
     summaries: [t("Bilanțuri"), t("Duminică seara săptămâna, pe 1 ale lunii luna trecută.")],
     checkin: [t("Amintirea de seară"), t("Dacă tu n-ai notat azi, chiar dacă partenerul a notat.")],
     backup: [t("Copia de siguranță"), t("Dacă n-ai mai salvat o copie de peste 30 de zile.")],
+    warranty: [t("Garanții și retururi"), t("Cu o zi înainte de ultima zi de retur și cu 30 de zile înainte să expire garanția.")],
   };
 
   const ping = () => {
