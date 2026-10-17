@@ -5,8 +5,8 @@
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
 import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Lock, Send, Share2, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
-import { isoToday, type AppData } from "@/lib/finance-data";
+import { ArrowUpRight, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
+import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
 import { liveWarranties } from "@/lib/warranties";
@@ -17,6 +17,9 @@ import { visibleShopping } from "@/lib/shopping-list";
 import { listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
 import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
 import { saveExport } from "@/lib/save-export";
+import { productObservations } from "@/lib/personal-inflation";
+import { pantryFromReceipts } from "@/lib/pantry";
+import { weeklyMenu } from "@/lib/weekly-menu";
 import { monthSaved, savedShareText, threeMonthAverage } from "@/lib/savings-summary";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
 import { BONUT_PRICES, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
@@ -127,18 +130,54 @@ export function ProductsView({ data, onChange }: { data: AppData; onChange: (nex
   </div>;
 }
 
-/** Cumpărături: lista comună, gratuită, cu prețuri estimate din bonuri și trimitere pe WhatsApp. */
+/** Cumpărături: lista comună (gratuită), cămara din bonuri și meniul săptămânii (PRO). */
 export function ListView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+  const [tab, setTab] = useState<"list" | "pantry" | "menu">("list");
   const todo = visibleShopping(data.settings.shoppingList || []).todo;
   const share = () => {
     const text = listShareText(todo, t("Lista de cumpărături:"), `${t("Bifează aici, fără aplicație:")} ${listShareLink(todo, data.settings.familyName || undefined)}`);
     window.open(whatsappShareUrl(text), "_blank", "noopener");
   };
+  const addToList = (texts: string[]) => {
+    const have = new Set(todo.map((item) => item.text.toLocaleLowerCase("ro-RO")));
+    const fresh = texts.filter((text) => !have.has(text.toLocaleLowerCase("ro-RO")));
+    if (!fresh.length) return;
+    const now = new Date().toISOString();
+    onChange({ ...data, settings: { ...data.settings, shoppingList: [...(data.settings.shoppingList || []), ...fresh.map((text) => ({ id: newId("shop"), text, updatedAt: now }))] } });
+  };
   return <div className="sh-page">
     <header className="sh-head"><p className="sh-kicker">{t("CUMPĂRĂTURI")}</p><h1 className="sh-h1">{t("Lista familiei")}</h1></header>
-    {todo.length > 0 && <button type="button" className="sh-scan" onClick={share}><Send size={20} aria-hidden="true" /> {t("Trimite pe WhatsApp")}</button>}
-    <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>
+    <div className="sh-tabs" role="tablist">{([["list", t("Listă")], ["pantry", t("Cămară")], ["menu", t("Meniu")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
+    {tab === "list" && <>
+      {todo.length > 0 && <button type="button" className="sh-scan" onClick={share}><Send size={20} aria-hidden="true" /> {t("Trimite pe WhatsApp")}</button>}
+      <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>
+    </>}
+    {tab === "pantry" && <PantryCard data={data} onAdd={addToList} />}
+    {tab === "menu" && <ProGate data={data} feature="weeklyMenu" title={t("Meniul săptămânii")} pitch={t("Șapte mese ieftine din ce cumperi deja, cu costul din prețurile tale.")}><MenuCard data={data} onAdd={addToList} /></ProGate>}
   </div>;
+}
+
+function PantryCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) => void }) {
+  const today = isoToday();
+  const items = useMemo(() => pantryFromReceipts(productObservations(data), today), [data, today]);
+  const low = items.filter((item) => item.state !== "ok");
+  if (!items.length) return <Card kicker={t("CĂMARA")}><p className="sh-muted">{t("Cămara se umple singură din bonuri: după 3 cumpărări ale aceluiași produs îți spun când se termină.")}</p></Card>;
+  return <Card kicker={t("CĂMARA")} title={low.length ? t("{count} produse se termină", { count: low.length }) : t("Ai de toate, după ritmul tău")}>
+    <ul className="sh-list">{items.slice(0, 12).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("o dată la ~{days} zile · ultima dată acum {since} zile", { days: item.everyDays, since: item.daysSince })}</small></span><b className={item.state === "out" ? "sh-up" : item.state === "soon" ? "" : "sh-down"}>{item.state === "out" ? t("s-a terminat?") : item.state === "soon" ? t("curând") : t("ok")}</b></li>)}</ul>
+    {low.length > 0 && <button type="button" className="sh-link" onClick={() => onAdd(low.map((item) => item.label))}><Plus size={16} aria-hidden="true" /> {t("Pune-le pe listă")}</button>}
+  </Card>;
+}
+
+function MenuCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) => void }) {
+  const today = isoToday();
+  const menu = useMemo(() => weeklyMenu(productObservations(data), today), [data, today]);
+  const total = menu.reduce((sum, day) => sum + day.knownCost, 0);
+  const unknown = menu.reduce((sum, day) => sum + day.unknown, 0);
+  return <Card kicker={t("MENIUL SĂPTĂMÂNII")} title={total > 0 ? t("~{amount} din prețurile tale", { amount: lei(total) }) : t("Șapte mese simple")}>
+    <ul className="sh-list">{menu.map((day) => <li key={day.recipe.id}><span><b>{day.recipe.name}</b><small>{day.ingredients.map((i) => i.price !== undefined ? `${i.name} ${lei(i.price)}` : i.name).join(" · ")}</small></span><b>{day.knownCost > 0 ? lei(day.knownCost) : "—"}</b></li>)}</ul>
+    {unknown > 0 && <p className="sh-muted sh-note">{t("{count} ingrediente nu apar încă în bonurile tale, deci nu le pun preț.", { count: unknown })}</p>}
+    <button type="button" className="sh-link" onClick={() => onAdd(Array.from(new Set(menu.flatMap((day) => day.ingredients.filter((i) => !i.recent).map((i) => i.name)))))}><Plus size={16} aria-hidden="true" /> {t("Pune ingredientele lipsă pe listă")}</button>
+  </Card>;
 }
 
 /** Prețuri: produsele mele și magazinele, în taburi. */
