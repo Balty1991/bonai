@@ -5,6 +5,7 @@
  */
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
+import { productFactsOf, storeFactsOf, type ProductFacts, type StoreFacts } from "./receipt-products";
 
 const ENDPOINT = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/readReceipt";
 const CONSENT_KEY = "buget-familie:receipt-scan-consent";
@@ -13,12 +14,12 @@ export type ScannedReceipt = {
   store: string;
   date: string | null;
   total: number;
-  items: Array<{ name: string; rawName?: string; quantity: number; amount: number; discount?: number; category: string }>;
+  items: Array<{ name: string; rawName?: string; quantity: number; amount: number; discount?: number; category: string } & ProductFacts>;
   payments: Array<{ method: "cash" | "card" | "meal" | "voucher" | "other"; amount: number }>;
   confidence: "high" | "medium" | "low";
   /** Modelul care a citit bonul (Gemini sau, ca rezervă, Claude). */
   model?: string;
-};
+} & StoreFacts;
 
 export type ScanPrefill = {
   /** Cine a citit: „gemini” de obicei, „claude” când Gemini era aglomerat. */
@@ -28,7 +29,9 @@ export type ScanPrefill = {
   date?: string;
   category: string;
   /** „discount”: cât s-a scăzut pe rând; suma e deja cea plătită. */
-  lines: Array<{ label: string; amount: number; category: string; discount?: number }>;
+  lines: Array<{ label: string; amount: number; category: string; discount?: number; /** Cantitatea și faptele produsului, lipite de bon la salvare. */ qty?: number; product?: ProductFacts }>;
+  /** Antetul magazinului citit de pe bon. */
+  store?: StoreFacts;
   /** Prima sursă (cea cu suma mai mare), dacă familia are una de felul plății. */
   sourceId?: string;
   /** A doua sursă, când bonul e plătit din două (ex. voucher SGR + numerar). */
@@ -70,6 +73,8 @@ export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?:
       amount: round(item.amount),
       category: known.has(item.category) ? item.category : fallback,
       ...((item.discount || 0) > 0.004 ? { discount: round(item.discount || 0) } : {}),
+      ...(item.quantity && item.quantity > 0 ? { qty: item.quantity } : {}),
+      ...(Object.keys(productFactsOf(item)).length ? { product: productFactsOf(item) } : {}),
     }));
   let itemsSum = round(lines.reduce((sum, line) => sum + line.amount, 0));
   const total = receipt.total > 0 ? round(receipt.total) : itemsSum;
@@ -113,6 +118,7 @@ export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?:
     ...(receipt.model ? { readBy: receipt.model.startsWith("claude") ? "claude" as const : "gemini" as const } : {}),
     discount: round(lines.reduce((sum, line) => sum + (line.discount || 0), 0)),
     count: lines.length,
+    ...(Object.keys(storeFactsOf(receipt)).length ? { store: storeFactsOf(receipt) } : {}),
   };
 }
 

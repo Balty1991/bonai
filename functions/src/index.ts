@@ -1157,10 +1157,20 @@ type ScannedReceipt = {
   store: string;
   date: string | null;
   total: number;
-  items: Array<{ name: string; rawName: string; quantity: number; amount: number; discount: number; category: string }>;
+  items: Array<{ name: string; rawName: string; quantity: number; amount: number; discount: number; category: string } & ProductFacts>;
   payments: Array<{ method: PaymentMethod; amount: number }>;
   confidence: "high" | "medium" | "low";
-};
+} & StoreFacts;
+
+/**
+ * Bonul citit pe produs, nu doar pe categorie: marca, gramajul și unitatea fac din „LAPTE ZUZU
+ * 1.5% 1L” același produs la fiecare cumpărare, ca istoricul de preț și pe kg să aibă sens.
+ * Toate sunt opționale: un model care nu le dă (sau o aplicație veche) merge ca înainte.
+ */
+const SIZE_UNITS = ["g", "kg", "ml", "l", "buc"] as const;
+type SizeUnit = typeof SIZE_UNITS[number];
+type ProductFacts = { brand?: string; size?: number; sizeUnit?: SizeUnit; unit?: "buc" | "kg" | "l"; unitPrice?: number; vatRate?: number };
+type StoreFacts = { storeCui?: string; storeAddress?: string; city?: string; time?: string; vat?: number };
 
 const receiptSchema = {
   type: "OBJECT",
@@ -1180,9 +1190,15 @@ const receiptSchema = {
           amount: { type: "NUMBER" },
           discount: { type: "NUMBER" },
           category: { type: "STRING" },
+          brand: { type: "STRING" },
+          size: { type: "NUMBER" },
+          sizeUnit: { type: "STRING", enum: [...SIZE_UNITS] },
+          unit: { type: "STRING", enum: ["buc", "kg", "l"] },
+          unitPrice: { type: "NUMBER" },
+          vatRate: { type: "NUMBER" },
         },
         required: ["rawName", "name", "amount", "category"],
-        propertyOrdering: ["rawName", "name", "quantity", "amount", "discount", "category"],
+        propertyOrdering: ["rawName", "name", "brand", "size", "sizeUnit", "quantity", "unit", "unitPrice", "amount", "discount", "vatRate", "category"],
       },
     },
     payments: {
@@ -1197,9 +1213,14 @@ const receiptSchema = {
       },
     },
     confidence: { type: "STRING", enum: ["high", "medium", "low"] },
+    storeCui: { type: "STRING" },
+    storeAddress: { type: "STRING" },
+    city: { type: "STRING" },
+    time: { type: "STRING" },
+    vat: { type: "NUMBER" },
   },
   required: ["isReceipt", "store", "total", "items", "payments", "confidence"],
-  propertyOrdering: ["isReceipt", "store", "date", "items", "total", "payments", "confidence"],
+  propertyOrdering: ["isReceipt", "store", "storeCui", "storeAddress", "city", "date", "time", "items", "total", "vat", "payments", "confidence"],
 };
 
 /** Când bonul vine în mai multe capturi: aceeași listă, fără dubluri la îmbinări. */
@@ -1247,6 +1268,28 @@ total: „TOTAL” sau „TOTAL LEI” de pe bon. Suma articolelor trebuie să d
 
 payments: cum s-a plătit, câte un rând pe metodă: cash (NUMERAR), card (CARD, CARD BANCAR, PLATA CARD), meal (TICHETE DE MASĂ, Edenred, Up, Pluxee, Sodexo), voucher (VOUCHER RETURO, voucher SGR, „TICHETE VALORICE” când bonul pomenește voucher returo sau SGR), other (orice altceva). Suma este cât s-a plătit efectiv: la numerar scazi restul dat înapoi („ÎNCASAT 100, REST 55,42” la un total de 44,58 înseamnă cash 44,58). Plățile adunate dau totalul. Gol dacă nu se vede.
 
+Pe fiecare articol, când se poate citi sau deduce sigur de pe bon (altfel lași câmpul afară, nu ghicești):
+- brand: marca produsului, așa cum se scrie ea („Zuzu”, „Napolact”, „Pilos”, „Dorna”, „Milka”, „Pampers”); șir gol pentru produse fără marcă (legume, carne la kg, pâine la bucată).
+- size și sizeUnit: gramajul sau volumul unei bucăți (g, kg, ml, l), sau numărul de bucăți dintr-un pachet (buc). „1L” → 1 și l; „1.5L” → 1,5 și l; „500G” → 500 și g; „0,4KG” → 0,4 și kg; „6X1.5L” → size 9 și l (tot baxul); „ROLE 10BUC” → 10 și buc.
+- unit: cum se vinde rândul: „buc” la bucată, „kg” la cântar (când quantity e 0,456 și prețul e pe kg), „l” la litru vrac.
+- unitPrice: prețul pe o bucată sau pe un kilogram, așa cum e tipărit („2 BUC X 4,55” → 4,55; „0,456 KG X 12,90” → 12,90).
+- vatRate: cota TVA a rândului în procente (21, 11, 9, 5, 19), din litera de lângă sumă (A, B, C, D) și legenda TVA de la finalul bonului; lași afară dacă legenda nu se vede.
+Exemple de rânduri românești:
+- Lidl: „LAPTE ZUZU 1.5% 1L  6,49 B” → name „Lapte Zuzu 1,5%, 1 l”, brand „Zuzu”, size 1, sizeUnit „l”.
+- Kaufland: „K-CLASSIC PAINE FELII 500G” → name „Pâine feliată K-Classic, 500 g”, brand „K-Classic”, size 500, sizeUnit „g”.
+- Carrefour: „CRF ORIGINAL IAURT 3,5% 140G” → brand „Carrefour”, size 140, sizeUnit „g”.
+- Mega Image: „NAPOLACT SANA 3.6% 900G” → name „Sana Napolact 3,6%, 900 g”, brand „Napolact”, size 900, sizeUnit „g”.
+- Profi: „ROSII CHERRY VRAC” cu „0,412 KG X 15,99” → quantity 0,412, unit „kg”, unitPrice 15,99, brand gol.
+- Auchan: „AUCHAN ULEI FL. SOARELUI 1L” → brand „Auchan”, size 1, sizeUnit „l”.
+- Penny: „DORNA APA PLATA 6X2L” → name „Apă plată Dorna 6 × 2 l”, brand „Dorna”, size 12, sizeUnit „l”.
+
+Antetul magazinului, dacă se citește:
+- storeCui: codul fiscal („CIF”, „CUI”, „C.I.F.”), doar cifrele, cu „RO” în față dacă e tipărit.
+- storeAddress: adresa magazinului, scurt (strada și numărul).
+- city: orașul sau localitatea magazinului.
+- time: ora bonului, „HH:MM”.
+- vat: totalul TVA de pe bon.
+
 confidence: high când ai citit sigur toate rândurile și suma lor dă totalul, medium când ai ghicit câteva caractere, low când poza e greu de citit.`;
 }
 
@@ -1266,7 +1309,7 @@ function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt
     const category = typeof item.category === "string" && categories.includes(item.category) ? item.category : fallback;
     const quantity = roundLei(item.quantity);
     const discount = roundLei(item.discount);
-    return [{ name, rawName: clip(typeof item.rawName === "string" ? item.rawName.replace(/\s+/g, " ") : "", 80) || name, quantity: quantity > 0 ? quantity : 1, amount, discount: discount > 0 && discount < 100_000 ? discount : 0, category }];
+    return [{ name, rawName: clip(typeof item.rawName === "string" ? item.rawName.replace(/\s+/g, " ") : "", 80) || name, quantity: quantity > 0 ? quantity : 1, amount, discount: discount > 0 && discount < 100_000 ? discount : 0, category, ...cleanProductFacts(item) }];
   });
   const payments = (Array.isArray(body.payments) ? body.payments : []).slice(0, 4).flatMap((entry) => {
     const payment = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
@@ -1277,6 +1320,7 @@ function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt
   const date = typeof body.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.date) ? body.date : null;
   const confidence = body.confidence === "high" || body.confidence === "medium" ? body.confidence : "low";
   return {
+    ...cleanStoreFacts(body),
     isReceipt: body.isReceipt !== false && items.length > 0,
     store: clip(body.store, 60),
     date,
@@ -1287,7 +1331,37 @@ function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt
   };
 }
 
-const RECEIPT_JSON_SHAPE = `Răspunde doar cu JSON, fără alt text, în forma: {"isReceipt": true, "store": "", "date": "AAAA-LL-ZZ" sau null, "items": [{"rawName": "", "name": "", "quantity": 1, "amount": 0, "discount": 0, "category": ""}], "total": 0, "payments": [{"method": "cash|card|meal|voucher|other", "amount": 0}], "confidence": "high|medium|low"}.`;
+/** Doar valorile plauzibile trec mai departe; restul rămâne nespus, nu inventat. */
+function cleanProductFacts(item: Record<string, unknown>): ProductFacts {
+  const out: ProductFacts = {};
+  const brand = clip(item.brand, 40);
+  if (brand) out.brand = brand;
+  const size = Number(item.size);
+  const sizeUnit = SIZE_UNITS.includes(item.sizeUnit as SizeUnit) ? item.sizeUnit as SizeUnit : undefined;
+  if (sizeUnit && Number.isFinite(size) && size > 0 && size < 100_000) { out.size = Math.round(size * 1000) / 1000; out.sizeUnit = sizeUnit; }
+  if (item.unit === "buc" || item.unit === "kg" || item.unit === "l") out.unit = item.unit;
+  const unitPrice = roundLei(item.unitPrice);
+  if (unitPrice > 0 && unitPrice < 100_000) out.unitPrice = unitPrice;
+  const vatRate = Number(item.vatRate);
+  if ([0, 5, 9, 11, 19, 21].includes(vatRate)) out.vatRate = vatRate;
+  return out;
+}
+
+function cleanStoreFacts(body: Record<string, unknown>): StoreFacts {
+  const out: StoreFacts = {};
+  const cui = clip(body.storeCui, 16).toUpperCase().replace(/[^RO0-9]/g, "");
+  if (/^(RO)?\d{2,10}$/.test(cui)) out.storeCui = cui;
+  const address = clip(body.storeAddress, 80);
+  if (address) out.storeAddress = address;
+  const city = clip(body.city, 40);
+  if (city) out.city = city;
+  if (typeof body.time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(body.time.trim())) out.time = body.time.trim();
+  const vat = roundLei(body.vat);
+  if (vat > 0 && vat < 100_000) out.vat = vat;
+  return out;
+}
+
+const RECEIPT_JSON_SHAPE = `Răspunde doar cu JSON, fără alt text, în forma: {"isReceipt": true, "store": "", "date": "AAAA-LL-ZZ" sau null, "storeCui": "", "storeAddress": "", "city": "", "time": "HH:MM", "items": [{"rawName": "", "name": "", "brand": "", "size": 0, "sizeUnit": "g|kg|ml|l|buc", "quantity": 1, "unit": "buc|kg|l", "unitPrice": 0, "amount": 0, "discount": 0, "vatRate": 21, "category": ""}], "total": 0, "vat": 0, "payments": [{"method": "cash|card|meal|voucher|other", "amount": 0}], "confidence": "high|medium|low"}.`;
 
 /** JSON-ul modelului, chiar dacă vine între ```json … ``` sau cu text în jur. */
 function parseModelJson(raw: string): unknown {

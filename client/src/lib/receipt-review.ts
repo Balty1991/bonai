@@ -1,6 +1,7 @@
 /**
  * Bon → coadă de revizuire: liniile propun plicuri, registrul se scrie doar după confirmare.
  */
+import { carryProductFacts } from "./receipt-products";
 import {
   addReviewDrafts,
   isWeeklyPaced,
@@ -145,7 +146,7 @@ export function attachReceiptDetail(data: AppData, transactionId: string, lines:
     date: tx.date,
     sourceId: tx.sourceId,
     memberId: tx.memberId,
-    lines,
+    lines: carryProductFacts(existing?.lines, lines),
     linkedTransactionId: tx.id,
     linkedTransactionIds: [tx.id],
     updatedAt: now,
