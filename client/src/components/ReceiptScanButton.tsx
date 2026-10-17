@@ -70,7 +70,8 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
       onResult(dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
     } finally {
       setBusy(false);
       if (cameraRef.current) cameraRef.current.value = "";
