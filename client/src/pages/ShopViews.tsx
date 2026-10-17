@@ -23,6 +23,7 @@ import { BONUT_PRICES, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavin
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
+const BarcodeCheck = lazy(() => import("@/components/BarcodeCheck").then((module) => ({ default: module.BarcodeCheck })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
 const pct = (value: number) => `${value > 0 ? "+" : ""}${value.toLocaleString("ro-RO", { maximumFractionDigits: 1 })}%`;
 const monthName = (month: string) => new Date(`${month}-15T12:00:00`).toLocaleDateString("ro-RO", { month: "long" });
@@ -145,6 +146,7 @@ export function PricesView({ data, onChange }: { data: AppData; onChange: (next:
   const [tab, setTab] = useState<"products" | "stores">("products");
   return <div className="sh-page">
     <div className="sh-tabs" role="tablist">{([["products", t("Produsele mele")], ["stores", t("Magazine")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
+    <Suspense fallback={null}><BarcodeCheck data={data} onChange={onChange} /></Suspense>
     {tab === "products" ? <ProductsView data={data} onChange={onChange} /> : <StoresView data={data} />}
   </div>;
 }

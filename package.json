@@ -24,6 +24,7 @@
     "test:sync:current": "E2E_RULES=auth firebase emulators:exec --config firebase.e2e.auth.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\""
   },
   "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "8.2.1",
     "@capacitor/android": "8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "8.5.2",
