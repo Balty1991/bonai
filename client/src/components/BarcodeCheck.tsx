@@ -3,8 +3,9 @@ import { useMemo, useState } from "react";
 import { Barcode, Check, Plus } from "lucide-react";
 import { newId, isoToday, type AppData } from "@/lib/finance-data";
 import { productObservations } from "@/lib/personal-inflation";
-import { isValidEan, linkBarcode, openFoodFactsName, readBarcodeLinks, scanBarcodeNative, suggestProducts, verdictFor } from "@/lib/barcode-check";
+import { isValidEan, openFoodFactsName, readBarcodeLinks, scanBarcodeNative, suggestProducts, verdictFor } from "@/lib/barcode-check";
 import { lei } from "@/lib/money-format";
+import { withBarcodeLink } from "@/lib/barcode-links";
 import { t } from "@/lib/i18n";
 
 const perText = (per: string) => (per === "buc" ? t("bucata") : per);
@@ -28,14 +29,14 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
     setAdded(false); setOffName(undefined); setLinked(undefined);
     if (!isValidEan(clean)) { setEan(undefined); return; }
     setEan(clean);
-    const known = readBarcodeLinks()[clean];
+    const known = data.settings.barcodeLinks?.[clean]?.key || readBarcodeLinks()[clean];
     if (known) { setLinked(known); return; }
     setBusy(true);
     setOffName(await openFoodFactsName(clean));
     setBusy(false);
   };
   const scan = async () => { const value = await scanBarcodeNative().catch(() => undefined); if (value) { setCode(value); void check(value); } };
-  const pick = (key: string) => { if (!ean) return; linkBarcode(ean, key); setLinked(key); };
+  const pick = (key: string) => { if (!ean) return; onChange(withBarcodeLink(data, ean, key)); setLinked(key); };
   const addToList = () => {
     const text = verdict?.label || offName;
     if (!text) return;

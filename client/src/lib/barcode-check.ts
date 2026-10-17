@@ -2,10 +2,9 @@
  * Verificarea în magazin cu codul de bare: EAN → produsul tău din bonuri → ultimul preț plătit,
  * unde, și cel mai mic preț din magazinele tale. Bonurile nu au EAN tipărit, așa că legătura
  * cod → produs se învață o dată (sugerată din numele Open Food Facts, confirmată de om) și se
- * ține pe telefon. Prețurile vin doar din bonurile tale; nimic estimat.
+ * sincronizează în familie (barcode-links.ts); legăturile vechi, doar locale, se citesc în continuare. Prețurile vin doar din bonurile tale; nimic estimat.
  */
 import type { ProductObservation } from "./personal-inflation";
-import { safeSetItem } from "./safe-storage";
 
 export const BARCODE_LINKS_KEY = "bonut:barcode-links-v1";
 
@@ -19,12 +18,6 @@ export function isValidEan(code: string): boolean {
 
 export function readBarcodeLinks(storage: Pick<Storage, "getItem"> = window.localStorage): Record<string, string> {
   try { const v = JSON.parse(storage.getItem(BARCODE_LINKS_KEY) || "{}"); return v && typeof v === "object" ? v as Record<string, string> : {}; } catch { return {}; }
-}
-
-export function linkBarcode(ean: string, productKey: string, storage: Storage = window.localStorage) {
-  const links = readBarcodeLinks(storage);
-  links[ean] = productKey;
-  safeSetItem(storage, BARCODE_LINKS_KEY, JSON.stringify(links));
 }
 
 const words = (text: string) => text.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).filter((w) => w.length > 1);

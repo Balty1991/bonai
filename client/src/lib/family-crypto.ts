@@ -3,6 +3,7 @@
  * Parola nu se persistă; doar un pachet AES-GCM deja criptat părăsește telefonul.
  * Pe telefon poate rămâne cheia PBKDF2 neexportabilă (vezi family-session.ts).
  */
+import { mergeBarcodeLinks } from "./barcode-links";
 import { mergeShoppingLists } from "@/lib/shopping-list";
 import { mergeTrip } from "@/lib/trip-data";
 import { mergeAssets } from "@/lib/asset-data";
@@ -735,6 +736,7 @@ export function mergeFamilyData(localRaw: AppData, remoteRaw: AppData, base?: Sy
       trip: mergeTrip(local.settings.trip, remote.settings.trip),
       assets: mergeAssets(local.settings.assets, remote.settings.assets),
       warranties: mergeWarranties(local.settings.warranties, remote.settings.warranties),
+      barcodeLinks: mergeBarcodeLinks(local.settings.barcodeLinks, remote.settings.barcodeLinks),
       plannedEvents,
       syncDevices,
       salaryPlan,
