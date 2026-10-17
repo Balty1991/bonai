@@ -5180,6 +5180,7 @@ export const en: Record<string, string> = {
   "BINE AI VENIT ÎN BONUȚ": "WELCOME TO BONUȚ",
   "Lista de cumpărături care îți arată cât economisești.": "The shopping list that shows how much you save.",
   "Încep cu lista": "Start with the list",
+  "Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.": "Looks like the same receipt as the one from {date} ({amount} lei). If it is a duplicate, don't save it.",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",

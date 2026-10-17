@@ -1,3 +1,4 @@
+import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import "../receipt-scan.css";
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Loader2 } from "lucide-react";
@@ -63,7 +64,11 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
       const images = [];
       for (const file of files) images.push(await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000));
       const receipt = await requestReceiptScan(images, receiptCategories(data));
-      onResult(scanToPrefill(receipt, data, memberId));
+      const prefill = scanToPrefill(receipt, data, memberId);
+      // Bonul scanat de două ori: doar avertizare, omul decide.
+      const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
+      const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
+      onResult(dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
     } finally {
