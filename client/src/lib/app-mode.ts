@@ -9,12 +9,26 @@ export type AppMode = "shop" | "budget";
 const KEY = "buget-familie:app-mode";
 const EVENT = "buget-familie:app-mode";
 
+/**
+ * „budget” = vizita în Arhiva veche, doar citire. Ține doar cât sesiunea (sessionStorage): la repornire
+ * aplicația e mereu Bonuț. Vechea preferință din localStorage se ignoră și se șterge.
+ */
+/** Doar pentru testele cap-coadă vechi (e2e/): bugetul rămâne scriibil și persistent. Nu se setează din aplicație. */
+const LEGACY_TEST_KEY = "buget-familie:legacy-writable";
+const legacyTestHook = () => { try { return window.localStorage.getItem(LEGACY_TEST_KEY) === "1"; } catch { return false; } };
+
 export function readAppMode(): AppMode {
-  try { return window.localStorage.getItem(KEY) === "budget" ? "budget" : "shop"; } catch { return "shop"; }
+  try {
+    if (legacyTestHook()) return window.localStorage.getItem(KEY) === "budget" ? "budget" : "shop";
+    if (window.localStorage.getItem(KEY)) window.localStorage.removeItem(KEY);
+    return window.sessionStorage.getItem(KEY) === "budget" ? "budget" : "shop";
+  } catch { return "shop"; }
 }
 
+export const isArchiveMode = () => readAppMode() === "budget" && !legacyTestHook();
+
 export function setAppMode(mode: AppMode) {
-  try { safeSetItem(window.localStorage, KEY, mode); } catch { /* fără stocare: rămâne până la repornire */ }
+  try { safeSetItem(window.sessionStorage, KEY, mode); } catch { /* fără stocare: rămâne până la repornire */ }
   window.dispatchEvent(new CustomEvent(EVENT, { detail: mode }));
 }
 

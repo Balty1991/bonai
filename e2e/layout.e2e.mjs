@@ -196,7 +196,7 @@ async function main() {
       const context = await browser.newContext({ viewport: { width, height: 800 }, locale: "ro-RO" });
       await context.addInitScript((theme) => {
         try {
-          const keys = { "buget-familie:app-mode": "budget", "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:theme": theme, "buget-familie:whats-new-2026-10h": "1" };
+          const keys = { "buget-familie:app-mode": "budget", "buget-familie:legacy-writable": "1", "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:theme": theme, "buget-familie:whats-new-2026-10h": "1" };
           for (const [key, value] of Object.entries(keys)) localStorage.setItem(key, value);
           for (const key of ["catalog", "ink", "atelier", "premium", "ui-chrome"]) localStorage.setItem(`buget-familie:theme-migrated-${key}-2026-09`, "1");
         } catch { /* about:blank */ }

@@ -13,8 +13,8 @@ import { isDemoMode, setDemoMode } from "@/lib/demo-data";
 import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store } from "lucide-react";
-import { setAppMode, useAppMode } from "@/lib/app-mode";
+import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store } from "lucide-react";
+import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
 import { allocationStatus, autoPostDueRecurring, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, confirmRecurringPayment, addIsoDays, formatDate, inPlanPeriod, isoDate, isoToday, newId, transferBetweenEnvelopes, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
 import { addContribution, eventTraits } from "@/lib/planned-events";
@@ -144,7 +144,12 @@ const preloadView = (id: MainView): Promise<void> => {
 export default function Home() {
   const updateAvailable = useUpdateAvailable();
   const [data, setData] = useState<AppData>(readInitialAppData);
-  const { storageNotice, setStorageNotice, storageReady, applyData } = usePersistAppData(data, setData);
+  const { storageNotice, setStorageNotice, storageReady, applyData: applyDataRaw } = usePersistAppData(data, setData);
+  /** Arhiva veche e doar pentru citire: nicio scriere nu trece cât e deschisă (datele rămân neatinse). */
+  const applyData: typeof applyDataRaw = (value) => {
+    if (isArchiveMode()) { setStorageNotice(t("Arhiva veche e doar pentru citire. Nimic nu s-a schimbat.")); return; }
+    applyDataRaw(value);
+  };
   /** „Azi” al familiei: se setează înainte de orice calcul din randare (testare, #10). */
   setFamilyTimeZone(data.settings.familyTimeZone);
   /** Mesajele de feedback trimise fără internet pleacă la prima deschidere cu rețea. */
@@ -204,6 +209,8 @@ export default function Home() {
   }, [simpleMode]);
   useLanguage();
   const appMode = useAppMode();
+  // Migrarea la Bonuț (schema 2): o dată pe telefon, după încărcare, cu copie completă înainte.
+  useEffect(() => { if (storageReady) void import("@/lib/bonut-migration").then((module) => module.runBonutMigration(data)).catch(() => undefined); }, [storageReady]);
   const [view, setView] = useState<MainView>(() => { const first = initialMainView(); return appMode === "shop" && first === "today" ? "shop" : first; });
   const [more, setMoreNow] = useState<MoreView>("overview");
   const goSeq = useRef(0);
@@ -925,6 +932,7 @@ export default function Home() {
     }))} onUpdate={(change) => update(change)} openDebt={() => { setEditGoal(undefined); setModal("debt"); }} openSaving={() => { setEditGoal(undefined); setModal("saving"); }} onOpenGoals={() => go("goals")} onOpenCalendar={() => go("calendar")} onOpenEvents={() => { setMore("events"); go("utilities"); }} onOpenAssistant={() => { setMore("assistant"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); }} onAddRecurring={(item) => update((currentData) => autoPostDueRecurring({ ...currentData, recurring: [...currentData.recurring, item] }))} onAddSaving={(goal) => update((currentData) => ({ ...currentData, savings: [...currentData.savings, goal] }))} onPayRecurring={(id) => { if (data.recurring.find((item) => item.id === id)?.variable) { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); return; } update((currentData) => confirmRecurringPayment(currentData, id) || currentData); }} /></Suspense>; if (view === "insights") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim analiza…")}</div>}><InsightsView data={data} onChange={applyData} onGo={go} /></Suspense>; if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenDebt={() => { setEditGoal(undefined); setModal("debt"); }} onOpenSaving={() => { setEditGoal(undefined); setModal("saving"); }} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>; return <TodayView data={data} onAdd={() => openTx()} onEdit={openTx} onGo={go} onChange={applyData} onOpenReview={() => { setMore("review"); go("utilities"); }} onOpenSettings={() => { setMore("settings"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("recurring"); go("utilities"); }} coach={view === "today" && firstWeekTourOpen && !onboardingOpen && !setupOpen && !modal && more !== "sync" ? <Suspense fallback={null}><FirstWeekTour onClose={dismissFirstWeekTour} onCapture={() => { dismissFirstWeekTour(); openTx(); }} onPlan={() => { dismissFirstWeekTour(); go("plan"); }} onSync={() => { dismissFirstWeekTour(); setMore("sync"); go("utilities"); }} /></Suspense> : null} />; };
   return <div className={"bf-app os-shell" + ((setupOpen && !shopMode) || onboardingOpen ? " is-setup" : "")}>
     <a className="bf-skip-link" href="#main-content">{t("Sari la conținut")}</a>
+    {appMode === "budget" && <div className="bf-storage-notice bf-archive-banner" role="status"><Archive size={15} aria-hidden="true" /><span>{t("Arhiva veche, doar citire")}</span><button type="button" onClick={() => setAppMode("shop")}>{t("Înapoi la Bonuț")}</button></div>}
     {storageNotice && <div className="bf-storage-notice" role="status"><ShieldCheck size={15} /><span>{storageNotice}</span><button type="button" aria-label={t("Închide notificarea")} onClick={() => setStorageNotice(null)}><X size={14} /></button></div>}
     {updateAvailable && <div className="bf-offline-banner bf-update-banner" role="status" aria-live="polite"><RotateCcw size={15} aria-hidden="true" /><span>{t("Există o versiune nouă a aplicației.")}</span><button type="button" onClick={() => void reloadToNewVersion()}>{t("Reîncarcă")}</button></div>}
     {!online && <div className="bf-offline-banner" role="status" aria-live="polite"><CloudOff size={15} aria-hidden="true" /><span>{syncPanelProps.connected ? t("Fără conexiune — modificările rămân pe telefon și se trimit la reconectare.") : t("Fără conexiune — lucrezi local pe acest telefon.")}</span></div>}
