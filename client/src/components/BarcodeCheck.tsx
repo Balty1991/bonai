@@ -6,6 +6,7 @@ import { productObservations } from "@/lib/personal-inflation";
 import { isValidEan, openFoodFactsName, readBarcodeLinks, scanBarcodeNative, suggestProducts, verdictFor } from "@/lib/barcode-check";
 import { lei } from "@/lib/money-format";
 import { withBarcodeLink } from "@/lib/barcode-links";
+import { OFFICIAL_ATTRIBUTION, OFFICIAL_PRICES_ENABLED, lookupOfficialPrice, type OfficialResult } from "@/lib/official-prices";
 import { t } from "@/lib/i18n";
 
 const perText = (per: string) => (per === "buc" ? t("bucata") : per);
@@ -18,6 +19,8 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const [linked, setLinked] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
+  const [official, setOfficial] = useState<OfficialResult | null>();
+  const city = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).find((r) => r.city)?.city || "", [data.receipts]);
   const observations = useMemo(() => productObservations(data), [data]);
   const products = useMemo(() => { const seen = new Map<string, string>(); for (const o of observations) if (!seen.has(o.key)) seen.set(o.key, o.label); return Array.from(seen, ([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label, "ro")); }, [observations]);
   const today = isoToday();
@@ -65,6 +68,10 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
       {verdict.cheapest && <p className="sh-down">{t("Cel mai mic preț la tine: {price} pe {per}, la {vendor} ({date}).", { price: lei(verdict.cheapest.price), per: perText(verdict.cheapest.per), vendor: verdict.cheapest.vendor, date: dayText(verdict.cheapest.date) })}</p>}
       <p className="sh-muted">{t("Compară cu prețul de pe raft. Prețurile vin doar din bonurile tale.")}</p>
     </div>}
+    {OFFICIAL_PRICES_ENABLED && city && (verdict || offName) && (official === undefined
+      ? <button type="button" className="sh-link" onClick={() => { setOfficial(null); void lookupOfficialPrice(verdict?.label || offName || "", city).then((result) => setOfficial(result || null)); }}>{t("Prețul oficial în {city}", { city })}</button>
+      : official && official.offers.length > 0 ? <div className="sh-rows"><ul className="sh-list">{official.offers.slice(0, 3).map((offer) => <li key={`${offer.store}-${offer.price}`}><span><b>{offer.network || offer.store}</b><small>{offer.address || offer.store}</small></span><b>{lei(offer.price)}</b></li>)}</ul><p className="sh-muted sh-note">{OFFICIAL_ATTRIBUTION}</p></div>
+      : official === null ? <p className="sh-muted">{t("Caut produsul…")}</p> : null)}
     {(verdict || offName) && <button type="button" className="sh-link" onClick={addToList} disabled={added}>{added ? <><Check size={16} aria-hidden="true" /> {t("Adăugat în listă")}</> : <><Plus size={16} aria-hidden="true" /> {t("Adaugă în listă")}</>}</button>}
   </section>;
 }

@@ -5185,6 +5185,7 @@ export const en: Record<string, string> = {
   "Răspunsul de pe WhatsApp": "The WhatsApp reply",
   "Lipește aici mesajul „Am luat: …”": "Paste the “Am luat: …” message here",
   "Bifează ce s-a luat": "Tick what was bought",
+  "Prețul oficial în {city}": "Official price in {city}",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",
