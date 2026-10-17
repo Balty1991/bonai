@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0 — Bonuț
+
+Aplicația devine **Bonuț**, lista de cumpărături care îți arată cât economisești (docs/ARHITECTURA.md).
+
+- Nume, icon (bonul zimțat cu bifă) și culori noi; bara de jos: Acasă · Cumpărături · Scanează · Prețuri · Gospodărie.
+- Lista familiei gratuită, trimisă pe WhatsApp ca link web pe care îl bifează și cine nu are aplicația (l.html).
+- Cămara din bonuri și Meniul săptămânii (cost doar din prețurile tale).
+- Codul de bare în magazin (ML Kit): cât ai dat ultima dată și unde a fost mai ieftin.
+- Acasă: media pe 3 luni, „Economisit cu Bonuț” (reducerile de pe bonuri), distribuire.
+- Planurile Gratuit / Pro / Familie și paywall-ul în context (plata încă oprită: totul deschis).
+- Widget Android cu lista și scanarea dintr-o atingere.
+- Bugetul vechi devine Arhiva veche, doar citire, exportabilă; migrarea la schema 2 face înainte o copie completă pe telefon. Nicio dată nu se șterge.
+- Corpus de bonuri cu prag de acuratețe în CI.
+
 ## 1.1.220
 
 - **O aplicație nouă: cumpărăturile familiei, pornind de la bon.** Meniu nou: Acasă · Produse · Scanează · Magazine · Casa, cu altă înfățișare (alb cald, negru și portocaliu, alt font).

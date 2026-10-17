@@ -231,18 +231,20 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { d
   </div>;
 }
 
-/** Prima pornire în aplicația nouă: fără salariu și plicuri; un bon e tot ce trebuie ca să înceapă. */
-export function ShopWelcome({ onScan, onJoin, onSkip }: { onScan: () => void; onJoin: () => void; onSkip: () => void }) {
+/** Prima pornire: lista gratuită, scanarea bonului și verificarea cu codul de bare; fără salariu și plicuri. */
+export function ShopWelcome({ onScan, onList, onJoin, onSkip }: { onScan: () => void; onList: () => void; onJoin: () => void; onSkip: () => void }) {
   const steps: Array<[ReactNode, string, string]> = [
+    [<ListChecks size={22} key="list" />, t("Lista familiei, gratuit"), t("Comună pe toate telefoanele, cu prețul estimat din bonurile voastre. O trimiți pe WhatsApp și se bifează și fără aplicație.")],
     [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
-    [<ShoppingBasket size={22} key="basket" />, t("Vezi ce cumperi"), t("Prețul fiecărui produs în timp și cât s-a scumpit viața ta.")],
-    [<Store size={22} key="store" />, t("Afli unde economisești"), t("Același produs, mai ieftin la alt magazin. Garanțiile, la timp.")],
+    [<Store size={22} key="store" />, t("Verifici prețul în magazin"), t("Scanezi codul de bare și vezi cât ai dat ultima dată și unde a fost mai ieftin.")],
+    [<Sparkles size={22} key="pro" />, t("Inflația ta și cât economisești"), t("După al {n}-lea bon primești {days} zile de Bonuț Pro gratuit.", { n: TRIAL_AFTER_RECEIPTS, days: TRIAL_DAYS })],
   ];
   return <div className="sh-page sh-welcome">
     <header className="sh-hero">
-      <p className="sh-kicker">{t("BINE AI VENIT")}</p>
-      <h1 className="sh-big sh-welcome-title">{t("Vezi exact cât te costă viața, produs cu produs.")}</h1>
+      <p className="sh-kicker">{t("BINE AI VENIT ÎN BONUȚ")}</p>
+      <h1 className="sh-big sh-welcome-title">{t("Lista de cumpărături care îți arată cât economisești.")}</h1>
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează primul bon")}</button>
+      <button type="button" className="sh-link" onClick={onList}><ListChecks size={16} aria-hidden="true" /> {t("Încep cu lista")}</button>
     </header>
     <div className="sh-rows">{steps.map(([icon, title, hint]) => <div key={title} className="sh-row" role="presentation"><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b><small>{hint}</small></span><span /></div>)}</div>
     <div className="sh-rows">
