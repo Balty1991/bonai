@@ -3503,8 +3503,7 @@ html.background-dots .bf-app::before {
   animation: bf-elevate-fade var(--bf-motion) both;
 }
 .bf-modal,
-.bf-journal-filter-sheet,
-.ai-financial-setup {
+.bf-journal-filter-sheet {
   animation: bf-elevate-sheet var(--bf-motion) both;
   border-radius:20px;
 }
@@ -3574,7 +3573,6 @@ html.theme-navy .os-dock button.is-on {
   .bf-modal-backdrop,
   .bf-modal,
   .bf-journal-filter-sheet,
-  .ai-financial-setup,
   .bf-primary,
   .bf-secondary,
   .bf-os-decide,
@@ -3887,7 +3885,6 @@ html.theme-white .os-shell .bf-primary {
 
 .bf-modal,
 .bf-journal-filter-sheet,
-.ai-financial-setup,
 .bf-whats-new {
   position: relative !important;
   border-radius: var(--bf-premium-radius-xl) !important;
@@ -3903,8 +3900,7 @@ html.theme-white .os-shell .bf-primary {
     padding: 0;
   }
   .bf-modal,
-  .bf-whats-new,
-  .ai-financial-setup {
+  .bf-whats-new {
     width: 100% !important;
     max-height: min(90dvh, 860px) !important;
     border-radius: 28px 28px 0 0 !important;
@@ -3912,7 +3908,6 @@ html.theme-white .os-shell .bf-primary {
   }
   .bf-modal::before,
   .bf-whats-new::before,
-  .ai-financial-setup::before,
   .bf-journal-filter-sheet::before {
     content: "" !important;
     display: block !important;
@@ -4006,7 +4001,6 @@ html.theme-navy .bf-whats-new {
   .bf-command-backdrop,
   .bf-modal,
   .bf-journal-filter-sheet,
-  .ai-financial-setup,
   .bf-whats-new,
   .os-shell .bf-today-add,
   .os-shell .bf-os-decide,
