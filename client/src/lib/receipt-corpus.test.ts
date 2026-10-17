@@ -2,7 +2,10 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData } from "./finance-data";
 import { scanToPrefill } from "./receipt-scan";
-import { CORPUS_TODAY, corpus } from "./receipt-corpus/cases";
+import { CORPUS_TODAY, corpus as base } from "./receipt-corpus/cases";
+import { corpusRo } from "./receipt-corpus/cases-ro";
+
+const corpus = [...base, ...corpusRo];
 
 const THRESHOLD = 1; // corpusul curent trebuie citit perfect; scade doar cu justificare în ARHITECTURA.md
 const near = (a: number, b: number) => Math.abs(a - b) < 0.011;

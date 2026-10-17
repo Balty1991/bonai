@@ -1301,8 +1301,20 @@ const roundLei = (value: unknown) => {
 function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt {
   const body = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const fallback = categories.includes("Altele") ? "Altele" : categories[0] || "Altele";
-  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 120).flatMap((entry) => {
-    const item = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
+  // Reducerile tipărite pe rând separat (sumă negativă) se lipesc de articolul de deasupra.
+  const folded: Array<Record<string, unknown>> = [];
+  for (const entry of (Array.isArray(body.items) ? body.items : []).slice(0, 120)) {
+    const item = (entry && typeof entry === "object" ? { ...(entry as Record<string, unknown>) } : {}) as Record<string, unknown>;
+    const amount = roundLei(item.amount);
+    if (amount < 0) {
+      const prev = folded[folded.length - 1];
+      const prevAmount = prev ? roundLei(prev.amount) : 0;
+      if (prev && prevAmount + amount >= -0.005) { prev.amount = roundLei(prevAmount + amount); prev.discount = roundLei(roundLei(prev.discount) - amount); }
+      continue;
+    }
+    folded.push(item);
+  }
+  const items = folded.flatMap((item) => {
     const amount = roundLei(item.amount);
     const name = clip(item.name, 80) || clip(item.rawName, 80);
     if (!name || !(amount > 0) || amount > 100_000) return [];

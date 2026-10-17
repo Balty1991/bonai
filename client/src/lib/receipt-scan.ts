@@ -60,11 +60,31 @@ function plausibleDate(date: string | null, today: string) {
   return Number.isFinite(age) && age <= 60 ? date : undefined;
 }
 
+/**
+ * Reducerile tipărite pe rând separat („Reducere -4,00”, „Discount K-Card -6,60”) vin de la model ca
+ * articole cu sumă negativă. Le lipim de articolul pozitiv de deasupra (suma scade, reducerea crește),
+ * ca rândurile să dea totalul și reducerea să se vadă. O reducere fără articol deasupra rămâne pe dinafară.
+ */
+export function foldDiscountLines<T extends { amount: number; discount?: number }>(items: ReadonlyArray<T>): T[] {
+  const out: T[] = [];
+  for (const item of items) {
+    if (item.amount < 0) {
+      const target = out.length ? out[out.length - 1] : undefined;
+      if (target && target.amount + item.amount >= -0.005) {
+        out[out.length - 1] = { ...target, amount: round(target.amount + item.amount), discount: round((target.discount || 0) - item.amount) };
+      }
+      continue;
+    }
+    out.push(item);
+  }
+  return out;
+}
+
 /** Ce citește modelul devine ce vede omul în formular: titlu, total, data, articolele și sursele. */
 export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?: string, today = isoToday()): ScanPrefill {
   const known = new Set<string>([...data.settings.customCategories, ...receiptCategories(data)]);
   const fallback = "Altele";
-  const lines = receipt.items
+  const lines = foldDiscountLines(receipt.items)
     .filter((item) => item.amount > 0)
     .map((item) => ({
       // Cantitatea rămâne în nume („× 2”, „× 0,456 kg”), ca istoricul de prețuri să compare pe bucată sau pe kg.
