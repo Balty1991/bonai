@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Minus, ShoppingBasket, ShoppingCart, Store } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { sgrBalance } from "@/lib/sgr-balance";
+import { ProductInsights } from "@/components/ProductInsights";
 import { basketCandidates, productPriceHistories, referenceBasket } from "@/lib/price-history";
 import { fmtExact, dateText } from "@/pages/home-kit";
 import { t } from "@/lib/i18n";
@@ -40,7 +41,7 @@ export function PriceWatchPanel({ data, onChange }: { data: AppData; onChange: (
   const sgr = <SgrCard data={data} />;
   if (!histories.length) {
     return (
-      <>{sgr}<div className="bf-empty-state slim">
+      <><ProductInsights data={data} />{sgr}<div className="bf-empty-state slim">
         <ShoppingBasket size={23} />
         <h2>{t("Încă nu există istoric de prețuri")}</h2>
         <p>{t("Notează produsele pe bonuri. După ce același produs apare pe două bonuri, aici vei vedea cum i-a evoluat prețul și în ce magazin a fost mai ieftin.")}</p>
@@ -50,6 +51,7 @@ export function PriceWatchPanel({ data, onChange }: { data: AppData; onChange: (
 
   return (
     <div className="bf-price-workspace">
+      <ProductInsights data={data} />
       {sgr}
       <section className="bf-price-basket" aria-labelledby="basket-title">
         <div className="bf-section-heading">
