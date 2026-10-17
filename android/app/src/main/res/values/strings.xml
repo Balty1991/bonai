@@ -19,6 +19,10 @@
     <string name="widget_env_title">Plicurile mele · rămași</string>
     <string name="widget_env_empty">Deschide aplicația o dată ca să apară plicurile.</string>
     <string name="widget_env_description">Arată pe ecranul principal primele trei plicuri: cât a rămas în fiecare și cât s-a consumat.</string>
+    <string name="widget_shop_title">Lista · Bonuț</string>
+    <string name="widget_shop_empty">Lista e goală. Adaugă din aplicație.</string>
+    <string name="widget_shop_scan">Scanează bonul</string>
+    <string name="widget_shop_description">Lista de cumpărături a familiei pe ecranul principal și scanarea bonului dintr-o atingere.</string>
     <string name="widget_week_title">Săptămâna banilor</string>
     <string name="widget_week_empty">Deschide aplicația o dată ca să apară săptămâna.</string>
     <string name="widget_week_description">Arată ultimele 7 zile ca bare colorate după cât ați cheltuit, cu totalul săptămânii.</string>

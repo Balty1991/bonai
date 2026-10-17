@@ -5152,6 +5152,7 @@ export const en: Record<string, string> = {
   "Compară cu prețul de pe raft. Prețurile vin doar din bonurile tale.": "Compare with the shelf price. Prices come only from your receipts.",
   "Adăugat în listă": "Added to the list",
   "Adaugă în listă": "Add to list",
+  "1 produs": "1 item",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",

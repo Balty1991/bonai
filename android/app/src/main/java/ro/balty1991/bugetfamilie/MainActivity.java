@@ -453,6 +453,15 @@ public class MainActivity extends BridgeActivity {
     }
 
     @JavascriptInterface
+    public void publishShopping(String json) {
+      final android.content.Context app = MainActivity.this.getApplicationContext();
+      WIDGET_WORK.execute(() -> {
+        ShoppingWidgetProvider.save(app, json);
+        ShoppingWidgetProvider.updateAll(app);
+      });
+    }
+
+    @JavascriptInterface
     public void publishWeek(String json) {
       final android.content.Context app = MainActivity.this.getApplicationContext();
       WIDGET_WORK.execute(() -> {

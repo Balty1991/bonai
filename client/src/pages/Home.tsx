@@ -32,7 +32,8 @@ import { isAppLockEnabled } from "@/lib/app-lock";
 import { useToday } from "@/hooks/useToday";
 import { safeImport, warmLazy } from "@/lib/lazy-safe";
 import { applySecureScreen } from "@/lib/secure-screen";
-import { observeQuickActions, publishEnvelopes, publishSpendToday, publishWeek, publishWidgetTemplates } from "@/lib/quick-action-bridge";
+import { observeQuickActions, publishEnvelopes, publishShopping, publishSpendToday, publishWeek, publishWidgetTemplates, shoppingWidgetData } from "@/lib/quick-action-bridge";
+import { visibleShopping } from "@/lib/shopping-list";
 import { weekWidgetData } from "@/lib/week-widget";
 import { hasQueuedFeedback } from "@/lib/feedback-queue";
 import { useMemberMode } from "@/lib/member-mode";
@@ -852,6 +853,11 @@ export default function Home() {
     const caption = week.change === undefined ? t("în ultimele 7 zile") : week.change > 0 ? t("+{change}% față de săptămâna dinainte", { change: week.change }) : week.change < 0 ? t("{change}% față de săptămâna dinainte", { change: week.change }) : t("ca săptămâna dinainte");
     publishWeek({ days: week.days, total: fmtExact.format(Math.round(week.total)), caption, date: today, zone: getFamilyTimeZone(), stale: t("Sumele sunt de pe {date} — deschide aplicația", { date: formatDate(today, { day: "numeric", month: "long" }) }) });
   }, [data, memberModeActive, today]);
+  // Widgetul Bonuț: lista de cumpărături (doar nume de produse) și scanarea dintr-o atingere.
+  useEffect(() => {
+    const todo = isAppLockEnabled() ? [] : visibleShopping(data.settings.shoppingList || []).todo;
+    publishShopping(shoppingWidgetData(todo, (n) => (n === 1 ? t("1 produs") : t("{count} produse", { count: n }))));
+  }, [data.settings.shoppingList]);
   // Copia săptămânală, pe telefon: o dată la 7 zile, după ce omul a spus „da”.
   useEffect(() => { void import("@/components/AutoBackupCard").then(({ runAutoBackupIfDue }) => runAutoBackupIfDue(data)).catch(() => undefined); }, [data]);
   /**

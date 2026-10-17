@@ -120,3 +120,12 @@ describe("puntea către widget", () => {
     stop();
   });
 });
+
+import { shoppingWidgetData } from "./quick-action-bridge";
+describe("widgetul listei", () => {
+  it("primele 4 produse, fără goluri, și câte sunt", () => {
+    const todo = ["Lapte", " ", "Pâine", "Ouă", "Mere", "Pere"].map((text) => ({ text }));
+    expect(shoppingWidgetData(todo, (n) => `${n} produse`)).toEqual({ items: ["Lapte", "Pâine", "Ouă"], count: "6 produse" });
+    expect(shoppingWidgetData([], () => "x")).toEqual({ items: [], count: "" });
+  });
+});

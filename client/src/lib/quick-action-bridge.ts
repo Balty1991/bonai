@@ -24,6 +24,7 @@ type NativeBridge = {
   publishSpendToday?: (json: string) => void;
   publishEnvelopes?: (json: string) => void;
   publishWeek?: (json: string) => void;
+  publishShopping?: (json: string) => void;
 };
 
 const bridge = (): NativeBridge | undefined => {
@@ -165,6 +166,22 @@ export function publishWeek(payload: WeekWidget): void {
   try {
     if (!bridge()?.publishWeek) return;
     publishLater("week", JSON.stringify(payload), (value) => bridge()?.publishWeek?.(value));
+  } catch {
+    /* widgetul e opțional */
+  }
+}
+
+/** Widgetul Bonuț: primele produse din listă (doar text, fără sume) și câte mai sunt. */
+export type ShoppingWidget = { items: string[]; count: string };
+
+export function shoppingWidgetData(todo: ReadonlyArray<{ text: string }>, countLabel: (n: number) => string): ShoppingWidget {
+  return { items: todo.slice(0, 4).map((item) => item.text.trim()).filter(Boolean), count: todo.length ? countLabel(todo.length) : "" };
+}
+
+export function publishShopping(payload: ShoppingWidget): void {
+  try {
+    if (!bridge()?.publishShopping) return;
+    publishLater("shopping", JSON.stringify(payload), (value) => bridge()?.publishShopping?.(value));
   } catch {
     /* widgetul e opțional */
   }

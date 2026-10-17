@@ -95,6 +95,17 @@
                 android:resource="@xml/widget_week_info" />
         </receiver>
 
+        <receiver
+            android:name=".ShoppingWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_shopping_info" />
+        </receiver>
+
         <!-- Dala din Setări rapide; sistemul o pornește, de aceea este exportată. -->
         <service
             android:name=".QuickAddTileService"
