@@ -80,6 +80,8 @@ html[data-app="shop"] .sh-scan-sheet { display: grid; gap: 12px; }
 html[data-app="shop"] .os-dock .os-dock-add-disc { background: var(--sh-accent); color: #fff; }
 html[data-app="shop"] .os-dock button.is-on { color: var(--sh-accent); }
 
-html[data-app="shop"] .sh-page h1, html[data-app="shop"] .sh-page h2 { font-family: inherit; }
+html[data-app="shop"] .bf-app main .sh-page h1, html[data-app="shop"] .bf-app main .sh-page h2 { font-family: inherit; }
 html[data-app="shop"] .sh-hero .sh-kicker, html[data-app="shop"] .sh-hero .sh-sub { color: var(--sh-bg) !important; opacity: .8; }
 html[data-app="shop"] .sh-hero .sh-big { color: var(--sh-bg); }
+html[data-app="shop"] .sh-welcome { padding-top: 16px; }
+html[data-app="shop"] .sh-welcome-title { font-size: clamp(30px, 8.5vw, 40px); line-height: 1.1; }

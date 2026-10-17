@@ -123,3 +123,25 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { d
     <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
   </div>;
 }
+
+/** Prima pornire în aplicația nouă: fără salariu și plicuri; un bon e tot ce trebuie ca să înceapă. */
+export function ShopWelcome({ onScan, onJoin, onBudget, onSkip }: { onScan: () => void; onJoin: () => void; onBudget: () => void; onSkip: () => void }) {
+  const steps: Array<[ReactNode, string, string]> = [
+    [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
+    [<ShoppingBasket size={22} key="basket" />, t("Vezi ce cumperi"), t("Prețul fiecărui produs în timp și cât s-a scumpit viața ta.")],
+    [<Store size={22} key="store" />, t("Afli unde economisești"), t("Același produs, mai ieftin la alt magazin. Garanțiile, la timp.")],
+  ];
+  return <div className="sh-page sh-welcome">
+    <header className="sh-hero">
+      <p className="sh-kicker">{t("BINE AI VENIT")}</p>
+      <h1 className="sh-big sh-welcome-title">{t("Vezi exact cât te costă viața, produs cu produs.")}</h1>
+      <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează primul bon")}</button>
+    </header>
+    <div className="sh-rows">{steps.map(([icon, title, hint]) => <div key={title} className="sh-row" role="presentation"><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b><small>{hint}</small></span><span /></div>)}</div>
+    <div className="sh-rows">
+      <Row icon={<Users size={20} />} title={t("Am deja familia în aplicație")} hint={t("intru cu invitația partenerului")} onClick={onJoin} />
+      <Row icon={<Wallet size={20} />} title={t("Vreau bugetul cu plicuri")} hint={t("salariu, plicuri, rate, ca înainte")} onClick={onBudget} />
+    </div>
+    <button type="button" className="sh-link" onClick={onSkip}>{t("Mă uit întâi prin aplicație")} <ChevronRight size={16} aria-hidden="true" /></button>
+  </div>;
+}
