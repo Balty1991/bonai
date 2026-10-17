@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.220
+
+- **O aplicație nouă: cumpărăturile familiei, pornind de la bon.** Meniu nou: Acasă · Produse · Scanează · Magazine · Casa, cu altă înfățișare (alb cald, negru și portocaliu, alt font).
+- **Acasă:** cât ați dat luna asta pe bonuri față de luna trecută, butonul mare „Scanează bonul”, unde puteați economisi (același produs, mai ieftin la alt magazin), inflația ta, garanțiile care expiră, produsele pe care se duc banii, categoriile și bonurile recente.
+- **Magazine:** cât lăsați la fiecare magazin, de câte ori mergeți, coșul mediu și cât de scump e față de cel mai ieftin, la produsele luate din mai multe locuri.
+- **Casa:** familia și sincronizarea, garanțiile, lista de cumpărături, bonurile, toate cheltuielile, exportul și setările.
+- **Bugetul cu plicuri rămâne întreg,** cu toate datele: Casa → „Buget (vechi)”. De acolo, Mai mult → „Aplicația nouă” te aduce înapoi.
+
+- **Garanții și retururi** (Mai mult → Cumpărături și bonuri): aplicația propune din bonuri produsele care au garanție (electronice, electrocasnice, orice rând nealimentar de peste 300 lei din ultimii doi ani) și le adaugi dintr-o atingere, cu 2 ani garanție legală; sau le treci de mână.
+- **Ultima zi de retur:** 14 zile implicit la magazinele online (eMAG, Amazon, Fashion Days…), alegi 0, 14 sau 30. Notificare seara dinainte și dimineața ultimei zile.
+- **Garanția care expiră:** notificare cu 30 de zile înainte, ca să duci produsul la service cât e încă în garanție.
+- **Poza bonului**, micșorată, păstrată pe telefon: hârtia termică se șterge în câteva luni.
+- Garanțiile se sincronizează cu celălalt telefon; notificările lor se pot opri din Setări → Mementouri.
+
 ## 1.1.219
 
 - **Bonul citit pe produs, nu doar pe categorie.** La scanare, fiecare articol vine acum cu marca („Zuzu”, „Dorna”), gramajul sau volumul („1 l”, „500 g”), cum se vinde (bucată, kg, litru), prețul pe bucată sau pe kg tipărit și cota TVA; iar din antet: codul fiscal, adresa, orașul și ora bonului. Instrucțiunile modelului au exemple de rânduri de la Lidl, Kaufland, Carrefour, Mega Image, Profi, Auchan și Penny.

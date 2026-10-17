@@ -1,0 +1,147 @@
+/**
+ * Aplicația nouă, a cumpărăturilor: Acasă, Produse, Magazine și Casa.
+ * Totul pornește de la bon: scanezi, iar aplicația îți arată ce cumperi, cât costă fiecare
+ * produs, unde e mai ieftin și cât s-a scumpit viața ta. Bugetul cu plicuri a rămas întreg,
+ * cu toate datele, sub Casa → „Buget (vechi)”.
+ */
+import { lazy, Suspense, useMemo, type ReactNode } from "react";
+import { ArrowUpRight, ChevronRight, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
+import { isoToday, type AppData } from "@/lib/finance-data";
+import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
+import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
+import { liveWarranties } from "@/lib/warranties";
+import { lei } from "@/lib/money-format";
+import { t } from "@/lib/i18n";
+import { dateText, type MoreView } from "@/pages/home-kit";
+
+const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
+const pct = (value: number) => `${value > 0 ? "+" : ""}${value.toLocaleString("ro-RO", { maximumFractionDigits: 1 })}%`;
+const monthName = (month: string) => new Date(`${month}-15T12:00:00`).toLocaleDateString("ro-RO", { month: "long" });
+
+function Card({ kicker, title, children, tone }: { kicker?: string; title?: ReactNode; children?: ReactNode; tone?: "accent" | "warn" }) {
+  return <section className={`sh-card${tone ? ` is-${tone}` : ""}`}>{kicker && <p className="sh-kicker">{kicker}</p>}{title && <h2 className="sh-title">{title}</h2>}{children}</section>;
+}
+
+function Row({ icon, title, hint, onClick }: { icon: ReactNode; title: string; hint?: string; onClick: () => void }) {
+  return <button type="button" className="sh-row" onClick={onClick}><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b>{hint && <small>{hint}</small>}</span><ChevronRight size={18} aria-hidden="true" /></button>;
+}
+
+export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMore }: { data: AppData; onScan: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void }) {
+  const today = isoToday();
+  const month = useMemo(() => monthShopping(data, today), [data, today]);
+  const top = useMemo(() => topProducts(data, today), [data, today]);
+  const saving = useMemo(() => savingsOpportunity(data, today), [data, today]);
+  const inflation = useMemo(() => monthInflation(data), [data]);
+  const shrink = useMemo(() => shrinkflationAlerts(data, today).slice(0, 2), [data, today]);
+  const warranties = useMemo(() => liveWarranties(data, today).filter((item) => item.status.state === "return" || item.status.state === "expiring").slice(0, 2), [data, today]);
+  const diff = month.spent - month.lastMonthSoFar;
+  const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
+  return <div className="sh-page">
+    <header className="sh-hero">
+      <p className="sh-kicker">{t("CUMPĂRĂTURILE TALE ÎN {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
+      <h1 className="sh-big">{lei(month.spent)}</h1>
+      <p className="sh-sub">{month.receipts ? t("din {count} bonuri", { count: month.receipts }) : t("Scanează primul bon al lunii.")}{month.lastMonthSoFar > 0 && <> · <span className={diff > 0 ? "sh-up" : "sh-down"}>{diff > 0 ? t("{amount} mai mult", { amount: lei(diff) }) : t("{amount} mai puțin", { amount: lei(-diff) })}</span> {t("decât luna trecută până azi")}</>}</p>
+      <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
+    </header>
+
+    {saving.total > 0 && <Card tone="accent" kicker={t("UNDE POȚI ECONOMISI")} title={t("Ai fi dat cu {amount} mai puțin luna asta", { amount: lei(saving.total) })}>
+      <ul className="sh-list">{saving.items.slice(0, 3).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("luat la {vendor}, mai ieftin la {cheaper}", { vendor: item.vendor, cheaper: item.cheaperVendor })}</small></span><b className="sh-down">−{lei(item.saved)}</b></li>)}</ul>
+      <button type="button" className="sh-link" onClick={onOpenStores}>{t("Vezi magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>}
+
+    <Card kicker={t("INFLAȚIA TA")} title={inflation && inflation.products > 0 ? t("{percent} în {month}", { percent: pct(inflation.percent), month: monthName(inflation.month) }) : t("Se calculează din bonurile tale")}>
+      {inflation && inflation.risers.length > 0 ? <ul className="sh-list">{inflation.risers.slice(0, 3).map((row) => <li key={row.label}><span><b>{row.label}</b></span><b className="sh-up"><ArrowUpRight size={14} aria-hidden="true" />{pct(row.percent)}</b></li>)}</ul>
+        : <p className="sh-muted">{t("Cu fiecare bon scanat îți arăt cât s-au scumpit exact produsele pe care le cumperi tu.")}</p>}
+      {shrink.map((alert) => <p key={`${alert.key}-${alert.date}`} className="sh-alert"><Sparkles size={15} aria-hidden="true" /> {t("{name}: mai puțin în pachet, {percent} pe {per}", { name: alert.label, percent: pct(alert.perUnitPercent), per: alert.per })}</p>)}
+      <button type="button" className="sh-link" onClick={onOpenProducts}>{t("Toate produsele")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>
+
+    {warranties.length > 0 && <Card tone="warn" kicker={t("GARANȚII ȘI RETURURI")}>
+      {warranties.map(({ warranty, status }) => <p key={warranty.id} className="sh-alert"><ShieldCheck size={15} aria-hidden="true" /> {status.state === "return" ? t("{name}: retur până pe {date}", { name: warranty.name, date: dateText(status.returnUntil || today, true) }) : t("{name}: garanția expiră pe {date}", { name: warranty.name, date: dateText(status.until || today, true) })}</p>)}
+      <button type="button" className="sh-link" onClick={() => onOpenMore("warranties")}>{t("Deschide garanțiile")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>}
+
+    {top.length > 0 && <Card kicker={t("PE CE SE DUC BANII")} title={t("Ultimele 30 de zile")}>
+      <ul className="sh-list">{top.map((item) => <li key={item.key}><span><b>{item.label}</b><small>{item.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: item.count })}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
+    </Card>}
+
+    {month.categories.length > 0 && <Card kicker={t("PE CATEGORII")}>
+      <div className="sh-bars">{month.categories.slice(0, 5).map((item) => <div key={item.category} className="sh-bar"><span>{t(item.category)}</span><i style={{ width: `${Math.max(4, Math.round((item.amount / month.categories[0].amount) * 100))}%` }} /><b>{lei(item.amount)}</b></div>)}</div>
+    </Card>}
+
+    <Card kicker={t("BONURILE RECENTE")}>
+      {recent.length ? <ul className="sh-list">{recent.map((receipt) => <li key={receipt.id}><span><b>{receipt.vendor || t("Bon")}</b><small>{dateText(receipt.date, true)}{receipt.lines?.length ? ` · ${t("{count} produse", { count: receipt.lines.length })}` : ""}</small></span><b>{lei(receipt.amount)}</b></li>)}</ul>
+        : <p className="sh-muted">{t("Niciun bon încă. Fă o poză bonului de la magazin: citesc fiecare produs, cu prețul lui.")}</p>}
+      <button type="button" className="sh-link" onClick={() => onOpenMore("receipts")}>{t("Toate bonurile")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>
+  </div>;
+}
+
+export function ProductsView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+  return <div className="sh-page">
+    <header className="sh-head"><p className="sh-kicker">{t("PRODUSE")}</p><h1 className="sh-h1">{t("Tot ce cumperi, cu prețul în timp")}</h1></header>
+    <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PriceWatchPanel data={data} onChange={onChange} /></Suspense>
+  </div>;
+}
+
+export function StoresView({ data }: { data: AppData }) {
+  const today = isoToday();
+  const stores = useMemo(() => storeStats(data, today), [data, today]);
+  const saving = useMemo(() => savingsOpportunity(data, today, 90), [data, today]);
+  const cheapest = stores.filter((item) => item.priceIndex !== undefined).sort((a, b) => (a.priceIndex ?? 0) - (b.priceIndex ?? 0))[0];
+  return <div className="sh-page">
+    <header className="sh-head"><p className="sh-kicker">{t("MAGAZINE")}</p><h1 className="sh-h1">{t("Unde cumperi și unde ar merita")}</h1></header>
+    {cheapest && <Card tone="accent" kicker={t("CEL MAI IEFTIN PENTRU TINE")} title={cheapest.vendor}><p className="sh-muted">{t("La produsele pe care le iei din mai multe locuri, {vendor} iese cel mai bine.", { vendor: cheapest.vendor })}</p></Card>}
+    {saving.total > 0 && <Card kicker={t("ULTIMELE 90 DE ZILE")} title={t("Puteai economisi {amount}", { amount: lei(saving.total) })}>
+      <ul className="sh-list">{saving.items.slice(0, 6).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("{vendor} → {cheaper}", { vendor: item.vendor, cheaper: item.cheaperVendor })}</small></span><b className="sh-down">−{lei(item.saved)}</b></li>)}</ul>
+    </Card>}
+    <Card kicker={t("MAGAZINELE TALE")} title={t("Ultimele 90 de zile")}>
+      {stores.length ? <ul className="sh-list">{stores.map((item) => <li key={item.vendor}><span><b>{item.vendor}</b><small>{[item.visits === 1 ? t("o vizită") : t("{count} vizite", { count: item.visits }), t("coș mediu {amount}", { amount: lei(item.average) }), item.priceIndex !== undefined ? (item.priceIndex <= 0.5 ? t("cel mai ieftin la produsele comune") : t("{percent} față de cel mai ieftin", { percent: pct(item.priceIndex) })) : ""].filter(Boolean).join(" · ")}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
+        : <p className="sh-muted">{t("Scanează bonuri de la magazinele unde mergi: aici vezi unde lași cei mai mulți bani și care e mai scump.")}</p>}
+    </Card>
+    {stores.some((item) => item.priceIndex !== undefined) && <p className="sh-muted sh-note">{t("Comparația ține doar de produsele pe care le-ai cumpărat în cel puțin două magazine, pe kg, litru sau bucată.")}</p>}
+  </div>;
+}
+
+export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget: () => void }) {
+  const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
+  return <div className="sh-page">
+    <header className="sh-head"><p className="sh-kicker">{t("CASA")}</p><h1 className="sh-h1">{data.settings.familyName || t("Familia ta")}</h1></header>
+    <div className="sh-rows">
+      <Row icon={<Users size={20} />} title={t("Familia și sincronizarea")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
+      <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
+      <Row icon={<ListChecks size={20} />} title={t("Lista de cumpărături")} hint={t("comună pentru toată familia")} onClick={() => onOpenMore("shopping")} />
+      <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => onOpenMore("receipts")} />
+      <Row icon={<ShoppingBasket size={20} />} title={t("Toate cheltuielile")} hint={t("și cele fără bon")} onClick={onOpenJournal} />
+      <Row icon={<Download size={20} />} title={t("Export și copii de siguranță")} hint={t("fișier pe telefon")} onClick={() => onOpenMore("settings")} />
+      <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, temă")} onClick={() => onOpenMore("settings")} />
+    </div>
+    <div className="sh-rows">
+      <Row icon={<Wallet size={20} />} title={t("Buget (vechi)")} hint={t("plicuri, rate, facturi: toate datele sunt aici")} onClick={onOpenBudget} />
+      <Row icon={<PiggyBank size={20} />} title={t("Toate uneltele")} hint={t("rapoarte, avere, investiții")} onClick={() => onOpenMore("overview")} />
+    </div>
+    <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
+  </div>;
+}
+
+/** Prima pornire în aplicația nouă: fără salariu și plicuri; un bon e tot ce trebuie ca să înceapă. */
+export function ShopWelcome({ onScan, onJoin, onBudget, onSkip }: { onScan: () => void; onJoin: () => void; onBudget: () => void; onSkip: () => void }) {
+  const steps: Array<[ReactNode, string, string]> = [
+    [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
+    [<ShoppingBasket size={22} key="basket" />, t("Vezi ce cumperi"), t("Prețul fiecărui produs în timp și cât s-a scumpit viața ta.")],
+    [<Store size={22} key="store" />, t("Afli unde economisești"), t("Același produs, mai ieftin la alt magazin. Garanțiile, la timp.")],
+  ];
+  return <div className="sh-page sh-welcome">
+    <header className="sh-hero">
+      <p className="sh-kicker">{t("BINE AI VENIT")}</p>
+      <h1 className="sh-big sh-welcome-title">{t("Vezi exact cât te costă viața, produs cu produs.")}</h1>
+      <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează primul bon")}</button>
+    </header>
+    <div className="sh-rows">{steps.map(([icon, title, hint]) => <div key={title} className="sh-row" role="presentation"><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b><small>{hint}</small></span><span /></div>)}</div>
+    <div className="sh-rows">
+      <Row icon={<Users size={20} />} title={t("Am deja familia în aplicație")} hint={t("intru cu invitația partenerului")} onClick={onJoin} />
+      <Row icon={<Wallet size={20} />} title={t("Vreau bugetul cu plicuri")} hint={t("salariu, plicuri, rate, ca înainte")} onClick={onBudget} />
+    </div>
+    <button type="button" className="sh-link" onClick={onSkip}>{t("Mă uit întâi prin aplicație")} <ChevronRight size={16} aria-hidden="true" /></button>
+  </div>;
+}

@@ -13,7 +13,9 @@ import { isDemoMode, setDemoMode } from "@/lib/demo-data";
 import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X } from "lucide-react";
+import { BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store } from "lucide-react";
+import { setAppMode, useAppMode } from "@/lib/app-mode";
+import "./shop.css";
 import { allocationStatus, autoPostDueRecurring, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, confirmRecurringPayment, addIsoDays, formatDate, inPlanPeriod, isoDate, isoToday, newId, transferBetweenEnvelopes, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
 import { addContribution, eventTraits } from "@/lib/planned-events";
 import { applyDeclaredBalance } from "@/lib/balance-check";
@@ -37,6 +39,7 @@ import { useMemberMode } from "@/lib/member-mode";
 import { MemberModeScreen } from "@/components/MemberModeScreen";
 import {
   WhatsNewSheet,
+  Modal,
   fmtExact,
   money,
   type MainView,
@@ -92,6 +95,12 @@ const InsightsView = lazy(safeImport(() => import("@/pages/InsightsView").then((
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
 const WeekCloseSheet = lazy(safeImport(() => import("@/components/WeekCloseSheet").then((module) => ({ default: module.WeekCloseSheet }))));
 const PaydaySheet = lazy(safeImport(() => import("@/components/PaydaySheet").then((module) => ({ default: module.PaydaySheet }))));
+const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
+const ProductsView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ProductsView }))));
+const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
+const HouseView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.HouseView }))));
+const ShopWelcome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopWelcome }))));
+const ReceiptScanButton = lazy(safeImport(() => import("@/components/ReceiptScanButton").then((module) => ({ default: module.ReceiptScanButton }))));
 const FirstRunSetup = lazy(safeImport(() => import("@/components/FirstRunSetup").then((module) => ({ default: module.FirstRunSetup }))));
 const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").then((module) => ({ default: module.AICompanion }))));
 
@@ -100,7 +109,7 @@ const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").the
  * „habits” și „calendar” cădeau tăcut înapoi pe Astăzi, deși ecranele există — un link
  * dintr-o notificare sau o scurtătură ducea în altă parte decât spunea.
  */
-const MAIN_VIEWS: MainView[] = ["today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
+const MAIN_VIEWS: MainView[] = ["shop", "products", "stores", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
 const initialMainView = (): MainView => {
   const requested = new URLSearchParams(window.location.search).get("view") as MainView | null;
   return requested && MAIN_VIEWS.includes(requested) ? requested : "today";
@@ -126,6 +135,7 @@ const preloadView = (id: MainView): Promise<void> => {
     : id === "obligations" ? warmLazy(ObjectivesView)
     : id === "goals" || id === "habits" ? warmLazy(id === "goals" ? LongTermGoalsView : SpendingHabitsView)
     : id === "utilities" ? warmLazy(MoreViewScreen)
+    : id === "shop" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
 };
@@ -192,7 +202,8 @@ export default function Home() {
     return () => { delete document.documentElement.dataset.simpleMode; };
   }, [simpleMode]);
   useLanguage();
-  const [view, setView] = useState<MainView>(initialMainView);
+  const appMode = useAppMode();
+  const [view, setView] = useState<MainView>(() => { const first = initialMainView(); return appMode === "shop" && first === "today" ? "shop" : first; });
   const [more, setMoreNow] = useState<MoreView>("overview");
   const goSeq = useRef(0);
   const moreSeq = useRef(0);
@@ -208,7 +219,7 @@ export default function Home() {
   const [moreReturn, setMoreReturn] = useState<{ view: MainView; label: string } | null>(null);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [guideOn, setGuideOn] = useState(false);
-  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | null>(null);
+  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | null>(null);
   const [quickTemplateId, setQuickTemplateId] = useState<string | undefined>(undefined);
   const [quickKind, setQuickKind] = useState<"income" | undefined>(undefined);
   const [quickMoving, setQuickMoving] = useState(false);
@@ -303,7 +314,7 @@ export default function Home() {
   useLayoutEffect(() => { scrollKeyNow.current = scrollKey; const main = document.getElementById("main-content"); const top = scrollKey === "utilities:overview" ? scrollMemo.current[scrollKey] || 0 : 0; if (main && main.scrollTop !== top) main.scrollTop = top; enterScreen(main); if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, [scrollKey]);
   useEffect(() => { const main = document.getElementById("main-content"); if (!main) return; const remember = () => { if (scrollKeyNow.current === scrollKey) scrollMemo.current[scrollKey] = main.scrollTop; }; main.addEventListener("scroll", remember, { passive: true }); return () => main.removeEventListener("scroll", remember); }, [scrollKey]); useEffect(() => { const onKeyDown = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setQuickActionsOpen((open) => !open); } if (event.key === "Escape") setQuickActionsOpen(false); }; window.addEventListener("keydown", onKeyDown); return () => window.removeEventListener("keydown", onKeyDown); }, []); useEffect(() => { const replay = () => setOnboardingOpen(true); const replaySetup = () => setSetupOpen(true); const openTutorial = () => { setMore("guide"); go("utilities"); }; window.addEventListener("buget-familie:replay-onboarding", replay); window.addEventListener("buget-familie:replay-setup", replaySetup); window.addEventListener("buget-familie:open-usage-tutorial", openTutorial); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0) || Boolean(data.settings.salaryPlan.nextPayday); if (hasStarted && !window.localStorage.getItem("buget-familie:setup-complete")) safeSetItem(window.localStorage, "buget-familie:setup-complete", "true"); if (storageReady && !window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted && !setupOffered.current) { setupOffered.current = true; safeSetItem(window.localStorage, "buget-familie:onboarding-complete", "true"); setSetupOpen(true); } return () => { window.removeEventListener("buget-familie:replay-onboarding", replay); window.removeEventListener("buget-familie:replay-setup", replaySetup); window.removeEventListener("buget-familie:open-usage-tutorial", openTutorial); }; }, [storageReady, data.transactions.length, data.settings.salaryPlan.allocations.length, data.debts.length, data.savings.length, data.settings.paymentSources, data.settings.salaryPlan.nextPayday]);
   useEffect(() => {
-    if (!storageReady || onboardingOpen || setupOpen) return;
+    if (!storageReady || onboardingOpen || setupOpen || appMode === "shop") return;
     const started = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0;
     if (shouldOfferFirstWeekTour({
       storage: window.localStorage,
@@ -316,7 +327,7 @@ export default function Home() {
       return;
     }
     if (shouldShowWhatsNew(window.localStorage) && !modal && !(view === "utilities" && more === "sync") && started) setWhatsNewOpen(true);
-  }, [storageReady, onboardingOpen, setupOpen, modal, more, view, data.transactions.length, data.settings.salaryPlan.allocations.length]);
+  }, [storageReady, onboardingOpen, setupOpen, modal, more, view, data.transactions.length, data.settings.salaryPlan.allocations.length, appMode]);
   const dismissWhatsNew = () => { markWhatsNewSeen(window.localStorage); setWhatsNewOpen(false); };
   const dismissFirstWeekTour = () => { markFirstWeekTourSeen(window.localStorage); setFirstWeekTourOpen(false); };
   // Cine a notat deja trei cheltuieli a învățat gestul: indiciul „1 · CAPTURĂ” nu mai stă pe Astăzi.
@@ -341,7 +352,9 @@ export default function Home() {
   }, [storageReady, data.settings.salaryPlan.allocations, data.transactions.length]);
 
   const { undo, setUndo, runUndo, deleteWithUndo, offerUndo } = useUndo(data, applyData);
-  const go = (next: MainView) => {
+  const go = (target: MainView) => {
+    // În aplicația nouă, „Astăzi” (sigla, linkurile vechi) duce la Acasă, a cumpărăturilor.
+    const next = appMode === "shop" && target === "today" ? "shop" : target;
     const seq = ++goSeq.current;
     if (next !== "utilities") setMoreReturn(null);
     if (next === view) return;
@@ -865,14 +878,35 @@ export default function Home() {
     { id: "journal", label: t("Mișcări"), icon: ReceiptText },
     { id: "utilities", label: t("Mai mult"), icon: MoreHorizontal },
   ];
-  const nav = memberModeActive ? [] : simpleMode ? allNav.filter((item) => item.id === "today" || item.id === "journal" || item.id === "plan" || item.id === "obligations") : allNav;
+  const shopMode = appMode === "shop" && !memberModeActive;
+  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "products" as MainView, label: t("Produse"), icon: ShoppingBasket }, { id: "stores" as MainView, label: t("Magazine"), icon: Store }, { id: "house" as MainView, label: t("Casa"), icon: Users }];
+  const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
+  /** Prima pornire în aplicația nouă s-a încheiat: nu mai întrebăm de salariu și plicuri. */
+  const finishShopWelcome = () => {
+    try { safeSetItem(window.localStorage, "buget-familie:setup-complete", "true"); safeSetItem(window.localStorage, "buget-familie:onboarding-complete", "true"); } catch { /* fără stocare */ }
+    setSetupOpen(false);
+    go("shop");
+  };
+  const openScan = () => { setEditTx(undefined); setScanPrefill(undefined); setModal("scan"); };
+  // Schimbarea aplicației (Casa → Buget vechi și înapoi) duce pe ecranul de start al celei alese.
+  useEffect(() => {
+    const shopViews: MainView[] = ["shop", "products", "stores", "house"];
+    if (appMode === "shop" && view === "today") setView("shop");
+    if (appMode === "budget" && shopViews.includes(view)) setView("today");
+  }, [appMode, view]);
+  const nav = memberModeActive ? [] : shopMode ? shopNav : simpleMode ? allNav.filter((item) => item.id === "today" || item.id === "journal" || item.id === "plan" || item.id === "obligations") : allNav;
   useEffect(() => {
     if (!simpleMode) return;
     if (view === "insights" || view === "habits" || view === "goals" || view === "calendar") go("today");
   }, [simpleMode, view]);
   /** Bannerele de sync se ascund doar când ecranul Sync e chiar deschis, nu când a fost ultimul instrument. */
   const onSyncScreen = view === "utilities" && more === "sync";
-  const current = () => { if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
+  const current = () => {
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><ProductsView data={data} onChange={applyData} /></Suspense>;
+    if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
+    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim casa…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Casa") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} /></Suspense>;
+    if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
       // Bonul plătit din două surse se șterge întreg: ambele părți.
       next: { ...currentData, transactions: currentData.transactions.filter((item) => !splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => !splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")), deleted: [...currentData.deleted, ...splitGroupIds(currentData.transactions, id).map((removedId) => ({ entity: "transactions" as const, id: removedId, deletedAt: new Date().toISOString() }))].slice(-TOMBSTONE_MAX) },
       removed: { transactions: currentData.transactions.filter((item) => splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")) },
@@ -887,7 +921,7 @@ export default function Home() {
       next: { ...currentData, savings: currentData.savings.filter((item) => item.id !== id), deleted: [...currentData.deleted, { entity: "savings" as const, id, deletedAt: new Date().toISOString() }].slice(-TOMBSTONE_MAX) },
       removed: { savings: currentData.savings.filter((item) => item.id === id) },
     }))} onUpdate={(change) => update(change)} openDebt={() => { setEditGoal(undefined); setModal("debt"); }} openSaving={() => { setEditGoal(undefined); setModal("saving"); }} onOpenGoals={() => go("goals")} onOpenCalendar={() => go("calendar")} onOpenEvents={() => { setMore("events"); go("utilities"); }} onOpenAssistant={() => { setMore("assistant"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); }} onAddRecurring={(item) => update((currentData) => autoPostDueRecurring({ ...currentData, recurring: [...currentData.recurring, item] }))} onAddSaving={(goal) => update((currentData) => ({ ...currentData, savings: [...currentData.savings, goal] }))} onPayRecurring={(id) => { if (data.recurring.find((item) => item.id === id)?.variable) { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); return; } update((currentData) => confirmRecurringPayment(currentData, id) || currentData); }} /></Suspense>; if (view === "insights") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim analiza…")}</div>}><InsightsView data={data} onChange={applyData} onGo={go} /></Suspense>; if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenDebt={() => { setEditGoal(undefined); setModal("debt"); }} onOpenSaving={() => { setEditGoal(undefined); setModal("saving"); }} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>; return <TodayView data={data} onAdd={() => openTx()} onEdit={openTx} onGo={go} onChange={applyData} onOpenReview={() => { setMore("review"); go("utilities"); }} onOpenSettings={() => { setMore("settings"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("recurring"); go("utilities"); }} coach={view === "today" && firstWeekTourOpen && !onboardingOpen && !setupOpen && !modal && more !== "sync" ? <Suspense fallback={null}><FirstWeekTour onClose={dismissFirstWeekTour} onCapture={() => { dismissFirstWeekTour(); openTx(); }} onPlan={() => { dismissFirstWeekTour(); go("plan"); }} onSync={() => { dismissFirstWeekTour(); setMore("sync"); go("utilities"); }} /></Suspense> : null} />; };
-  return <div className={"bf-app os-shell" + (setupOpen || onboardingOpen ? " is-setup" : "")}>
+  return <div className={"bf-app os-shell" + ((setupOpen && !shopMode) || onboardingOpen ? " is-setup" : "")}>
     <a className="bf-skip-link" href="#main-content">{t("Sari la conținut")}</a>
     {storageNotice && <div className="bf-storage-notice" role="status"><ShieldCheck size={15} /><span>{storageNotice}</span><button type="button" aria-label={t("Închide notificarea")} onClick={() => setStorageNotice(null)}><X size={14} /></button></div>}
     {updateAvailable && <div className="bf-offline-banner bf-update-banner" role="status" aria-live="polite"><RotateCcw size={15} aria-hidden="true" /><span>{t("Există o versiune nouă a aplicației.")}</span><button type="button" onClick={() => void reloadToNewVersion()}>{t("Reîncarcă")}</button></div>}
@@ -896,7 +930,7 @@ export default function Home() {
     {syncPanelProps.needsSelfChoice && syncPanelProps.connected && !onSyncScreen && !memberModeActive && <div className="bf-offline-banner bf-sync-off-banner" role="status"><Users size={15} aria-hidden="true" /><span>{t("Spune-ne cine ești pe acest telefon, ca cheltuielile tale să nu apară pe altcineva.")}</span><button type="button" onClick={() => { setMore("sync"); go("utilities"); }}>{t("Alege")}</button></div>}
     <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("today")}><BrandMark /><span className="os-brand-copy"><b>Buget</b><i>Familie</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={17} aria-hidden="true" /><span>{t("Notează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools"><button className="os-tool" aria-label={t("Deschide acțiunile rapide")} title={t("Acțiuni rapide · Ctrl K")} onPointerDown={() => void import("@/pages/QuickActionsPalette")} onClick={() => setQuickActionsOpen(true)}><Search size={17} /></button><button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button><button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={20} aria-hidden="true" /><span>{t("Notează")}</span></button>}
     {demo && !setupOpen && <aside className="bf-demo-banner" role="status"><span><b>{t("Familie exemplu")}</b> · {t("datele sunt inventate")}</span><button type="button" className="bf-primary" onClick={() => void leaveDemo()}>{t("Încep cu datele mele")}</button></aside>}
-    <main id="main-content" key={today} className={setupOpen || onboardingOpen ? "is-setup-main" : undefined}>{setupOpen ? null : memberModeActive ? <MemberModeScreen data={data} memberId={memberMode} onChange={applyData} /> : current()}</main>
+    <main id="main-content" key={today} className={(setupOpen && !shopMode) || onboardingOpen ? "is-setup-main" : undefined}>{setupOpen ? (shopMode ? <Suspense fallback={null}><ShopWelcome onScan={() => { finishShopWelcome(); openScan(); }} onJoin={() => { finishShopWelcome(); setMore("sync"); go("utilities"); }} onBudget={() => { setAppMode("budget"); }} onSkip={finishShopWelcome} /></Suspense> : null) : memberModeActive ? <MemberModeScreen data={data} memberId={memberMode} onChange={applyData} /> : current()}</main>
     {undo && (
       <div className="bf-undo-bar" role="status" aria-live="polite">
         <span>{undo.label}</span>
@@ -909,18 +943,20 @@ export default function Home() {
     <div className="os-nav-fill" aria-hidden="true" />
     {/* Meniul de jos: Astăzi · Plicuri · ＋ Notează · Mișcări · Mai mult. „Notează” stă mereu în același loc, la mijloc;
         Obligațiile și Analiza sunt în „Mai mult”, ca pe telefon să rămână 4 file și butonul care contează. */}
-    {nav.length > 0 && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{dockNav.map((item) => {
+    {nav.length > 0 && !(shopMode && setupOpen) && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{(shopMode ? shopDock : dockNav).map((item) => {
+      if (item.id === "add" && shopMode) return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/ReceiptScanButton")} onClick={openScan}><span className="os-dock-add-disc"><ScanLine size={24} aria-hidden="true" /></span><span>{t("Scanează")}</span></button>;
       if (item.id === "add") return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => openTx()}><span className="os-dock-add-disc"><Plus size={24} aria-hidden="true" /></span><span>{t("Notează")}</span></button>;
       const Icon = item.icon;
       const on = view === item.id || (item.id === "utilities" && (view === "obligations" || view === "insights" || view === "goals"));
       return <button key={item.id} className={on ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerDown={() => { preloadView(item.id as MainView); void ensureDeferredStyles(); }} onClick={() => { if (item.id === "utilities") setMore("overview"); go(item.id as MainView); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span>{(item.id === "journal" || item.id === "utilities") && data.pendingReview.length > 0 ? <i className="bf-dock-dot" aria-hidden="true" /> : null}</button>;
     })}</nav>}
     {!simpleMode && !memberModeActive && guideOn && <Suspense fallback={null}><AICompanion initiallyOpen data={data} view={view} onAdd={() => openTx()} onGo={go} onNaturalEntry={openNaturalDraft} onFinancialUpdate={applyFinancialUpdate} onRevert={revertGuided} /></Suspense>}
-    {themePickerOpen && <Suspense fallback={null}><ThemePicker theme={activeTheme} schedule={themeSchedule} scheduleTimes={scheduleTimes} highContrast={highContrast} background={background} onChange={setTheme} onScheduleChange={setThemeSchedule} onScheduleTimesChange={setScheduleTimes} onContrastChange={setHighContrast} onBackgroundChange={setBackground} onClose={() => setThemePickerOpen(false)} /></Suspense>} {quickActionsOpen && <Suspense fallback={null}><QuickActionsPalette data={data} onClose={() => setQuickActionsOpen(false)} onAdd={() => openTx()} onGo={go} /></Suspense>} {onboardingOpen && <Suspense fallback={null}><CalmOnboarding onClose={() => { setOnboardingOpen(false); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0); if (!window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted) setSetupOpen(true); }} onAdd={() => openTx()} onGo={go} /></Suspense>} {setupOpen && <Suspense fallback={null}><FirstRunSetup data={data} onChange={applyData} onClose={() => { setSetupOpen(false); setDemo(isDemoMode()); }} onGoPlan={() => go("plan")} onAdd={() => openTx()} onOpenSync={() => { setMore("sync"); go("utilities"); }} /></Suspense>}
+    {themePickerOpen && <Suspense fallback={null}><ThemePicker theme={activeTheme} schedule={themeSchedule} scheduleTimes={scheduleTimes} highContrast={highContrast} background={background} onChange={setTheme} onScheduleChange={setThemeSchedule} onScheduleTimesChange={setScheduleTimes} onContrastChange={setHighContrast} onBackgroundChange={setBackground} onClose={() => setThemePickerOpen(false)} /></Suspense>} {quickActionsOpen && <Suspense fallback={null}><QuickActionsPalette data={data} onClose={() => setQuickActionsOpen(false)} onAdd={() => openTx()} onGo={go} /></Suspense>} {onboardingOpen && <Suspense fallback={null}><CalmOnboarding onClose={() => { setOnboardingOpen(false); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0); if (!window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted) setSetupOpen(true); }} onAdd={() => openTx()} onGo={go} /></Suspense>} {setupOpen && !shopMode && <Suspense fallback={null}><FirstRunSetup data={data} onChange={applyData} onClose={() => { setSetupOpen(false); setDemo(isDemoMode()); }} onGoPlan={() => go("plan")} onAdd={() => openTx()} onOpenSync={() => { setMore("sync"); go("utilities"); }} /></Suspense>}
     {weekCloseOpen && <Suspense fallback={null}><WeekCloseSheet data={data} today={todayIso} evening={new Date().getHours() >= 18} onClose={() => setWeekCloseOpen(false)} onApply={(change) => update(change)} /></Suspense>}
     {paydayOpen && <Suspense fallback={null}><PaydaySheet data={data} today={todayIso} onClose={() => setPaydayOpen(false)} onApply={(proposal) => { update((current) => applyPayday(current, proposal)); setPaydayOpen(false); }} /></Suspense>}
     {modal === "quick" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim înregistrarea rapidă…")}</div></div>}><QuickEntryPanel data={data} initialMoving={quickMoving} onAddSource={(source) => update((current) => ({ ...current, settings: { ...current.settings, paymentSources: [...current.settings.paymentSources, source] } }))} autoVoice={quickVoice} initialKind={quickKind} initialTemplateId={quickTemplateId} onSave={saveTx} onSaveTemplate={saveQuickTemplate} onDeleteTemplate={deleteQuickTemplate} onArchiveTemplate={archiveQuickTemplate} onRestoreTemplate={restoreQuickTemplate} onDeleteArchivedTemplate={deleteArchivedQuickTemplate} onClose={() => { setModal(null); setQuickTemplateId(undefined); setQuickKind(undefined); setQuickVoice(false); }} onMore={(draft, scan) => { setEditTx(draft); setScanPrefill(scan); setQuickTemplateId(undefined); setModal("transaction"); }} /></Suspense>}
     {modal === "transaction" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim mișcarea…")}</div></div>}><TransactionForm data={data} initial={editTx} scan={scanPrefill} onSave={saveTx} onClose={() => { setModal(null); setEditTx(undefined); setScanPrefill(undefined); }} /></Suspense>}
+    {modal === "scan" && !memberModeActive && <Modal title={t("Scanează bonul")} onClose={() => setModal(null)}><div className="sh-scan-sheet"><p className="bf-helper">{t("Fă o poză bonului întreg. Citesc fiecare produs, cu marca, gramajul și prețul, iar tu verifici înainte să salvez.")}</p><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton data={data} onResult={(prefill) => { setEditTx(undefined); setScanPrefill(prefill); setModal("transaction"); }} /></Suspense><button type="button" className="bf-secondary" onClick={() => { setModal(null); openTx(); }}><Plus size={16} aria-hidden="true" /> {t("Fără bon: notează de mână")}</button></div></Modal>}
     {modal === "receipt" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptForm data={data} onSave={saveReceipt} onClose={() => setModal(null)} /></Suspense>}
     {modal === "debt" && <Suspense fallback={null}><GoalForm data={data} type="debt" item={editGoal} onSave={saveDebt} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}
     {modal === "saving" && <Suspense fallback={null}><GoalForm data={data} type="saving" item={editGoal} onSave={saveSaving} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}

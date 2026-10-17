@@ -26,6 +26,7 @@ import { isAppLockEnabled } from "@/lib/app-lock";
 import { loggingStreak } from "@/lib/logging-habits";
 import { partnersLoggedToday, selfLoggedToday } from "@/lib/habit-hold";
 import { notifyKindOf, readNotifyPrefs } from "@/lib/notify-prefs";
+import { warrantyReminders } from "@/lib/warranties";
 import { readAutoBackup } from "@/lib/auto-backup";
 
 /** Cu PIN pe aplicație, notificarea spune doar ce s-a întâmplat, fără sume sau nume. */
@@ -629,6 +630,23 @@ function buildAlerts(data: AppData): PlannedAlert[] {
         : t("N-ai încă nicio copie a registrului. Dacă pierzi telefonul, se pierde și el: Mai mult → Setări → Copii de siguranță."),
       at,
       tag: `backup-old-${isoDate(at)}`,
+    });
+  }
+
+  // Garanții: ultima zi de retur (seara dinainte, 18:30) și garanția care expiră peste 30 de zile (10:00).
+  for (const reminder of warrantyReminders(data, today)) {
+    const offset = Math.round((Date.parse(`${reminder.day}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / 86_400_000);
+    const lastDay = reminder.kind === "return" && reminder.day === reminder.target;
+    const at = reminder.kind === "return" ? atLocalHour(offset, lastDay ? 9 : 18, lastDay ? 0 : 30) : atLocalHour(offset, 10, 0);
+    if (at.getTime() <= Date.now() - 60_000) continue;
+    alerts.push({
+      id: id++,
+      title: reminder.kind === "return" ? (lastDay ? t("Azi e ultima zi de retur") : t("Mâine e ultima zi de retur")) : t("Garanția expiră în 30 de zile"),
+      body: reminder.kind === "return"
+        ? t("{name}: dacă nu-l păstrezi, returnează-l până pe {date}.", { name: reminder.name, date: formatDate(reminder.target) })
+        : t("{name}: garanția ține până pe {date}. Dacă ceva nu merge, du-l acum la service, cu bonul.", { name: reminder.name, date: formatDate(reminder.target) }),
+      at,
+      tag: `warranty-${reminder.kind}-${reminder.id}`,
     });
   }
 

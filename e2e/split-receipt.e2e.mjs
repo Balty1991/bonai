@@ -27,6 +27,7 @@ async function waitFor(check, what, timeout = 15_000) {
 
 const KEYS = {
   "buget-familie:setup-complete": "true",
+  "buget-familie:app-mode": "budget",
   "buget-familie:onboarding-complete": "true",
   "buget-familie:first-week-tour-dismissed": "1",
   "buget-familie:whats-new-2026-10h": "1",
