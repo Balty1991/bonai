@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { listShareText, whatsappShareUrl } from "./list-share";
+import { decodeSharedList, encodeSharedList, listShareLink, listShareText, whatsappShareUrl } from "./list-share";
 
 describe("lista pe WhatsApp", () => {
   it("pune fiecare produs pe rândul lui, cu căsuță", () => {
@@ -8,5 +8,17 @@ describe("lista pe WhatsApp", () => {
   });
   it("codifică diacriticele și rândurile noi în link", () => {
     expect(whatsappShareUrl("Pâine\nouă")).toBe("https://wa.me/?text=P%C3%A2ine%0Aou%C4%83");
+  });
+});
+
+describe("linkul web al listei", () => {
+  it("dus-întors cu diacritice, fără server", () => {
+    const code = encodeSharedList([{ text: "Pâine" }, { text: "Ouă de țară" }], "Familia Popescu");
+    expect(code).not.toMatch(/[+/=]/);
+    expect(decodeSharedList(code)).toEqual({ v: 1, title: "Familia Popescu", items: ["Pâine", "Ouă de țară"] });
+    expect(listShareLink([{ text: "Lapte" }], undefined, "https://x/l.html")).toMatch(/^https:\/\/x\/l\.html#/);
+  });
+  it("respinge gunoiul", () => {
+    expect(decodeSharedList("nu-e-baza64!!")).toBeUndefined();
   });
 });

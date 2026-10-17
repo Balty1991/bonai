@@ -14,7 +14,7 @@ import { lei } from "@/lib/money-format";
 import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
-import { listShareText, whatsappShareUrl } from "@/lib/list-share";
+import { listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
 import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
 import { saveExport } from "@/lib/save-export";
 
@@ -93,7 +93,7 @@ export function ProductsView({ data, onChange }: { data: AppData; onChange: (nex
 export function ListView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
   const todo = visibleShopping(data.settings.shoppingList || []).todo;
   const share = () => {
-    const text = listShareText(todo, t("Lista de cumpărături:"), t("Trimisă din Bonuț, lista care îți arată cât economisești."));
+    const text = listShareText(todo, t("Lista de cumpărături:"), `${t("Bifează aici, fără aplicație:")} ${listShareLink(todo, data.settings.familyName || undefined)}`);
     window.open(whatsappShareUrl(text), "_blank", "noopener");
   };
   return <div className="sh-page">

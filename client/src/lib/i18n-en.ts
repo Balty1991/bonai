@@ -5109,6 +5109,7 @@ export const en: Record<string, string> = {
   "fișier pe telefon": "file on the phone",
   "limbă, notificări, temă": "language, notifications, theme",
   "Buget (vechi)": "Budget (classic)",
+  "Bifează aici, fără aplicație:": "Tick it here, no app needed:",
   "Arhiva veche e doar pentru citire. Nimic nu s-a schimbat.": "The old archive is read-only. Nothing was changed.",
   "Arhiva veche, doar citire": "Old archive, read-only",
   "Înapoi la Bonuț": "Back to Bonuț",
