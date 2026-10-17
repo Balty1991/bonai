@@ -14,7 +14,7 @@ import { lei } from "@/lib/money-format";
 import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
-import { listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
+import { idsFromTickReply, listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
 import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
 import { saveExport } from "@/lib/save-export";
 import { productObservations } from "@/lib/personal-inflation";
@@ -138,6 +138,15 @@ export function ListView({ data, onChange }: { data: AppData; onChange: (next: A
     const text = listShareText(todo, t("Lista de cumpărături:"), `${t("Bifează aici, fără aplicație:")} ${listShareLink(todo, data.settings.familyName || undefined)}`);
     window.open(whatsappShareUrl(text), "_blank", "noopener");
   };
+  const [reply, setReply] = useState<string>();
+  const applyReply = () => {
+    const ids = new Set(idsFromTickReply(reply || "", todo));
+    if (ids.size) {
+      const now = new Date().toISOString();
+      onChange({ ...data, settings: { ...data.settings, shoppingList: (data.settings.shoppingList || []).map((item) => ids.has(item.id) ? { ...item, done: true, updatedAt: now } : item) } });
+    }
+    setReply(undefined);
+  };
   const addToList = (texts: string[]) => {
     const have = new Set(todo.map((item) => item.text.toLocaleLowerCase("ro-RO")));
     const fresh = texts.filter((text) => !have.has(text.toLocaleLowerCase("ro-RO")));
@@ -150,6 +159,9 @@ export function ListView({ data, onChange }: { data: AppData; onChange: (next: A
     <div className="sh-tabs" role="tablist">{([["list", t("Listă")], ["pantry", t("Cămară")], ["menu", t("Meniu")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
     {tab === "list" && <>
       {todo.length > 0 && <button type="button" className="sh-scan" onClick={share}><Send size={20} aria-hidden="true" /> {t("Trimite pe WhatsApp")}</button>}
+      {todo.length > 0 && (reply === undefined
+        ? <button type="button" className="sh-link" onClick={() => setReply("")}>{t("Am primit răspunsul cu ce s-a luat")}</button>
+        : <div className="sh-card"><textarea className="sh-reply" aria-label={t("Răspunsul de pe WhatsApp")} placeholder={t("Lipește aici mesajul „Am luat: …”")} value={reply} onChange={(event) => setReply(event.target.value)} rows={4} /><button type="button" className="sh-link" onClick={applyReply}>{t("Bifează ce s-a luat")}</button></div>)}
       <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>
     </>}
     {tab === "pantry" && <PantryCard data={data} onAdd={addToList} />}

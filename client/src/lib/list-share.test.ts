@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeSharedList, encodeSharedList, listShareLink, listShareText, whatsappShareUrl } from "./list-share";
+import { idsFromTickReply, decodeSharedList, encodeSharedList, listShareLink, listShareText, whatsappShareUrl } from "./list-share";
 
 describe("lista pe WhatsApp", () => {
   it("pune fiecare produs pe rândul lui, cu căsuță", () => {
@@ -20,5 +20,12 @@ describe("linkul web al listei", () => {
   });
   it("respinge gunoiul", () => {
     expect(decodeSharedList("nu-e-baza64!!")).toBeUndefined();
+  });
+});
+
+describe("răspunsul cu bife", () => {
+  it("bifează doar produsele recunoscute, fără diacritice sau majuscule", () => {
+    const todo = [{ id: "1", text: "Pâine" }, { id: "2", text: "Ouă de țară" }, { id: "3", text: "Lapte" }];
+    expect(idsFromTickReply("Am luat:\n✓ paine\n✓ OUA DE TARA\n✓ Mere", todo)).toEqual(["1", "2"]);
   });
 });

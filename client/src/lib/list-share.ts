@@ -49,3 +49,14 @@ export function decodeSharedList(fragment: string): SharedList | undefined {
 export function listShareLink(items: ReadonlyArray<Pick<ShoppingItem, "text">>, title?: string, base = SHARE_PAGE_URL): string {
   return `${base}#${encodeSharedList(items, title)}`;
 }
+
+const fold = (text: string) => text.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+
+/**
+ * Răspunsul de pe WhatsApp („Am luat: ✓ Lapte ✓ Pâine”), lipit în aplicație, bifează produsele potrivite.
+ * Se potrivește doar textul întreg al produsului; ce nu se recunoaște rămâne nebifat.
+ */
+export function idsFromTickReply(reply: string, todo: ReadonlyArray<Pick<ShoppingItem, "id" | "text">>): string[] {
+  const got = new Set(reply.split(/\n|✓|✔|☑/).map((part) => fold(part.replace(/^am luat:?/i, ""))).filter(Boolean));
+  return todo.filter((item) => got.has(fold(item.text))).map((item) => item.id);
+}

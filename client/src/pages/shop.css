@@ -95,3 +95,4 @@ html[data-app="shop"] .sh-welcome { padding-top: 16px; }
 html[data-app="shop"] .sh-welcome-title { font-size: clamp(30px, 8.5vw, 40px); line-height: 1.1; }
 .sh-tabs{display:flex;gap:6px;padding:4px;border-radius:16px;background:var(--sh-surface)}.sh-tabs button{flex:1;min-height:44px;border:0;border-radius:12px;background:none;color:inherit;font-weight:700}.sh-tabs .is-on{background:var(--sh-accent);color:var(--sh-on-accent)}
 .sh-row-form{display:flex;gap:8px}.sh-row-form input{flex:1;min-height:48px;padding:0 12px;border-radius:12px;border:1px solid var(--sh-line);font-size:17px}
+.sh-reply{width:100%;min-height:96px;padding:10px;border-radius:12px;border:1px solid var(--sh-line);font:inherit}
