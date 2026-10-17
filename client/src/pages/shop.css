@@ -1,5 +1,4 @@
-/* Aplicația cumpărăturilor: altă înfățișare. Culorile vechi (verdele bugetului) se schimbă pe tot
-   ecranul când aplicația e în modul nou, ca și panourile refolosite (Produse, Garanții) să arate la fel. */
+/* Bonuț: culorile modului nou, pe tot ecranul (și în panourile refolosite). */
 html[data-app="shop"] {
   --sh-bg: #f6f5f1;
   --sh-surface: #ffffff;
@@ -82,7 +81,6 @@ html[data-app="shop"] .sh-row-copy { display: grid; gap: 2px; min-width: 0; }
 html[data-app="shop"] .sh-row-copy small { color: var(--sh-muted); }
 html[data-app="shop"] .sh-scan-sheet { display: grid; gap: 12px; }
 
-/* Bara de jos, în culorile noi. */
 html[data-app="shop"] .bf-app .os-dock .os-dock-add-disc { background: var(--sh-accent); color: var(--sh-on-accent); }
 
 html[data-app="shop"] .bf-app main .sh-page h1, html[data-app="shop"] .bf-app main .sh-page h2 { font-family: inherit; }
@@ -95,3 +93,4 @@ html[data-app="shop"] .bf-app .os-dock { background: var(--sh-surface); border-t
 html[data-app="shop"] .bf-app .os-dock button.is-on { background: var(--sh-accent-soft); color: var(--sh-accent); }
 html[data-app="shop"] .sh-welcome { padding-top: 16px; }
 html[data-app="shop"] .sh-welcome-title { font-size: clamp(30px, 8.5vw, 40px); line-height: 1.1; }
+.sh-tabs{display:flex;gap:6px;padding:4px;border-radius:16px;background:var(--sh-surface)}.sh-tabs button{flex:1;min-height:44px;border:0;border-radius:12px;background:none;color:inherit;font-weight:700}.sh-tabs .is-on{background:var(--sh-accent);color:var(--sh-on-accent)}

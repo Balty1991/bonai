@@ -4,8 +4,8 @@
  * produs, unde e mai ieftin și cât s-a scumpit viața ta. Bugetul cu plicuri a rămas întreg,
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
-import { lazy, Suspense, useMemo, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
+import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
+import { ArrowUpRight, ChevronRight, Send, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
@@ -13,7 +13,10 @@ import { liveWarranties } from "@/lib/warranties";
 import { lei } from "@/lib/money-format";
 import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
+import { visibleShopping } from "@/lib/shopping-list";
+import { listShareText, whatsappShareUrl } from "@/lib/list-share";
 
+const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
 const pct = (value: number) => `${value > 0 ? "+" : ""}${value.toLocaleString("ro-RO", { maximumFractionDigits: 1 })}%`;
 const monthName = (month: string) => new Date(`${month}-15T12:00:00`).toLocaleDateString("ro-RO", { month: "long" });
@@ -84,6 +87,29 @@ export function ProductsView({ data, onChange }: { data: AppData; onChange: (nex
   </div>;
 }
 
+/** Cumpărături: lista comună, gratuită, cu prețuri estimate din bonuri și trimitere pe WhatsApp. */
+export function ListView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+  const todo = visibleShopping(data.settings.shoppingList || []).todo;
+  const share = () => {
+    const text = listShareText(todo, t("Lista de cumpărături:"), t("Trimisă din Bonuț, lista care îți arată cât economisești."));
+    window.open(whatsappShareUrl(text), "_blank", "noopener");
+  };
+  return <div className="sh-page">
+    <header className="sh-head"><p className="sh-kicker">{t("CUMPĂRĂTURI")}</p><h1 className="sh-h1">{t("Lista familiei")}</h1></header>
+    {todo.length > 0 && <button type="button" className="sh-scan" onClick={share}><Send size={20} aria-hidden="true" /> {t("Trimite pe WhatsApp")}</button>}
+    <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>
+  </div>;
+}
+
+/** Prețuri: produsele mele și magazinele, în taburi. */
+export function PricesView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+  const [tab, setTab] = useState<"products" | "stores">("products");
+  return <div className="sh-page">
+    <div className="sh-tabs" role="tablist">{([["products", t("Produsele mele")], ["stores", t("Magazine")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
+    {tab === "products" ? <ProductsView data={data} onChange={onChange} /> : <StoresView data={data} />}
+  </div>;
+}
+
 export function StoresView({ data }: { data: AppData }) {
   const today = isoToday();
   const stores = useMemo(() => storeStats(data, today), [data, today]);
@@ -106,7 +132,7 @@ export function StoresView({ data }: { data: AppData }) {
 export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget: () => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
   return <div className="sh-page">
-    <header className="sh-head"><p className="sh-kicker">{t("CASA")}</p><h1 className="sh-h1">{data.settings.familyName || t("Familia ta")}</h1></header>
+    <header className="sh-head"><p className="sh-kicker">{t("GOSPODĂRIE")}</p><h1 className="sh-h1">{data.settings.familyName || t("Familia ta")}</h1></header>
     <div className="sh-rows">
       <Row icon={<Users size={20} />} title={t("Familia și sincronizarea")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />

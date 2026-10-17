@@ -96,8 +96,9 @@ const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").th
 const WeekCloseSheet = lazy(safeImport(() => import("@/components/WeekCloseSheet").then((module) => ({ default: module.WeekCloseSheet }))));
 const PaydaySheet = lazy(safeImport(() => import("@/components/PaydaySheet").then((module) => ({ default: module.PaydaySheet }))));
 const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
-const ProductsView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ProductsView }))));
 const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
+const ListView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ListView }))));
+const PricesView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.PricesView }))));
 const HouseView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.HouseView }))));
 const ShopWelcome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopWelcome }))));
 const ReceiptScanButton = lazy(safeImport(() => import("@/components/ReceiptScanButton").then((module) => ({ default: module.ReceiptScanButton }))));
@@ -109,7 +110,7 @@ const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").the
  * „habits” și „calendar” cădeau tăcut înapoi pe Astăzi, deși ecranele există — un link
  * dintr-o notificare sau o scurtătură ducea în altă parte decât spunea.
  */
-const MAIN_VIEWS: MainView[] = ["shop", "products", "stores", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
+const MAIN_VIEWS: MainView[] = ["shop", "list", "products", "stores", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
 const initialMainView = (): MainView => {
   const requested = new URLSearchParams(window.location.search).get("view") as MainView | null;
   return requested && MAIN_VIEWS.includes(requested) ? requested : "today";
@@ -135,7 +136,7 @@ const preloadView = (id: MainView): Promise<void> => {
     : id === "obligations" ? warmLazy(ObjectivesView)
     : id === "goals" || id === "habits" ? warmLazy(id === "goals" ? LongTermGoalsView : SpendingHabitsView)
     : id === "utilities" ? warmLazy(MoreViewScreen)
-    : id === "shop" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
+    : id === "shop" || id === "list" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
 };
@@ -879,7 +880,7 @@ export default function Home() {
     { id: "utilities", label: t("Mai mult"), icon: MoreHorizontal },
   ];
   const shopMode = appMode === "shop" && !memberModeActive;
-  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "products" as MainView, label: t("Produse"), icon: ShoppingBasket }, { id: "stores" as MainView, label: t("Magazine"), icon: Store }, { id: "house" as MainView, label: t("Casa"), icon: Users }];
+  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "list" as MainView, label: t("Cumpărături"), icon: ShoppingBasket }, { id: "products" as MainView, label: t("Prețuri"), icon: Store }, { id: "house" as MainView, label: t("Gospodărie"), icon: Users }];
   const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
   /** Prima pornire în aplicația nouă s-a încheiat: nu mai întrebăm de salariu și plicuri. */
   const finishShopWelcome = () => {
@@ -890,7 +891,7 @@ export default function Home() {
   const openScan = () => { setEditTx(undefined); setScanPrefill(undefined); setModal("scan"); };
   // Schimbarea aplicației (Casa → Buget vechi și înapoi) duce pe ecranul de start al celei alese.
   useEffect(() => {
-    const shopViews: MainView[] = ["shop", "products", "stores", "house"];
+    const shopViews: MainView[] = ["shop", "list", "products", "stores", "house"];
     if (appMode === "shop" && view === "today") setView("shop");
     if (appMode === "budget" && shopViews.includes(view)) setView("today");
   }, [appMode, view]);
@@ -903,9 +904,10 @@ export default function Home() {
   const onSyncScreen = view === "utilities" && more === "sync";
   const current = () => {
     if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
-    if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><ProductsView data={data} onChange={applyData} /></Suspense>;
+    if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
+    if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
-    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim casa…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Casa") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} /></Suspense>;
+    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim casa…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Gospodărie") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} /></Suspense>;
     if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
       // Bonul plătit din două surse se șterge întreg: ambele părți.
       next: { ...currentData, transactions: currentData.transactions.filter((item) => !splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => !splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")), deleted: [...currentData.deleted, ...splitGroupIds(currentData.transactions, id).map((removedId) => ({ entity: "transactions" as const, id: removedId, deletedAt: new Date().toISOString() }))].slice(-TOMBSTONE_MAX) },
