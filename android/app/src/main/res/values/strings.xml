@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Buget Familie</string>
-    <string name="title_activity_main">Buget Familie</string>
+    <string name="app_name">Bonuț</string>
+    <string name="title_activity_main">Bonuț</string>
     <string name="package_name">ro.balty1991.bugetfamilie</string>
     <string name="custom_url_scheme">ro.balty1991.bugetfamilie</string>
-    <string name="widget_title">Buget Familie</string>
+    <string name="widget_title">Bonuț</string>
     <string name="widget_subtitle">Notează acum, verifici mai târziu</string>
     <string name="widget_expense">Cheltuială</string>
     <string name="widget_receipt">Bon</string>

@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "ro.balty1991.bugetfamilie",
-  appName: "Buget Familie",
+  appName: "Bonuț",
   webDir: "dist/public",
   android: {
     backgroundColor: "#E4E9E6",

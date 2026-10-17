@@ -117,7 +117,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { d
       <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, temă")} onClick={() => onOpenMore("settings")} />
     </div>
     <div className="sh-rows">
-      <Row icon={<Wallet size={20} />} title={t("Buget (vechi)")} hint={t("plicuri, rate, facturi: toate datele sunt aici")} onClick={onOpenBudget} />
+      <Row icon={<Wallet size={20} />} title={t("Arhiva veche (buget)")} hint={t("plicurile, conturile și veniturile de dinainte, păstrate întregi")} onClick={onOpenBudget} />
       <Row icon={<PiggyBank size={20} />} title={t("Toate uneltele")} hint={t("rapoarte, avere, investiții")} onClick={() => onOpenMore("overview")} />
     </div>
     <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
@@ -125,7 +125,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { d
 }
 
 /** Prima pornire în aplicația nouă: fără salariu și plicuri; un bon e tot ce trebuie ca să înceapă. */
-export function ShopWelcome({ onScan, onJoin, onBudget, onSkip }: { onScan: () => void; onJoin: () => void; onBudget: () => void; onSkip: () => void }) {
+export function ShopWelcome({ onScan, onJoin, onSkip }: { onScan: () => void; onJoin: () => void; onSkip: () => void }) {
   const steps: Array<[ReactNode, string, string]> = [
     [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
     [<ShoppingBasket size={22} key="basket" />, t("Vezi ce cumperi"), t("Prețul fiecărui produs în timp și cât s-a scumpit viața ta.")],
@@ -140,7 +140,6 @@ export function ShopWelcome({ onScan, onJoin, onBudget, onSkip }: { onScan: () =
     <div className="sh-rows">{steps.map(([icon, title, hint]) => <div key={title} className="sh-row" role="presentation"><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b><small>{hint}</small></span><span /></div>)}</div>
     <div className="sh-rows">
       <Row icon={<Users size={20} />} title={t("Am deja familia în aplicație")} hint={t("intru cu invitația partenerului")} onClick={onJoin} />
-      <Row icon={<Wallet size={20} />} title={t("Vreau bugetul cu plicuri")} hint={t("salariu, plicuri, rate, ca înainte")} onClick={onBudget} />
     </div>
     <button type="button" className="sh-link" onClick={onSkip}>{t("Mă uit întâi prin aplicație")} <ChevronRight size={16} aria-hidden="true" /></button>
   </div>;
