@@ -5,7 +5,7 @@
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
 import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Send, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Lock, Send, Share2, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
@@ -17,6 +17,10 @@ import { visibleShopping } from "@/lib/shopping-list";
 import { listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
 import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
 import { saveExport } from "@/lib/save-export";
+import { monthSaved, savedShareText, threeMonthAverage } from "@/lib/savings-summary";
+import { currentBonutPlan } from "@/lib/bonut-plan-current";
+import { BONUT_PRICES, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
+import { PLAY_STORE_URL } from "@/lib/review-prompt";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
@@ -31,6 +35,27 @@ function Row({ icon, title, hint, onClick }: { icon: ReactNode; title: string; h
   return <button type="button" className="sh-row" onClick={onClick}><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b>{hint && <small>{hint}</small>}</span><ChevronRight size={18} aria-hidden="true" /></button>;
 }
 
+const money2 = (value: number) => value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Paywall în context: arată ce deblochează exact cardul ascuns, cu prețurile și proba. */
+export function ProGate({ data, feature, title, pitch, children }: { data: AppData; feature: BonutFeature; title: string; pitch: string; children: ReactNode }) {
+  const plan = currentBonutPlan(data, isoToday());
+  if (hasFeature(plan, feature)) return <>{children}</>;
+  const familyOnly = !hasFeature("pro", feature);
+  const price = familyOnly ? BONUT_PRICES.familie : BONUT_PRICES.pro;
+  return <Card kicker={familyOnly ? t("BONUȚ FAMILIE") : t("BONUȚ PRO")} title={<><Lock size={18} aria-hidden="true" /> {title}</>}>
+    <p className="sh-muted">{pitch}</p>
+    <p><b>{t("{year} lei/an", { year: money2(price.year) })}</b> <small className="sh-muted">{t("sau {month} lei/lună · anual cu {percent}% mai ieftin", { month: money2(price.month), percent: yearlySavingPercent(familyOnly ? "familie" : "pro") })}</small></p>
+    <p className="sh-muted">{data.receipts.length < TRIAL_AFTER_RECEIPTS ? t("Proba gratuită de {days} zile pornește singură după al {n}-lea bon scanat.", { days: TRIAL_DAYS, n: TRIAL_AFTER_RECEIPTS }) : t("Abonamentele pornesc în curând în Google Play.")}</p>
+  </Card>;
+}
+
+function shareSaved(text: string) {
+  const nav = navigator as Navigator & { share?: (data: { text: string }) => Promise<void> };
+  if (nav.share) { void nav.share({ text }).catch(() => undefined); return; }
+  window.open(whatsappShareUrl(text), "_blank", "noopener");
+}
+
 export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMore }: { data: AppData; onScan: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void }) {
   const today = isoToday();
   const month = useMemo(() => monthShopping(data, today), [data, today]);
@@ -40,26 +65,38 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
   const shrink = useMemo(() => shrinkflationAlerts(data, today).slice(0, 2), [data, today]);
   const warranties = useMemo(() => liveWarranties(data, today).filter((item) => item.status.state === "return" || item.status.state === "expiring").slice(0, 2), [data, today]);
   const diff = month.spent - month.lastMonthSoFar;
+  const saved = useMemo(() => monthSaved(data, today), [data, today]);
+  const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
   const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
   return <div className="sh-page">
     <header className="sh-hero">
       <p className="sh-kicker">{t("CUMPĂRĂTURILE TALE ÎN {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
       <h1 className="sh-big">{lei(month.spent)}</h1>
       <p className="sh-sub">{month.receipts ? t("din {count} bonuri", { count: month.receipts }) : t("Scanează primul bon al lunii.")}{month.lastMonthSoFar > 0 && <> · <span className={diff > 0 ? "sh-up" : "sh-down"}>{diff > 0 ? t("{amount} mai mult", { amount: lei(diff) }) : t("{amount} mai puțin", { amount: lei(-diff) })}</span> {t("decât luna trecută până azi")}</>}</p>
+      {avg && month.spent > 0 && <p className="sh-sub">{t("Media pe {count} luni: {amount}", { count: avg.months, amount: lei(avg.average) })}</p>}
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
     </header>
+
+    {saved.saved > 0 && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu Bonuț")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri, lună de lună.")}>
+      <Card tone="accent" kicker={t("ECONOMISIT CU BONUȚ")} title={lei(saved.saved)}>
+        <p className="sh-muted">{t("din reducerile de pe {count} bonuri în {month}", { count: saved.receipts, month: monthName(saved.month) })}</p>
+        <button type="button" className="sh-link" onClick={() => shareSaved(savedShareText(saved.saved, monthName(saved.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>
+      </Card>
+    </ProGate>}
 
     {saving.total > 0 && <Card tone="accent" kicker={t("UNDE POȚI ECONOMISI")} title={t("Ai fi dat cu {amount} mai puțin luna asta", { amount: lei(saving.total) })}>
       <ul className="sh-list">{saving.items.slice(0, 3).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("luat la {vendor}, mai ieftin la {cheaper}", { vendor: item.vendor, cheaper: item.cheaperVendor })}</small></span><b className="sh-down">−{lei(item.saved)}</b></li>)}</ul>
       <button type="button" className="sh-link" onClick={onOpenStores}>{t("Vezi magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>}
 
+    <ProGate data={data} feature="myInflation" title={t("Inflația ta")} pitch={t("Cât s-au scumpit exact produsele pe care le cumperi tu, nu media țării.")}>
     <Card kicker={t("INFLAȚIA TA")} title={inflation && inflation.products > 0 ? t("{percent} în {month}", { percent: pct(inflation.percent), month: monthName(inflation.month) }) : t("Se calculează din bonurile tale")}>
       {inflation && inflation.risers.length > 0 ? <ul className="sh-list">{inflation.risers.slice(0, 3).map((row) => <li key={row.label}><span><b>{row.label}</b></span><b className="sh-up"><ArrowUpRight size={14} aria-hidden="true" />{pct(row.percent)}</b></li>)}</ul>
         : <p className="sh-muted">{t("Cu fiecare bon scanat îți arăt cât s-au scumpit exact produsele pe care le cumperi tu.")}</p>}
       {shrink.map((alert) => <p key={`${alert.key}-${alert.date}`} className="sh-alert"><Sparkles size={15} aria-hidden="true" /> {t("{name}: mai puțin în pachet, {percent} pe {per}", { name: alert.label, percent: pct(alert.perUnitPercent), per: alert.per })}</p>)}
       <button type="button" className="sh-link" onClick={onOpenProducts}>{t("Toate produsele")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>
+    </ProGate>
 
     {warranties.length > 0 && <Card tone="warn" kicker={t("GARANȚII ȘI RETURURI")}>
       {warranties.map(({ warranty, status }) => <p key={warranty.id} className="sh-alert"><ShieldCheck size={15} aria-hidden="true" /> {status.state === "return" ? t("{name}: retur până pe {date}", { name: warranty.name, date: dateText(status.returnUntil || today, true) }) : t("{name}: garanția expiră pe {date}", { name: warranty.name, date: dateText(status.until || today, true) })}</p>)}
