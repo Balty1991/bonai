@@ -86,7 +86,8 @@ describe("plafonul de !important", () => {
     // 06.10: 936, cardul „cum plătește casa” (bilanțul și al doilea telefon). Regulile lui sunt folosite.
     // 08.10: 940, consultantul financiar din Analiză și ledurile cu numele celui care răspunde.
     // 08.10 (2): 943, verificarea cu fontul mare al telefonului: cadranul de pe Astăzi, salvarea automată cu butoane.
-    expect(kb).toBeLessThanOrEqual(943);
+    // 17.10: 950, aplicația nouă a cumpărăturilor (shop.css: culorile, cardurile și bara ei).
+    expect(kb).toBeLessThanOrEqual(950);
   });
 
   it("calc() are spații în jurul lui + și -", () => {

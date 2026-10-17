@@ -13,7 +13,9 @@ import { isDemoMode, setDemoMode } from "@/lib/demo-data";
 import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X } from "lucide-react";
+import { BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store } from "lucide-react";
+import { setAppMode, useAppMode } from "@/lib/app-mode";
+import "./shop.css";
 import { allocationStatus, autoPostDueRecurring, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, confirmRecurringPayment, addIsoDays, formatDate, inPlanPeriod, isoDate, isoToday, newId, transferBetweenEnvelopes, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
 import { addContribution, eventTraits } from "@/lib/planned-events";
 import { applyDeclaredBalance } from "@/lib/balance-check";
@@ -37,6 +39,7 @@ import { useMemberMode } from "@/lib/member-mode";
 import { MemberModeScreen } from "@/components/MemberModeScreen";
 import {
   WhatsNewSheet,
+  Modal,
   fmtExact,
   money,
   type MainView,
@@ -92,6 +95,11 @@ const InsightsView = lazy(safeImport(() => import("@/pages/InsightsView").then((
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
 const WeekCloseSheet = lazy(safeImport(() => import("@/components/WeekCloseSheet").then((module) => ({ default: module.WeekCloseSheet }))));
 const PaydaySheet = lazy(safeImport(() => import("@/components/PaydaySheet").then((module) => ({ default: module.PaydaySheet }))));
+const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
+const ProductsView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ProductsView }))));
+const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
+const HouseView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.HouseView }))));
+const ReceiptScanButton = lazy(safeImport(() => import("@/components/ReceiptScanButton").then((module) => ({ default: module.ReceiptScanButton }))));
 const FirstRunSetup = lazy(safeImport(() => import("@/components/FirstRunSetup").then((module) => ({ default: module.FirstRunSetup }))));
 const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").then((module) => ({ default: module.AICompanion }))));
 
@@ -100,7 +108,7 @@ const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").the
  * „habits” și „calendar” cădeau tăcut înapoi pe Astăzi, deși ecranele există — un link
  * dintr-o notificare sau o scurtătură ducea în altă parte decât spunea.
  */
-const MAIN_VIEWS: MainView[] = ["today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
+const MAIN_VIEWS: MainView[] = ["shop", "products", "stores", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
 const initialMainView = (): MainView => {
   const requested = new URLSearchParams(window.location.search).get("view") as MainView | null;
   return requested && MAIN_VIEWS.includes(requested) ? requested : "today";
@@ -126,6 +134,7 @@ const preloadView = (id: MainView): Promise<void> => {
     : id === "obligations" ? warmLazy(ObjectivesView)
     : id === "goals" || id === "habits" ? warmLazy(id === "goals" ? LongTermGoalsView : SpendingHabitsView)
     : id === "utilities" ? warmLazy(MoreViewScreen)
+    : id === "shop" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
 };
@@ -192,7 +201,8 @@ export default function Home() {
     return () => { delete document.documentElement.dataset.simpleMode; };
   }, [simpleMode]);
   useLanguage();
-  const [view, setView] = useState<MainView>(initialMainView);
+  const appMode = useAppMode();
+  const [view, setView] = useState<MainView>(() => { const first = initialMainView(); return appMode === "shop" && first === "today" ? "shop" : first; });
   const [more, setMoreNow] = useState<MoreView>("overview");
   const goSeq = useRef(0);
   const moreSeq = useRef(0);
@@ -208,7 +218,7 @@ export default function Home() {
   const [moreReturn, setMoreReturn] = useState<{ view: MainView; label: string } | null>(null);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [guideOn, setGuideOn] = useState(false);
-  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | null>(null);
+  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | null>(null);
   const [quickTemplateId, setQuickTemplateId] = useState<string | undefined>(undefined);
   const [quickKind, setQuickKind] = useState<"income" | undefined>(undefined);
   const [quickMoving, setQuickMoving] = useState(false);
@@ -341,7 +351,9 @@ export default function Home() {
   }, [storageReady, data.settings.salaryPlan.allocations, data.transactions.length]);
 
   const { undo, setUndo, runUndo, deleteWithUndo, offerUndo } = useUndo(data, applyData);
-  const go = (next: MainView) => {
+  const go = (target: MainView) => {
+    // În aplicația nouă, „Astăzi” (sigla, linkurile vechi) duce la Acasă, a cumpărăturilor.
+    const next = appMode === "shop" && target === "today" ? "shop" : target;
     const seq = ++goSeq.current;
     if (next !== "utilities") setMoreReturn(null);
     if (next === view) return;
@@ -865,14 +877,29 @@ export default function Home() {
     { id: "journal", label: t("Mișcări"), icon: ReceiptText },
     { id: "utilities", label: t("Mai mult"), icon: MoreHorizontal },
   ];
-  const nav = memberModeActive ? [] : simpleMode ? allNav.filter((item) => item.id === "today" || item.id === "journal" || item.id === "plan" || item.id === "obligations") : allNav;
+  const shopMode = appMode === "shop" && !memberModeActive;
+  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "products" as MainView, label: t("Produse"), icon: ShoppingBasket }, { id: "stores" as MainView, label: t("Magazine"), icon: Store }, { id: "house" as MainView, label: t("Casa"), icon: Users }];
+  const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
+  const openScan = () => { setEditTx(undefined); setScanPrefill(undefined); setModal("scan"); };
+  // Schimbarea aplicației (Casa → Buget vechi și înapoi) duce pe ecranul de start al celei alese.
+  useEffect(() => {
+    const shopViews: MainView[] = ["shop", "products", "stores", "house"];
+    if (appMode === "shop" && view === "today") setView("shop");
+    if (appMode === "budget" && shopViews.includes(view)) setView("today");
+  }, [appMode, view]);
+  const nav = memberModeActive ? [] : shopMode ? shopNav : simpleMode ? allNav.filter((item) => item.id === "today" || item.id === "journal" || item.id === "plan" || item.id === "obligations") : allNav;
   useEffect(() => {
     if (!simpleMode) return;
     if (view === "insights" || view === "habits" || view === "goals" || view === "calendar") go("today");
   }, [simpleMode, view]);
   /** Bannerele de sync se ascund doar când ecranul Sync e chiar deschis, nu când a fost ultimul instrument. */
   const onSyncScreen = view === "utilities" && more === "sync";
-  const current = () => { if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
+  const current = () => {
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><ProductsView data={data} onChange={applyData} /></Suspense>;
+    if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
+    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim casa…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Casa") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} /></Suspense>;
+    if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
       // Bonul plătit din două surse se șterge întreg: ambele părți.
       next: { ...currentData, transactions: currentData.transactions.filter((item) => !splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => !splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")), deleted: [...currentData.deleted, ...splitGroupIds(currentData.transactions, id).map((removedId) => ({ entity: "transactions" as const, id: removedId, deletedAt: new Date().toISOString() }))].slice(-TOMBSTONE_MAX) },
       removed: { transactions: currentData.transactions.filter((item) => splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")) },
@@ -909,7 +936,8 @@ export default function Home() {
     <div className="os-nav-fill" aria-hidden="true" />
     {/* Meniul de jos: Astăzi · Plicuri · ＋ Notează · Mișcări · Mai mult. „Notează” stă mereu în același loc, la mijloc;
         Obligațiile și Analiza sunt în „Mai mult”, ca pe telefon să rămână 4 file și butonul care contează. */}
-    {nav.length > 0 && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{dockNav.map((item) => {
+    {nav.length > 0 && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{(shopMode ? shopDock : dockNav).map((item) => {
+      if (item.id === "add" && shopMode) return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/ReceiptScanButton")} onClick={openScan}><span className="os-dock-add-disc"><ScanLine size={24} aria-hidden="true" /></span><span>{t("Scanează")}</span></button>;
       if (item.id === "add") return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => openTx()}><span className="os-dock-add-disc"><Plus size={24} aria-hidden="true" /></span><span>{t("Notează")}</span></button>;
       const Icon = item.icon;
       const on = view === item.id || (item.id === "utilities" && (view === "obligations" || view === "insights" || view === "goals"));
@@ -921,6 +949,7 @@ export default function Home() {
     {paydayOpen && <Suspense fallback={null}><PaydaySheet data={data} today={todayIso} onClose={() => setPaydayOpen(false)} onApply={(proposal) => { update((current) => applyPayday(current, proposal)); setPaydayOpen(false); }} /></Suspense>}
     {modal === "quick" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim înregistrarea rapidă…")}</div></div>}><QuickEntryPanel data={data} initialMoving={quickMoving} onAddSource={(source) => update((current) => ({ ...current, settings: { ...current.settings, paymentSources: [...current.settings.paymentSources, source] } }))} autoVoice={quickVoice} initialKind={quickKind} initialTemplateId={quickTemplateId} onSave={saveTx} onSaveTemplate={saveQuickTemplate} onDeleteTemplate={deleteQuickTemplate} onArchiveTemplate={archiveQuickTemplate} onRestoreTemplate={restoreQuickTemplate} onDeleteArchivedTemplate={deleteArchivedQuickTemplate} onClose={() => { setModal(null); setQuickTemplateId(undefined); setQuickKind(undefined); setQuickVoice(false); }} onMore={(draft, scan) => { setEditTx(draft); setScanPrefill(scan); setQuickTemplateId(undefined); setModal("transaction"); }} /></Suspense>}
     {modal === "transaction" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim mișcarea…")}</div></div>}><TransactionForm data={data} initial={editTx} scan={scanPrefill} onSave={saveTx} onClose={() => { setModal(null); setEditTx(undefined); setScanPrefill(undefined); }} /></Suspense>}
+    {modal === "scan" && !memberModeActive && <Modal title={t("Scanează bonul")} onClose={() => setModal(null)}><div className="sh-scan-sheet"><p className="bf-helper">{t("Fă o poză bonului întreg. Citesc fiecare produs, cu marca, gramajul și prețul, iar tu verifici înainte să salvez.")}</p><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton data={data} onResult={(prefill) => { setEditTx(undefined); setScanPrefill(prefill); setModal("transaction"); }} /></Suspense><button type="button" className="bf-secondary" onClick={() => { setModal(null); openTx(); }}><Plus size={16} aria-hidden="true" /> {t("Fără bon: notează de mână")}</button></div></Modal>}
     {modal === "receipt" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptForm data={data} onSave={saveReceipt} onClose={() => setModal(null)} /></Suspense>}
     {modal === "debt" && <Suspense fallback={null}><GoalForm data={data} type="debt" item={editGoal} onSave={saveDebt} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}
     {modal === "saving" && <Suspense fallback={null}><GoalForm data={data} type="saving" item={editGoal} onSave={saveSaving} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}

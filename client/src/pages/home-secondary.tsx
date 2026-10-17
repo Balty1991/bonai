@@ -26,6 +26,7 @@ import { t } from "@/lib/i18n";
 import { askConfirm } from "@/lib/confirm-dialog";
 import { visibleShopping } from "@/lib/shopping-list";
 import { liveWarranties, warrantyCandidates } from "@/lib/warranties";
+import { readAppMode, setAppMode } from "@/lib/app-mode";
 import { APP_PRIVACY_PATH, APP_SUPPORT_EMAIL, APP_TERMS_PATH, APP_VERSION, publicLegalUrl } from "@/lib/app-version";
 
 /** Subsolul din Mai mult: linkuri mici la vedere, dar cu loc de atins de 44 px. */
@@ -164,6 +165,7 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
       <section className="bf-more-group" aria-labelledby="more-shop-title">
         <p className="bf-kicker bf-more-section-label" id="more-shop-title">{t("CUMPĂRĂTURI ȘI BONURI")}</p>
         <div className="bf-more-grid bf-settings-group">
+          {readAppMode() === "budget" && <button type="button" className="bf-settings-row" onClick={() => setAppMode("shop")}><Sparkles size={20} /><span className="bf-settings-copy"><b>{t("Aplicația nouă: cumpărăturile")}</b><small>{t("bonuri, produse, magazine, unde economisești")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>}
           <button type="button" className="bf-settings-row" onClick={() => setTab("shopping")}><ListChecks size={20} /><span className="bf-settings-copy"><b>{t("Lista de cumpărături")}</b><small>{shoppingCount ? t("{count} de luat", { count: shoppingCount }) : t("comună pentru toată familia")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("prices")}><ShoppingBasket size={20} /><span className="bf-settings-copy"><b>{t("Produsele tale")}</b><small>{t("prețul fiecăruia, inflația ta, shrinkflation")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className={warrantyUrgent ? "bf-settings-row has-badge" : "bf-settings-row"} onClick={() => setTab("warranties")}><ShieldCheck size={20} /><span className="bf-settings-copy"><b>{t("Garanții și retururi")}</b><small>{warrantyHint}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>

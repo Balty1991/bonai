@@ -54,6 +54,7 @@ async function phone(browser, { name, partner }) {
   await context.addInitScript(() => {
     try {
       localStorage.setItem("buget-familie:setup-complete", "true");
+      localStorage.setItem("buget-familie:app-mode", "budget");
       localStorage.setItem("buget-familie:onboarding-complete", "true");
     } catch {
       // about:blank nu are stocare; pagina aplicației o are.
