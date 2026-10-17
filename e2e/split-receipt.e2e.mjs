@@ -35,11 +35,11 @@ const KEYS = {
 };
 
 const RECEIPT = {
-  store: "Exflor", date: null, total: 20.36, confidence: "high", model: "gemini-test",
+  store: "Exflor", date: null, total: 20.36, confidence: "high", model: "gemini-test", storeCui: "RO123456", city: "Iași",
   items: [
     { name: "Kinder Delice", quantity: 2, amount: 6.76, category: "Dulciuri" },
     { name: "Napolitane", quantity: 1, amount: 4.6, category: "Dulciuri" },
-    { name: "Apă plată 2 L", quantity: 1, amount: 8.5, category: "Apă" },
+    { name: "Apă plată 2 L", quantity: 1, amount: 8.5, category: "Apă", brand: "Dorna", size: 2, sizeUnit: "l" },
     { name: "Garanție SGR", quantity: 1, amount: 0.5, category: "SGR" },
   ],
   payments: [{ method: "voucher", amount: 12 }, { method: "card", amount: 8.36 }],
@@ -51,6 +51,17 @@ const summary = (data) => {
   const receipt = data.receipts.find((item) => /Exflor/.test(item.vendor));
   return { parts: parts.map((item) => `${item.sourceId}:${item.amount}${item.receiptId ? "+bon" : ""}`).sort().join(" "), lines: receipt?.lines?.length || 0, linked: receipt?.linkedTransactionId || "" };
 };
+/** Bonul pe produs: magazinul (CUI, oraș) și marca/gramajul articolului rămân după salvare și corectură. */
+const expectProductFacts = async (page, when) => {
+  await waitFor(async () => {
+    const receipt = (await ledger(page)).receipts.find((item) => /Exflor/.test(item.vendor));
+    const water = receipt?.lines?.find((line) => /Apă plată/.test(line.label || ""));
+    if (receipt?.storeCui !== "RO123456" || receipt?.city !== "Iași") throw new Error(`magazin: ${receipt?.storeCui} ${receipt?.city}`);
+    if (water?.brand !== "Dorna" || water?.size !== 2 || water?.sizeUnit !== "l") throw new Error(`apă: ${JSON.stringify(water)}`);
+    return true;
+  }, `marca și magazinul ${when}`);
+};
+
 const expectIntact = async (page, when) => {
   await waitFor(async () => {
     const got = summary(await ledger(page));
@@ -96,12 +107,14 @@ async function main() {
     console.log(`  formular: ${firstSource}`);
     await page.getByRole("button", { name: /Salvează mișcarea/ }).click();
     await expectIntact(page, "după salvare");
+    await expectProductFacts(page, "după salvare");
     console.log(`  registru: ${JSON.stringify(summary(await ledger(page)))}`);
 
     step("Repornire");
     await page.reload();
     await page.waitForTimeout(2500);
     await expectIntact(page, "după repornire");
+    await expectProductFacts(page, "după repornire");
 
     step("Mișcări → deschide bonul → Salvează fără schimbări");
     await page.getByRole("button", { name: /^Mișcări$/ }).first().click();
@@ -114,6 +127,7 @@ async function main() {
     await page.getByRole("button", { name: /Salvează mișcarea/ }).click();
     await page.waitForTimeout(800);
     await expectIntact(page, "după corectură");
+    await expectProductFacts(page, "după corectură");
 
     step("Repornire după corectură");
     await page.reload();

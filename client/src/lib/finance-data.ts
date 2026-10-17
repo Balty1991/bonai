@@ -78,7 +78,7 @@ export type Debt = { id: string; name: string; remaining: number; monthly: numbe
 export type SavingsGoal = { id: string; name: string; current: number; target: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; /** „Scrisoare pentru viitor”: se arată abia când obiectivul e atins. */ message?: string; updatedAt?: string };
 export type RecurringFrequency = "monthly" | "quarterly" | "yearly";
 export type RecurringPayment = { id: string; name: string; amount: number; category: string; sourceId: string; memberId: string; dueDay: number; active: boolean; /** Lipsă = lunar. Trimestrial/anual: RCA, impozit, abonamente anuale. */ frequency?: RecurringFrequency; /** Luna (1–12) a unei scadențe, pentru trimestrial și anual. */ month?: number; /** Suma e o estimare (curent, gaz): valoarea reală se scrie la plată și nu se adaugă automat. */ variable?: boolean; /** Creează local plata la prima deschidere din ziua scadenței sau după aceasta. */ autoPost?: boolean; note?: string; updatedAt?: string };
-export type ReceiptLine = { id: string; category: string; amount: number; label?: string; allocationId?: string; /** Reducerea de pe bon, deja scăzută din sumă. */ discount?: number };
+export type ReceiptLine = { id: string; category: string; amount: number; label?: string; allocationId?: string; /** Reducerea de pe bon, deja scăzută din sumă. */ discount?: number; /** Din scanare: marca, gramajul unei bucăți, cantitatea, cum se vinde și prețul pe bucată/kg tipărit. */ brand?: string; size?: number; sizeUnit?: "g" | "kg" | "ml" | "l" | "buc"; qty?: number; unit?: "buc" | "kg" | "l"; unitPrice?: number; vatRate?: number };
 /** Regulă locală: dacă titlul conține textul, propune categorie/plic — niciodată fără confirmare. */
 export type MerchantRule = { id: string; match: string; category?: string; allocationId?: string; updatedAt?: string };
 
@@ -96,6 +96,12 @@ export type Receipt = {
   imageKeys?: string[];
   /** Repartizarea validată a totalului pe categorii. */
   lines?: ReceiptLine[];
+  /** Antetul magazinului, din scanare: cod fiscal, adresă, oraș, ora bonului și TVA-ul total. */
+  storeCui?: string;
+  storeAddress?: string;
+  city?: string;
+  time?: string;
+  vat?: number;
   /** Rămas din versiunile vechi, cu citirea bonului din poză; se scoate la încărcare. */
   ocrText?: string;
   linkedTransactionId?: string;
@@ -372,6 +378,19 @@ export const amountError = (raw: string) => {
 };
 
 /** Un bon se salvează și fără poze: dacă nu există linii cu sumă, totalul devine un singur produs. */
+/** Marca, gramajul și unitatea unui rând scanat trec de curățarea la încărcare, doar cu valori plauzibile. */
+const SIZE_UNITS_OK = new Set(["g", "kg", "ml", "l", "buc"]);
+function receiptLineFacts(line: Partial<ReceiptLine>): Partial<ReceiptLine> {
+  const out: Partial<ReceiptLine> = {};
+  if (typeof line.brand === "string" && line.brand.trim()) out.brand = line.brand.trim().slice(0, 40);
+  if (typeof line.size === "number" && line.size > 0 && line.size < 100_000 && typeof line.sizeUnit === "string" && SIZE_UNITS_OK.has(line.sizeUnit)) { out.size = line.size; out.sizeUnit = line.sizeUnit; }
+  if (typeof line.qty === "number" && line.qty > 0 && line.qty < 10_000) out.qty = line.qty;
+  if (line.unit === "buc" || line.unit === "kg" || line.unit === "l") out.unit = line.unit;
+  if (typeof line.unitPrice === "number" && line.unitPrice > 0 && line.unitPrice < 100_000) out.unitPrice = line.unitPrice;
+  if (typeof line.vatRate === "number" && [0, 5, 9, 11, 19, 21].includes(line.vatRate)) out.vatRate = line.vatRate;
+  return out;
+}
+
 export function resolveReceiptLines(
   lines: Array<{ id?: string; category?: string; amount?: string | number; label?: string; discount?: number }>,
   total: number,
@@ -647,7 +666,7 @@ export const normalizeAppData = (input: unknown): AppData => {
         };
       }).filter((item) => item.transaction.amount > 0 && !transactionIds.has(item.transaction.id)).slice(0, 300)
     : [];
-  const receipts = realRows<Receipt>(old.receipts).map((entry, index) => { const { ocrText: _ocr, ...item } = entry as Receipt; const linked = transactions.find((transaction) => transaction.id === item.linkedTransactionId || transaction.receiptId === item.id || transaction.id === `receipt-tx-${item.id}`); const lines = Array.isArray(item.lines) ? item.lines.map((line, lineIndex) => ({ id: line.id || `receipt-line-${index}-${lineIndex}`, category: splitLegacySgrCategory(line.category || "Altele", line.label || ""), amount: Math.max(0, parseRomanianAmount(line.amount)), label: line.label || undefined, ...(typeof line.discount === "number" && line.discount > 0 ? { discount: line.discount } : {}) })).filter((line) => line.amount > 0) : undefined; const imageKeys = Array.isArray(item.imageKeys) ? item.imageKeys.filter((key): key is string => typeof key === "string" && key.length > 0).slice(0, 2) : undefined; return { ...item, id: item.id || `legacy-receipt-${index}`, amount: Math.max(0, parseRomanianAmount(item.amount)), date: safeDate(item.date), lines, imageKeys, linkedTransactionId: linked?.id || item.linkedTransactionId, linkedTransactionIds: item.linkedTransactionIds?.length ? item.linkedTransactionIds : linked?.id ? [linked.id] : undefined }; });
+  const receipts = realRows<Receipt>(old.receipts).map((entry, index) => { const { ocrText: _ocr, ...item } = entry as Receipt; const linked = transactions.find((transaction) => transaction.id === item.linkedTransactionId || transaction.receiptId === item.id || transaction.id === `receipt-tx-${item.id}`); const lines = Array.isArray(item.lines) ? item.lines.map((line, lineIndex) => ({ id: line.id || `receipt-line-${index}-${lineIndex}`, category: splitLegacySgrCategory(line.category || "Altele", line.label || ""), amount: Math.max(0, parseRomanianAmount(line.amount)), label: line.label || undefined, ...(typeof line.discount === "number" && line.discount > 0 ? { discount: line.discount } : {}), ...receiptLineFacts(line) })).filter((line) => line.amount > 0) : undefined; const imageKeys = Array.isArray(item.imageKeys) ? item.imageKeys.filter((key): key is string => typeof key === "string" && key.length > 0).slice(0, 2) : undefined; return { ...item, id: item.id || `legacy-receipt-${index}`, amount: Math.max(0, parseRomanianAmount(item.amount)), date: safeDate(item.date), lines, imageKeys, linkedTransactionId: linked?.id || item.linkedTransactionId, linkedTransactionIds: item.linkedTransactionIds?.length ? item.linkedTransactionIds : linked?.id ? [linked.id] : undefined }; });
   const oldPlan = oldSettings.salaryPlan || fallback.settings.salaryPlan;
   const periodStart = safeDate(oldPlan.periodStart);
   const nextPayday = /^\d{4}-\d{2}-\d{2}$/.test(oldPlan.nextPayday || "") ? oldPlan.nextPayday : "";

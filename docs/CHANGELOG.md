@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.219
+
+- **Bonul citit pe produs, nu doar pe categorie.** La scanare, fiecare articol vine acum cu marca („Zuzu”, „Dorna”), gramajul sau volumul („1 l”, „500 g”), cum se vinde (bucată, kg, litru), prețul pe bucată sau pe kg tipărit și cota TVA; iar din antet: codul fiscal, adresa, orașul și ora bonului. Instrucțiunile modelului au exemple de rânduri de la Lidl, Kaufland, Carrefour, Mega Image, Profi, Auchan și Penny.
+- **Prețul pe kg sau pe litru**, sub fiecare articol la „Corectează” („Dorna · 2 l · 4,25 lei/l”): baza pentru istoricul de preț pe produs și pentru „inflația ta” din versiunile următoare.
+- Datele noi rămân după corectură, repornire și sincronizarea cu celălalt telefon; bonurile vechi și cele scrise de mână merg ca înainte.
+- **„Produsele tale”** (Mai mult, lângă Bonuri): fiecare produs cumpărat, cu prețul pe kg/l/bucată, graficul în timp, variația pe 1, 3 și 6 luni și magazinul unde a fost cel mai ieftin; căutare după nume.
+- **Inflația ta:** cât s-au scumpit produsele pe care chiar le cumperi (luna asta față de cele trei dinainte), ponderat după cât dai pe ele; ce s-a scumpit cel mai mult și categoriile în care dai mai mult ca de obicei.
+- **Shrinkflation:** alertă când același produs vine cu gramaj mai mic la același preț sau mai mare („1 l → 0,9 l: +14% pe litru”).
+
 ## 1.1.218
 
 - **„Modifică plicul” nu mai refuză salvarea cu „Pe Card bonuri sunt liberi doar 0 RON”.** Tichetele deja cheltuite din plic (la Lidl, Mega) au soldul 0, dar partea lor din plic e acoperită; acum contează ca atare.
