@@ -1,4 +1,4 @@
-/** Wrapper Android Capacitor — Buget Familie păstrează același build web ca GitHub Pages. */
+/** Wrapper Android Capacitor — Bonuț (fost Buget Familie) păstrează același build web ca GitHub Pages. */
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
@@ -10,10 +10,10 @@ const config: CapacitorConfig = {
     adjustMarginsForEdgeToEdge: "disable",
   },
   plugins: {
-    // Iconul mic al notificării: silueta plicului aplicației, colorată ca în launcher.
+    // Iconul mic al notificării: bonul Bonuț, colorat ca în launcher.
     LocalNotifications: {
       smallIcon: "ic_stat_notify",
-      iconColor: "#1B4F42",
+      iconColor: "#0F7B5F",
     },
     SystemBars: {
       insetsHandling: "css",
