@@ -19,7 +19,7 @@ Aplicația devine **BonAI**, lista de cumpărături care îți arată cât econo
 
 - Nume, icon (bonul zimțat cu bifă) și culori noi; bara de jos: Acasă · Cumpărături · Scanează · Prețuri · Gospodărie.
 - Lista familiei gratuită, trimisă pe WhatsApp ca link web pe care îl bifează și cine nu are aplicația (l.html).
-- Cămara din bonuri și Meniul săptămânii (cost doar din prețurile tale).
+- Stocul casei din bonuri și Meniul săptămânii (cost doar din prețurile tale).
 - Codul de bare în magazin (ML Kit): cât ai dat ultima dată și unde a fost mai ieftin.
 - Acasă: media pe 3 luni, „Economisit cu BonAI” (reducerile de pe bonuri), distribuire.
 - Planurile Gratuit / Pro / Familie și paywall-ul în context (plata încă oprită: totul deschis).

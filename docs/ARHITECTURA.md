@@ -53,7 +53,7 @@ Concurentul real e gratuit și de stat: **Monitorul Prețurilor la alimente** (C
 Bara de jos are 5 locuri; „Scanează” e în centru, mai mare.
 
 1. **Acasă:** costurile lunii vs media pe 3 luni · „Economisit cu BonAI” · cel mult 3 alerte · lista (câte produse sunt de luat) · ultimele bonuri · un sfat pe săptămână.
-2. **Cumpărături:** Listă (GRATUITĂ, comună, cu prețuri estimate din istoricul tău) | Cămară | Coș optimizat (PRO) | Meniul săptămânii (PRO).
+2. **Cumpărături:** Listă (GRATUITĂ, comună, cu prețuri estimate din istoricul tău) | Stoc | Coș optimizat (PRO) | Meniul săptămânii (PRO).
 3. **Scanează:** camera direct · scanare cod de bare în magazin · galerie · PDF/e-mail · introducere rapidă → ecran de verificare → rezumat „aha”.
 4. **Prețuri:** Produsele mele | Magazine | Inflația mea | Promoții.
 5. **Gospodărie:** Bonuri | Facturi | Abonamente | Garanții | Membri | Asistent | Setări (în Setări: Arhiva veche, doar citire + export).
@@ -101,7 +101,7 @@ Categoriile rămân doar pentru analiză și filtre. Cheltuielile existente devi
 | `appFeedback` | feedback | există |
 | `contributePrice` | primește observații anonime (App Check, limită de rată) | nou |
 | `shareList` / `sharedListTick` | link web pentru WhatsApp; bifarea fără cont | nou |
-| `weeklyMenu` | meniul săptămânii optimizat pe cost (promoții + cămară), PRO | nou |
+| `weeklyMenu` | meniul săptămânii optimizat pe cost (promoții + stocul casei), PRO | nou |
 | `pricesIngest` (Scheduler) | sursă oficială, **oprită** până la acordul scris | nou, comutator |
 | `pruneSecretVersions` (Scheduler, lunar) | păstrează ultimele 2 versiuni ale fiecărui secret | nou |
 
@@ -146,7 +146,7 @@ Riscurile mari sunt **calitatea parserului** și **distribuția** (ASO, recenzii
 | 7 | Widget Android (listă/alerte + scanare dintr-o atingere) | 3 |
 | 8 | Migrarea v2 la costuri, curățarea codului vechi de buget | 6 |
 | 9 | Garanții / abonamente / facturi (există parțial) | 8 |
-| 10 | Cămară + meniul săptămânii optimizat pe cost | 3, 5 |
+| 10 | Stocul casei + meniul săptămânii optimizat pe cost | 3, 5 |
 | 11 | Prețuri publice crowdsourced + Monitorul Prețurilor (doar cu acord) | 4 |
 | 12 | Asistent AI, onboarding, polish, ASO | toate |
 

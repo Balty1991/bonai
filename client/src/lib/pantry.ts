@@ -1,5 +1,5 @@
 /**
- * Cămara, din bonuri: ce cumperi des, la câte zile o dată, și ce probabil se termină.
+ * Stocul casei, din bonuri: ce cumperi des, la câte zile o dată, și ce probabil se termină.
  * Nu cere nimic de introdus: ritmul vine din datele în care ai cumpărat același produs.
  */
 import type { ProductObservation } from "./personal-inflation";

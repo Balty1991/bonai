@@ -19,7 +19,7 @@ Fiecare preț din BonAI vine de pe un bon real scanat de familia ta. Nu inventă
 🛒 LISTA DE CUMPĂRĂTURI A FAMILIEI
 O singură listă, sincronizată criptat între telefoanele familiei. Trimite lista pe WhatsApp cu un link — cine merge la magazin o deschide în browser, fără cont și fără aplicație.
 
-🥫 CĂMARĂ ȘI MENIU
+📦 STOCUL CASEI ȘI MENIU
 Ține evidența a ce ai în casă, planifică meniul săptămânii și pune ingredientele lipsă direct pe listă.
 
 🔎 COD DE BARE
@@ -37,4 +37,4 @@ Ai folosit Buget Familie? Datele vechi sunt păstrate într-o „Arhivă veche�
 Cumpărături (Shopping). Etichete: listă cumpărături, bonuri, prețuri.
 
 ## Ce e nou în 2.0.0
-Buget Familie devine BonAI (2.0.2: numele nou BonAI): scanare de bonuri, prețuri din bonurile tale, listă comună cu link WhatsApp, cămară, meniu, cod de bare și widget. Datele vechi sunt păstrate în Arhiva veche.
+Buget Familie devine BonAI (2.0.2: numele nou BonAI): scanare de bonuri, prețuri din bonurile tale, listă comună cu link WhatsApp, stocul casei, meniu, cod de bare și widget. Datele vechi sunt păstrate în Arhiva veche.

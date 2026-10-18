@@ -8,7 +8,7 @@ Ordinea contează: primele 3 apar în căutare. Folosește o familie demo, nu da
 4. **Trimite pe WhatsApp** — pagina web a listei (l.html) deschisă pe telefon. Titlu: „Trimite lista, fără cont”.
 5. **Prețuri** — istoricul unui produs pe magazine. Titlu: „Unde e mai ieftin, din bonurile tale”.
 6. **Cod de bare** — rezultatul unei scanări. Titlu: „Ai mai cumpărat? Vezi prețul pe loc”.
-7. **Cămară / Meniu** — meniul săptămânii. Titlu: „Meniu și cămară, legate de listă”.
+7. **Stoc / Meniu** — meniul săptămânii. Titlu: „Meniu și stocul casei, legate de listă”.
 8. **Widget** — ecranul de pornire cu widgetul listei. Titlu: „Lista pe ecranul principal”.
 
 Grafică recomandată (feature graphic, 1024×500): iconul BonAI + „Bonurile tale, prețuri reale”.

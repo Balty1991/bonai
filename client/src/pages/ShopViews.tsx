@@ -135,7 +135,7 @@ export function ProductsView({ data, onChange }: { data: AppData; onChange: (nex
   </div>;
 }
 
-/** Cumpărături: lista comună (gratuită), cămara din bonuri și meniul săptămânii (PRO). */
+/** Cumpărături: lista comună (gratuită), stocul casei, din bonuri și meniul săptămânii (PRO). */
 export function ListView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
   const [tab, setTab] = useState<"list" | "pantry" | "menu">("list");
   const todo = visibleShopping(data.settings.shoppingList || []).todo;
@@ -161,7 +161,7 @@ export function ListView({ data, onChange }: { data: AppData; onChange: (next: A
   };
   return <div className="sh-page">
     <header className="sh-head"><p className="sh-kicker">{t("CUMPĂRĂTURI")}</p><h1 className="sh-h1">{t("Lista familiei")}</h1></header>
-    <div className="sh-tabs" role="tablist">{([["list", t("Listă")], ["pantry", t("Cămară")], ["menu", t("Meniu")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
+    <div className="sh-tabs" role="tablist">{([["list", t("Listă")], ["pantry", t("Stoc")], ["menu", t("Meniu")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
     {tab === "list" && <>
       {todo.length > 0 && <button type="button" className="sh-scan" onClick={share}><Send size={20} aria-hidden="true" /> {t("Trimite pe WhatsApp")}</button>}
       {todo.length > 0 && (reply === undefined
@@ -178,8 +178,8 @@ function PantryCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) =
   const today = isoToday();
   const items = useMemo(() => pantryFromReceipts(productObservations(data), today), [data, today]);
   const low = items.filter((item) => item.state !== "ok");
-  if (!items.length) return <Card kicker={t("CĂMARA")}><p className="sh-muted">{t("Cămara se umple singură din bonuri: după 3 cumpărări ale aceluiași produs îți spun când se termină.")}</p></Card>;
-  return <Card kicker={t("CĂMARA")} title={low.length ? t("{count} produse se termină", { count: low.length }) : t("Ai de toate, după ritmul tău")}>
+  if (!items.length) return <Card kicker={t("STOCUL CASEI")}><p className="sh-muted">{t("Stocul se completează singur din bonuri: după 3 cumpărări ale aceluiași produs îți spun când se termină.")}</p></Card>;
+  return <Card kicker={t("STOCUL CASEI")} title={low.length ? t("{count} produse se termină", { count: low.length }) : t("Ai de toate, după ritmul tău")}>
     <ul className="sh-list">{items.slice(0, 12).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("o dată la ~{days} zile · ultima dată acum {since} zile", { days: item.everyDays, since: item.daysSince })}</small></span><b className={item.state === "out" ? "sh-up" : item.state === "soon" ? "" : "sh-down"}>{item.state === "out" ? t("s-a terminat?") : item.state === "soon" ? t("curând") : t("ok")}</b></li>)}</ul>
     {low.length > 0 && <button type="button" className="sh-link" onClick={() => onAdd(low.map((item) => item.label))}><Plus size={16} aria-hidden="true" /> {t("Pune-le pe listă")}</button>}
   </Card>;
