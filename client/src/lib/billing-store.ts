@@ -37,3 +37,11 @@ export function hasActiveFamilie(now = Date.now()) {
   const grace = OFFLINE_GRACE_DAYS * 86_400_000;
   return readEntitlements().some((item) => (Date.parse(item.expiresAt) || 0) + grace > now);
 }
+
+/** Planul BonAI plătit, din dreptul verificat: „bonut_pro” → pro; Familia (nouă sau veche) și camera → familie. */
+export function activePaidPlan(now = Date.now()): "pro" | "familie" | undefined {
+  const grace = OFFLINE_GRACE_DAYS * 86_400_000;
+  const live = readEntitlements().filter((item) => (Date.parse(item.expiresAt) || 0) + grace > now);
+  if (live.some((item) => item.source === "room" || item.productId !== "bonut_pro")) return "familie";
+  return live.length ? "pro" : undefined;
+}

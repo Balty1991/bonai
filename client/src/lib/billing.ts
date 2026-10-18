@@ -5,13 +5,14 @@
  * Fiecare achiziție e verificată de funcția `verifyPlayPurchase`, care întreabă Google Play
  * și, dacă telefonul e într-o cameră de familie, dă beneficiul și celorlalte telefoane.
  */
-import { BILLING_LIVE, PLAY_BASE_PLANS, PLAY_PRODUCT_IDS, type BillingSku } from "@/lib/entitlements";
+import { BILLING_LIVE, PLAY_BASE_PLANS, PLAY_PRODUCT_IDS } from "@/lib/entitlements";
 import { saveEntitlement } from "@/lib/billing-store";
+import { BONUT_SKUS } from "@/lib/bonut-plans";
 import { isNativeApp } from "@/lib/app-storage";
 import { t } from "@/lib/i18n";
 
 const VERIFY_URL = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/verifyPlayPurchase";
-const SKUS = Object.values(PLAY_PRODUCT_IDS) as BillingSku[];
+const SKUS: string[] = [...Object.values(PLAY_PRODUCT_IDS), BONUT_SKUS.pro.productId, BONUT_SKUS.familie.productId];
 
 export type BillingResult = { ok: boolean; message: string };
 
@@ -52,14 +53,23 @@ const unavailable = (): BillingResult | undefined => {
 };
 
 export async function buyFamilie(period: "month" | "year", roomId = activeRoomId): Promise<BillingResult> {
+  return buyPlay(period === "month" ? PLAY_PRODUCT_IDS.familieMonth : PLAY_PRODUCT_IDS.familieYear, PLAY_BASE_PLANS[period === "month" ? PLAY_PRODUCT_IDS.familieMonth : PLAY_PRODUCT_IDS.familieYear], roomId);
+}
+
+/** BonAI Pro sau Familie: un abonament cu plan de bază lunar/anual (BONUT_SKUS). Familia se dă și camerei. */
+export async function buyBonut(plan: "pro" | "familie", period: "month" | "year", roomId = activeRoomId): Promise<BillingResult> {
+  const sku = BONUT_SKUS[plan];
+  return buyPlay(sku.productId, sku.basePlans[period], plan === "familie" ? roomId : undefined);
+}
+
+async function buyPlay(productId: string, planIdentifier: string, roomId?: string): Promise<BillingResult> {
   const blocked = unavailable();
   if (blocked) return blocked;
-  const productId = period === "month" ? PLAY_PRODUCT_IDS.familieMonth : PLAY_PRODUCT_IDS.familieYear;
   try {
     const { NativePurchases, PURCHASE_TYPE } = await import("@capgo/native-purchases");
     const transaction = await NativePurchases.purchaseProduct({
       productIdentifier: productId,
-      planIdentifier: PLAY_BASE_PLANS[productId],
+      planIdentifier,
       productType: PURCHASE_TYPE.SUBS,
       quantity: 1,
       // Amprenta camerei (fără date personale): serverul refuză mutarea abonamentului în altă cameră.
@@ -68,7 +78,7 @@ export async function buyFamilie(period: "month" | "year", roomId = activeRoomId
     if (!transaction.purchaseToken) return { ok: false, message: t("Google Play nu a trimis confirmarea cumpărării.") };
     const active = remember(await verifyOnServer(transaction.purchaseToken, productId, roomId), roomId);
     return active
-      ? { ok: true, message: t("Familia e activă. Mulțumim!") }
+      ? { ok: true, message: productId === BONUT_SKUS.pro.productId ? t("BonAI Pro e activ. Mulțumim!") : t("Familia e activă. Mulțumim!") }
       : { ok: false, message: t("Plata nu a fost confirmată de Google Play. Dacă ai fost taxat, apasă „Restaurează abonamentul”.") };
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : t("Cumpărarea nu a reușit.") };
@@ -83,10 +93,10 @@ export async function restoreFamilie(roomId = activeRoomId): Promise<BillingResu
     const { NativePurchases, PURCHASE_TYPE } = await import("@capgo/native-purchases");
     await NativePurchases.restorePurchases().catch(() => undefined);
     const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS });
-    const ours = purchases.filter((item) => item.purchaseToken && SKUS.includes(item.productIdentifier as BillingSku));
+    const ours = purchases.filter((item) => item.purchaseToken && SKUS.includes(item.productIdentifier));
     for (const purchase of ours) {
       if (remember(await verifyOnServer(purchase.purchaseToken!, purchase.productIdentifier, roomId), roomId)) {
-        return { ok: true, message: t("Abonamentul Familia a fost restaurat.") };
+        return { ok: true, message: purchase.productIdentifier === BONUT_SKUS.pro.productId ? t("Abonamentul BonAI Pro a fost restaurat.") : t("Abonamentul Familia a fost restaurat.") };
       }
     }
     saveEntitlement("play", undefined);

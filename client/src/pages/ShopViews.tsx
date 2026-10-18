@@ -23,6 +23,7 @@ import { weeklyMenu } from "@/lib/weekly-menu";
 import { threeMonthAverage } from "@/lib/savings-summary";
 import { savedShareTextV2, savedWithBonAI } from "@/lib/saved-with-bonai";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
+import { BILLING_LIVE } from "@/lib/entitlements";
 import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
 
@@ -54,8 +55,23 @@ export function ProGate({ data, feature, title, pitch, children }: { data: AppDa
     <p className="sh-muted">{pitch}</p>
     <p><b>{t("{year} lei/an", { year: money2(price.year) })}</b> <small className="sh-muted">{t("sau {month} lei/lună · anual cu {percent}% mai ieftin", { month: money2(price.month), percent: yearlySavingPercent(familyOnly ? "familie" : "pro") })}</small></p>
     <p className="sh-muted">{t("Gratuit rămân {n} scanări AI pe lună și scanarea offline pe telefon, nelimitată.", { n: FREE_SCANS_PER_MONTH })}</p>
+    {BILLING_LIVE && <BuyRow plan={familyOnly ? "familie" : "pro"} />}
     <p className="sh-muted">{data.receipts.length < TRIAL_AFTER_RECEIPTS ? t("Proba gratuită de {days} zile pornește singură după al {n}-lea bon scanat.", { days: TRIAL_DAYS, n: TRIAL_AFTER_RECEIPTS }) : t("Abonamentele pornesc în curând în Google Play.")}</p>
   </Card>;
+}
+
+/** Cumpărarea prin Google Play (doar în aplicația Android, cât BILLING_LIVE e pornit), plus restaurarea. */
+function BuyRow({ plan }: { plan: "pro" | "familie" }) {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const run = async (work: () => Promise<{ message: string }>) => { setBusy(true); try { setMessage((await work()).message); } finally { setBusy(false); } };
+  const price = BONUT_PRICES[plan];
+  return <div className="sh-buy">
+    <button type="button" className="bn-btn is-primary" disabled={busy} onClick={() => void run(async () => (await import("@/lib/billing")).buyBonut(plan, "year"))}>{t("Anual · {year} lei", { year: money2(price.year) })}</button>
+    <button type="button" className="bn-btn" disabled={busy} onClick={() => void run(async () => (await import("@/lib/billing")).buyBonut(plan, "month"))}>{t("Lunar · {month} lei", { month: money2(price.month) })}</button>
+    <button type="button" className="sh-link" disabled={busy} onClick={() => void run(async () => (await import("@/lib/billing")).restoreFamilie())}>{t("Restaurează abonamentul")}</button>
+    {message && <p className="sh-muted" role="status">{message}</p>}
+  </div>;
 }
 
 function shareSaved(text: string) {

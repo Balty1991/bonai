@@ -900,7 +900,9 @@ export const aiGuide = onRequest(
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const PLAY_PACKAGE = "ro.balty1991.bugetfamilie";
-const PLAY_SKUS = new Set(["familie_lunar", "familie_anual"]);
+const PLAY_SKUS = new Set(["familie_lunar", "familie_anual", "bonut_pro", "bonut_familie"]);
+/** Doar abonamentele de familie se împart cu telefoanele din cameră; BonAI Pro e al unui singur telefon. */
+const FAMILY_SKUS = new Set(["familie_lunar", "familie_anual", "bonut_familie"]);
 const ACTIVE_STATES = new Set(["SUBSCRIPTION_STATE_ACTIVE", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD"]);
 
 type PlaySubscription = {
@@ -964,7 +966,7 @@ async function syncPlayPurchase(purchaseToken: string, roomIdHint?: string) {
   if (previous?.roomId && previous.roomId !== roomId) {
     await db.collection("familyEntitlements").doc(previous.roomId).delete().catch(() => undefined);
   }
-  if (roomId) {
+  if (roomId && productId && FAMILY_SKUS.has(productId)) {
     const roomRef = db.collection("familyEntitlements").doc(roomId);
     if (active) await roomRef.set({ expiresAt, productId, updatedAt: new Date().toISOString() });
     else await roomRef.delete().catch(() => undefined);

@@ -118,3 +118,10 @@ Cât `BILLING_LIVE === false`, privacy poate spune că nu se vând abonamente î
 - Nu se comit secrete Play / service accounts.
 - Nu se adaugă dependențe Billing în `package.json` din agent (fără install fiabil) — documentat aici pentru pasul local.
 - Nu se activează fake charges în UI.
+
+## BonAI: produse și verificare (oct. 2026)
+- Abonamente în Play Console: `bonut_pro` și `bonut_familie`, fiecare cu planurile de bază `lunar` (9,99 / 14,99 lei) și `anual` (79,99 / 119,99 lei). Vechile `familie_lunar`/`familie_anual` rămân recunoscute pentru restaurare.
+- **Fără ofertă de probă în Play**: proba de 14 zile pornește în aplicație de la al 3-lea bon. O ofertă de probă Play ar dubla-o.
+- Serverul (`verifyPlayPurchase`) acceptă cele 4 produse; doar Familia se scrie în `familyEntitlements` (se împarte camerei). Pro rămâne pe telefonul care l-a cumpărat.
+- Aplicația: `bonut_pro` → plan Pro, Familia/camera → plan Familie (`activePaidPlan`). Butoanele de cumpărare apar în paywall doar cu `BILLING_LIVE = true`, în aplicația Android.
+- Risc cunoscut: limita de 15 scanări AI/lună e numărată doar pe telefon (localStorage), fără contor pe server.
