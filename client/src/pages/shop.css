@@ -307,3 +307,18 @@ html[data-app="shop"] .sh-profile { display: flex; align-items: center; gap: 14p
 html[data-app="shop"] .sh-profile > span:last-child { display: grid; gap: 3px; min-width: 0; }
 html[data-app="shop"] .sh-profile b { font: 600 18px/1.2 var(--bn-display, inherit); color: var(--bn-ink); }
 html[data-app="shop"] .sh-avatar { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border-radius: 50%; color: #fff; font: 700 20px/1 var(--bn-display, inherit); background: linear-gradient(135deg, #8b5cf6, #22d3ee); box-shadow: 0 6px 18px rgba(139, 92, 246, .35); }
+.bn-assist { position: fixed; inset: 0; z-index: 2000; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; height: 100dvh; color: var(--bn-ink); font-family: var(--bn-body); background: radial-gradient(120% 50% at 0% 0%, var(--bn-bg-glow-a), transparent 60%), var(--bn-bg); }
+.bn-assist-head { display: flex; align-items: center; gap: 12px; padding: max(14px, env(safe-area-inset-top)) 16px 10px; }
+.bn-assist-head > span:nth-child(2) { display: grid; flex: 1; gap: 2px; } .bn-assist-head small { color: var(--bn-muted); font-size: 12px; }
+.bn-assist-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #8b5cf6, #22d3ee); }
+.bn-assist-roles, .bn-assist-quick { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 10px; scrollbar-width: none; }
+.bn-assist-roles button, .bn-assist-quick button, .bn-assist-examples button, .bn-assist-actions button { flex: none; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--bn-edge); color: var(--bn-ink); background: var(--bn-glass); font: 600 13px/1 var(--bn-body); }
+.bn-assist-roles button.is-on { color: #fff; border-color: transparent; background: linear-gradient(135deg, #7c3aed, #0891b2); }
+.bn-assist-log { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 16px 12px; display: grid; align-content: start; gap: 10px; }
+.bn-assist-msg { max-width: 86%; padding: 12px 14px; border-radius: 18px; background: var(--bn-glass); border: 1px solid var(--bn-edge); }
+.bn-assist-msg p { margin: 0; line-height: 1.45; } .bn-assist-msg.is-user { justify-self: end; color: #fff; border-color: transparent; background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+.bn-assist-actions, .bn-assist-examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.bn-assist-input { display: flex; gap: 8px; padding: 8px 16px max(14px, env(safe-area-inset-bottom)); }
+.bn-assist-input input { flex: 1; min-width: 0; min-height: 48px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--bn-edge); color: var(--bn-ink); background: var(--bn-glass); font: 500 15px/1 var(--bn-body); }
+.bn-assist-input input::placeholder { color: var(--bn-muted); }
+.bn-assist-input .bn-btn { flex: none; width: 52px; min-height: 48px; padding: 0; display: grid; place-items: center; }

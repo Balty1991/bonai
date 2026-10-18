@@ -4,7 +4,7 @@
  * produs, unde e mai ieftin și cât s-a scumpit viața ta. Bugetul cu plicuri a rămas întreg,
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
-import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowUpRight, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap } from "lucide-react";
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
@@ -136,6 +136,11 @@ export function ProductsView({ data, onChange }: { data: AppData; onChange: (nex
 /** Cumpărături: lista comună (gratuită), stocul casei, din bonuri și meniul săptămânii (PRO). */
 export function ListView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
   const [tab, setTab] = useState<"list" | "pantry" | "menu">("list");
+  useEffect(() => {
+    const onTab = (event: Event) => { const next = (event as CustomEvent<string>).detail; if (next === "pantry" || next === "menu" || next === "list") setTab(next); };
+    window.addEventListener("bonai:list-tab", onTab);
+    return () => window.removeEventListener("bonai:list-tab", onTab);
+  }, []);
   const todo = visibleShopping(data.settings.shoppingList || []).todo;
   const share = () => {
     const text = listShareText(todo, t("Lista de cumpărături:"), `${t("Bifează aici, fără aplicație:")} ${listShareLink(todo, data.settings.familyName || undefined)}`);
