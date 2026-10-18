@@ -87,4 +87,6 @@ export const corpusRo: CorpusCase[] = [
   rc("kaufland-procent", "Kaufland", "2026-10-13", [["Pulover", 1, 80, "Haine", 16], ["-20%", 1, -16, "Altele"]], 64, "card", { count: 1, discount: 16 }),
   rc("lidl-total-reduceri-bloc", "Lidl", "2026-10-12", [["Lapte", 1, 8, "Alimente", 1], ["Ouă", 1, 12, "Alimente", 2], ["TOTAL REDUCERI", 1, -3, "Altele"]], 20, "card", { count: 2, discount: 3 }),
   rc("lidl-pret-vechi-nou", "Lidl", "2026-10-12", [["Unt 200g (Pret vechi 12,99 / Pret nou 9,99)", 1, 9.99, "Alimente", 3]], 9.99, "card", { count: 1, discount: 3 }),
+  // v5: Mega Image fotografiat culcat; modelul a dat „Reducere prăjitură Alka” cu plus, ca un produs.
+  rc("mega-reducere-pozitiva", "Mega Image", "2026-10-18", [["Biscuiți sărați Chio 80 g", 1, 4.85, "Dulciuri"], ["Prăjitură zmeură și ciocolată 55 g", 1, 6.64, "Dulciuri"], ["Reducere prăjitură Alka", 1, 2.57, "Dulciuri"], ["Iaurt grecesc 10% Olympus", 2, 7.78, "Alimente"], ["Prune vrac", 0.65, 3.23, "Alimente"]], 19.93, "card", { count: 4, discount: 2.57 }),
 ];

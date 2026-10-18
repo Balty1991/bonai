@@ -85,7 +85,16 @@ export function foldDiscountLines<T extends { amount: number; discount?: number 
 }
 
 /** Ce citește modelul devine ce vede omul în formular: titlu, total, data, articolele și sursele. */
-export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?: string, today = isoToday()): ScanPrefill {
+/** Rânduri de reducere după nume (REDUCERE, DISCOUNT, CUPON, PROMO, Lidl Plus, My Mega, card de fidelitate…). */
+export const DISCOUNT_NAME = /^\s*(reducere|discount|disc\.?|cupon|voucher reducere|promo(ție|tie)?|ofert[aă]|economie|lidl plus|my mega|mega image card|kaufland card|carrefour card|card fidelitate|pret redus|preț redus|rabat)\b/i;
+
+/** Un rând de reducere citit cu plus (ca un produs) devine minus: reducerea nu se plătește, se scade. */
+export function signDiscountLines<T extends { name: string; amount: number }>(items: ReadonlyArray<T>): T[] {
+  return items.map((item) => (item.amount > 0 && DISCOUNT_NAME.test(item.name) ? { ...item, amount: -item.amount } : item));
+}
+
+export function scanToPrefill(raw: ScannedReceipt, data: AppData, memberId?: string, today = isoToday()): ScanPrefill {
+  const receipt: ScannedReceipt = { ...raw, items: signDiscountLines(raw.items) };
   const known = new Set<string>([...data.settings.customCategories, ...receiptCategories(data)]);
   const fallback = "Altele";
   // Rândurile de reducere se lipesc de articol doar dacă așa suma se apropie de total: altfel modelul

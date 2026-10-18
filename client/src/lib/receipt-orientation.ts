@@ -89,7 +89,16 @@ export function chooseByText(scores: Array<{ rotation: Rotation; score: number }
 
 /** Orientările de încercat: portret 0/180, poză culcată 90/270 (plus 0/180, pentru bonurile foarte late). */
 export function candidateRotations(width: number, height: number): Rotation[] {
-  return width > height ? [0, 90, 270, 180] : [0, 180];
+  // O poză culcată nu rămâne niciodată culcată: încercăm doar cele două sensuri de portret.
+  return width > height ? [90, 270] : [0, 180];
+}
+
+/** Poza culcată: sensul cu textul mai bun; la egalitate (sub 5 puncte) decide profilul rândurilor. */
+export function chooseLandscape(scores: Array<{ rotation: Rotation; score: number }>): Rotation | undefined {
+  const a = scores.find((x) => x.rotation === 90)?.score ?? 0;
+  const b = scores.find((x) => x.rotation === 270)?.score ?? 0;
+  if (Math.abs(a - b) < 5) return undefined;
+  return a > b ? 90 : 270;
 }
 
 /**

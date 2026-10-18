@@ -1,4 +1,4 @@
-import { candidateRotations, chooseByText, ocrScore, type Rotation } from "./receipt-orientation";
+import { candidateRotations, chooseByText, chooseLandscape, ocrScore, type Rotation } from "./receipt-orientation";
 
 /**
  * OCR rapid pe o copie mică, în fiecare orientare candidată, ca să aflăm din text dacă bonul e
@@ -43,7 +43,7 @@ export async function detectRotationByText(source: CanvasImageSource, width: num
       canvas.height = 0;
       scores.push({ rotation, score: ocrScore(data.text, data.confidence) });
     }
-    return chooseByText(scores);
+    return width > height ? chooseLandscape(scores) : chooseByText(scores);
   })();
   const timeout = new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), timeoutMs));
   try { return await Promise.race([work, timeout]); } catch { return undefined; }

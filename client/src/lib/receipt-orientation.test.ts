@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { candidateRotations, chooseByText, ocrScore, pickRotation, rotateMask90, type Rotation } from "./receipt-orientation";
+import { candidateRotations, chooseByText, chooseLandscape, ocrScore, pickRotation, rotateMask90, type Rotation } from "./receipt-orientation";
 
 /** Un bon sintetic drept: rânduri orizontale de „text”, pornite din stânga, cu preț la dreapta, conținut sus. */
 function receipt(width = 120, height = 220): Uint8Array {
@@ -47,9 +47,6 @@ describe("orientarea după text (OCR)", () => {
     ["portret drept, text slab (nu se atinge)", [[0, 58], [180, 32]], 0],
     ["portret cu capul în jos", [[0, 34], [180, 164]], 180],
     ["portret cu capul în jos, text slab", [[0, 42], [180, 56]], 180],
-    ["culcat spre dreapta", [[0, 30], [90, 35], [270, 168], [180, 32]], 270],
-    ["culcat spre stânga", [[0, 34], [90, 151], [270, 35], [180, 39]], 90],
-    ["culcat, text slab", [[0, 39], [90, 39], [270, 56], [180, 44]], 270],
     ["nimic clar: rămâne cum e", [[0, 40], [180, 46]], 0],
   ];
   it.each(cases)("%s", (_name, scores, expected) => {
@@ -60,6 +57,19 @@ describe("orientarea după text (OCR)", () => {
   });
   it("portretul încearcă 0/180, poza culcată și 90/270", () => {
     expect(candidateRotations(100, 200)).toEqual([0, 180]);
-    expect(candidateRotations(200, 100)).toEqual([0, 90, 270, 180]);
+    expect(candidateRotations(200, 100)).toEqual([90, 270]);
+  });
+});
+
+describe("poza culcată nu rămâne culcată (regresie v5: Mega Image cu capul spre stânga)", () => {
+  it("alege sensul cu textul mai bun", () => {
+    expect(chooseLandscape([{ rotation: 90, score: 35 }, { rotation: 270, score: 168 }])).toBe(270);
+    expect(chooseLandscape([{ rotation: 90, score: 151 }, { rotation: 270, score: 35 }])).toBe(90);
+    expect(chooseLandscape([{ rotation: 90, score: 39 }, { rotation: 270, score: 56 }])).toBe(270);
+  });
+  it("la egalitate lasă decizia profilului, care tot rotește", () => {
+    expect(chooseLandscape([{ rotation: 90, score: 40 }, { rotation: 270, score: 42 }])).toBeUndefined();
+    const turned = rotate(receipt(), 120, 220, 1);
+    expect([90, 270]).toContain(pickRotation(turned.mask, turned.width, turned.height));
   });
 });

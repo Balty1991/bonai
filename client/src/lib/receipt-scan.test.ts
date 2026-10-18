@@ -270,3 +270,10 @@ describe("reducerile pe rând separat (regresia 2.0.2)", () => {
     expect(prefill.discount).toBe(3);
   });
 });
+
+describe("reducerea citită cu plus (v5, Mega Image)", () => {
+  it("„Reducere prăjitură Alka 2,57” se scade, nu se adună", async () => {
+    const { signDiscountLines } = await import("./receipt-scan");
+    expect(signDiscountLines([{ name: "Prăjitură 55 g", amount: 6.64 }, { name: "Reducere prăjitură Alka", amount: 2.57 }, { name: "Promoroacă", amount: 1 }]).map((x) => x.amount)).toEqual([6.64, -2.57, 1]);
+  });
+});

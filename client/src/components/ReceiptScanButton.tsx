@@ -12,7 +12,7 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
 import { warmOcr } from "@/lib/receipt-orientation-ocr";
-import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, type ScanPrefill } from "@/lib/receipt-scan";
+import { signDiscountLines, compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
@@ -68,7 +68,8 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       return;
     }
     setShots(files.length);
-    try { setPhoto(URL.createObjectURL(files[0])); } catch { setPhoto(undefined); }
+    // Poza apare în animație abia după ce e pusă drept (EXIF + rotire), nu culcată.
+    setPhoto(undefined);
     setBusy(true);
     setError("");
     try {
@@ -85,7 +86,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
       const final = dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill;
-      setReveal({ items: receipt.items.filter((item) => item.amount > 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
+      setReveal({ items: signDiscountLines(receipt.items).filter((item) => item.amount > 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
     } catch (reason) {
       setPhoto(undefined);
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
