@@ -36,7 +36,7 @@ export function ReceiptScanAnimation({ thumbs = [], processed = 0, store, second
     if (!items) return;
     if (reducedMotion() || !items.length) { setCount(shown + 1); const id = window.setTimeout(() => doneRef.current?.(), reducedMotion() ? 900 : 0); return () => window.clearTimeout(id); }
     let i = 0;
-    const timer = window.setInterval(() => { i += 1; setCount(i); if (i > shown) { window.clearInterval(timer); window.setTimeout(() => doneRef.current?.(), 900); } }, 130);
+    const timer = window.setInterval(() => { i += 1; setCount(i); if (i > shown) { window.clearInterval(timer); window.setTimeout(() => doneRef.current?.(), 450); } }, 60);
     return () => window.clearInterval(timer);
   }, [items, shown]);
   const stage = items ? 2 : processed < Math.max(1, thumbs.length) ? 0 : 1;

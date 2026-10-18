@@ -263,11 +263,13 @@ function canvasToJpegDataUrl(canvas: HTMLCanvasElement, quality: number): Promis
 }
 
 /** Poza micșorată pe telefon și pusă drept: bonul rămâne lizibil, dar pleacă repede și costă puțin. */
-export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
+export async function compressReceiptPhoto(file: File, maxSide = 2000, orient: "fast" | "ocr" = "fast"): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
   const image = await decodeReceiptPhoto(file);
   try {
-    // Orientarea se decide după text (OCR pe 0/180°, plus 90/270° la poze culcate); fără OCR, portretul rămâne neatins.
-    const byText = await detectRotationByText(image.source, image.width, image.height);
+    // „ocr” (scanarea pe telefon): orientarea după text, Tesseract cere bonul drept. „fast” (AI): fără OCR —
+    // modelul citește și bonul răsturnat (verificat pe bonurile de test la 180°), iar OCR-ul costa 2–3 s pe telefon.
+    // Poza culcată se îndreaptă tot după pixeli, în câteva milisecunde.
+    const byText = orient === "ocr" ? await detectRotationByText(image.source, image.width, image.height) : undefined;
     await yieldToFrame();
     const rotation = byText ?? (image.width > image.height ? detectRotation(image.source, image.width, image.height) : 0);
     const scale = Math.min(1, maxSide / Math.max(image.width, image.height));

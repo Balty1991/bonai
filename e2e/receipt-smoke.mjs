@@ -40,7 +40,7 @@ const providers = (process.env.RECEIPT_PROVIDERS || "auto").split(",").map((name
 /** Doar furnizorul principal oprește publicarea; ceilalți se compară, fără să o blocheze. */
 const primary = process.env.RECEIPT_PRIMARY || providers[0];
 const summary = [];
-const dir = join(root, "e2e/receipts");
+const dir = process.env.RECEIPTS_DIR || join(root, "e2e/receipts");
 // Un fișier .jpg = o poză; un folder „magazin-TOTAL” = capturile aceluiași bon, în ordinea numelor.
 const cases = readdirSync(dir).filter((name) => name.endsWith(".jpg") || (/-\d+\.\d+$/.test(name) && statSync(join(dir, name)).isDirectory())).sort();
 for (const file of cases) {

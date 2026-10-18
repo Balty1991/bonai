@@ -152,7 +152,9 @@ const FEATURES = {
     await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(600);
     await page.getByRole("button", { name: /^Bonuri/ }).first().click();
     const history = page.getByRole("dialog", { name: "Istoric" });
-    await history.getByText(/LIDL DISCOUNT/).first().click();
+    // Firma de pe bon („LIDL DISCOUNT SCS”) se arată ca marcă: „Lidl”.
+    if (await history.getByText(/LIDL DISCOUNT/).count()) fail("bonul arată firma, nu marca Lidl");
+    await history.locator("button", { hasText: "13,69" }).first().click();
     const flags = page.locator(".bn-flags");
     await waitFor(() => flags.isVisible(), "secțiunea Verifică reducerile");
     const text = await flags.innerText();

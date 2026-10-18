@@ -41,7 +41,9 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const aiLeft = serverQuota?.enforced && serverQuota.month === today.slice(0, 7)
     ? serverQuota.remaining ?? Number.POSITIVE_INFINITY
     : scansLeft(currentBonutPlan(data, today), readAiScans(), today);
-  useEffect(() => { const id = window.setTimeout(() => { warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, []);
+  // Motorul OCR (câțiva MB) se încarcă doar când e nevoie de el: altfel concura cu poza pe rețea.
+  const needOcr = aiLeft <= 0 || (typeof navigator !== "undefined" && navigator.onLine === false);
+  useEffect(() => { const id = window.setTimeout(() => { if (needOcr) warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, [needOcr]);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   const thumbsRef = useRef<string[]>([]);
   thumbsRef.current = thumbs;
@@ -64,6 +66,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     if (busy) return;
     const noNet = typeof navigator !== "undefined" && navigator.onLine === false;
     offlineRef.current = local || noNet || aiLeft <= 0;
+    if (offlineRef.current) warmOcr();
     setOffline(offlineRef.current);
     if (!offlineRef.current && !receiptScanConsented()) {
       const ok = await askConfirm(t("Ca să citească bonul, poza pleacă la un serviciu AI (Google Gemini sau Anthropic Claude), care scoate din ea produsele și sumele. Poza nu se păstrează: nici pe telefon, nici pe serverul nostru. Restul bugetului rămâne pe telefon."), { title: t("Scanarea bonului"), confirmLabel: t("Am înțeles, scanez") });
@@ -95,7 +98,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     try {
       const images = [];
       for (const file of files) {
-        const { data: photoData, mimeType } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
+        const { data: photoData, mimeType } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000, offlineRef.current ? "ocr" : "fast");
         images.push({ data: photoData, mimeType });
         setProcessed(images.length);
       }
