@@ -118,6 +118,8 @@ async function addExpense(page, amount) {
   await saved.waitFor();
   await saved.getByRole("button", { name: "Gata" }).click();
   await page.locator(".bn-review").waitFor({ state: "detached" });
+  // Înapoi pe Acasă, ca înainte (pe ecranul Familie bannerele de sync se ascund).
+  await page.locator(".os-dock-v2 > button").first().click();
 }
 
 /** „Intră în familie”; telefonul are deja date, deci confirmă că le trimite în camera invitației. */
