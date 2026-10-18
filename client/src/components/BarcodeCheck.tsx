@@ -81,7 +81,7 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const Trend = verdict?.trend === undefined ? null : verdict.trend > 0.5 ? TrendingUp : verdict.trend < -0.5 ? TrendingDown : Minus;
 
   const productCard = found && <div className="bn-bc-found">
-    {found.image ? <img src={found.image} alt="" width={56} height={56} loading="lazy" referrerPolicy="no-referrer" /> : <span className="bn-bc-noimg" aria-hidden="true" />}
+    {found.image ? <img src={found.image} srcSet={/\.200\.jpg$/.test(found.image) ? `${found.image} 1x, ${found.image.replace(/\.200\.jpg$/, ".400.jpg")} 2x` : undefined} alt="" width={56} height={56} decoding="async" referrerPolicy="no-referrer" /> : <span className="bn-bc-noimg" aria-hidden="true" />}
     <p><b>{found.name}</b>{(found.brand || found.quantity) && <small>{[found.brand, found.quantity].filter(Boolean).join(" · ")}</small>}<small className="bn-bc-src">{t("după {source}", { source: BARCODE_SOURCES[found.source].label })}{found.category ? ` · ${found.category}` : ""}</small></p>
   </div>;
   const picker = <div className="bn-bc-pick">

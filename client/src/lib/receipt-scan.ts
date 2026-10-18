@@ -344,6 +344,11 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
       console.info("[BonAI] scanare: fără răspuns în", hang, "ms, reîncerc o dată");
       response = await send();
     }
+    // În fereastra de publicare a funcției, Cloud Run poate răspunde 502/503/504 fără corp: o reîncercare, după o clipă.
+    if ([502, 503, 504].includes(response.status) && !(await response.clone().json().catch(() => ({})) as { code?: string }).code) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      response = await send();
+    }
     // Token expirat sau identitate încă neconfirmată: o singură reîncercare automată, cu token proaspăt.
     if (response.status === 401 && (await response.clone().json().catch(() => ({})) as { code?: string }).code === "identity") {
       const again = await freshAuthHeader(true);
