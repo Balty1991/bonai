@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.3 — BonAI, design nou
+
+- Icon nou (vizor de sticlă, bon, rază neon), sigla BonAI în antet, splash și iconuri Android/web refăcute din SVG.
+- Design nou: Noapte (navy/violet) și Luminos (alb-lavandă), carduri de sticlă, accent violet → cyan, fonturi Space Grotesk + Inter incluse; Temă: Luminos / Noapte / Automat (implicit Automat).
+- Animație de citire a bonului (pur vizuală, fără produse inventate; respectă „mișcare redusă”).
+- Ecran nou de verificare a bonului: produse pe categorii cu subtotal, reduceri, verificarea totalului, editare pe loc, „cine a cumpărat”, rezumat după salvare. Fără surse, plicuri sau venituri; datele se salvează în aceeași formă (sync compatibil).
+- „Notează de mână” în BonAI deschide același ecran de bon, gol.
+
 ## 2.0.2 — BonAI
 
 - Numele aplicației devine **BonAI** (fost Bonuț în 2.0.0–2.0.1): titlu, launcher, widget, pagina listei partajate, texte.

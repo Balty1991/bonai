@@ -10,7 +10,7 @@ export function TrustCenter() {
     <section className="bf-trust">
       <p className="bf-kicker">{t("ÎNCREDERE ȘI CONFIDENȚIALITATE")}</p>
       <h2>{t("Ce face aplicația cu datele tale")}</h2>
-      <p>{t("Buget Familie este un registru local. Nu avem conturi de utilizator, nu cerem login bancar și nu vindem date.")}</p>
+      <p>{t("BonAI este un registru local. Nu avem conturi de utilizator, nu cerem login bancar și nu vindem date.")}</p>
       <p><b>{t("Nu e o aplicație de plăți și nici de monitorizare.")}</b> {t("Nu mută bani, nu se leagă de bancă și nu urmărește pe nimeni. E caietul de buget al familiei: vedeți doar ce notați voi.")}</p>
       <ul>
         <li><b>{t("Pe telefon:")}</b> {t("mișcări, plicuri, datorii, economii, teme și alerte.")}</li>
@@ -22,7 +22,7 @@ export function TrustCenter() {
         <li><b>{t("Fără cont de șters:")}</b> {t("nu există cont Play/Google al aplicației. Resetarea din Setări golește doar acest telefon. O copie criptată rămâne în cameră până o mutați sau o goliți.")}</li>
       </ul>
       <p>{t("Permisiuni Android: internet (sincronizare opțională), notificări locale, pornire după restart pentru reamintiri.")}</p>
-      <p>{t("Buget Familie nu e sfat financiar, credit sau investiție. Este un registru de familie. Nu plătește facturi și nu înlocuiește un consultant.")}</p>
+      <p>{t("BonAI nu e sfat financiar, credit sau investiție. Este un registru de familie. Nu plătește facturi și nu înlocuiește un consultant.")}</p>
       <div className="bf-trust-links">
         <a href={privacy} target="_blank" rel="noreferrer"><ShieldCheck size={15} /> {t("Politică de confidențialitate")} <ExternalLink size={13} /></a>
         <a href={terms} target="_blank" rel="noreferrer">{t("Termeni de utilizare")} <ExternalLink size={13} /></a>

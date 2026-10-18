@@ -1711,9 +1711,6 @@ html body .os-shell .bf-advisor-hero.bf-advisor-hero .bf-kicker.bf-kicker {
 
 .bf-envelope-stack { position: relative; margin: 0 auto; }
 .bf-envelope-stack span { position: absolute; inset: auto 0 0; display: grid; place-items: end center; }
-.bf-envelope-stack .layer-0 { transform: translate(-18px, 6px) rotate(-14deg); opacity: .7; }
-.bf-envelope-stack .layer-1 { transform: translate(16px, 4px) rotate(11deg); opacity: .86; }
-.bf-envelope-stack .layer-2 { transform: translate(0, 0); }
 
 .bf-desk-blotter-art { fill: color-mix(in srgb, var(--cf-primary) 10%, var(--cf-surface)); stroke: var(--cf-line); }
 .bf-desk-rule { stroke: color-mix(in srgb, var(--cf-ink) 18%, transparent); stroke-width: 1; }
@@ -2194,8 +2191,7 @@ html body .os-shell .bf-advisor-hero.bf-advisor-hero .bf-kicker.bf-kicker {
 .bf-brief-salary.setup { background: var(--cf-surface); }
 
 .bf-envelope-move,
-.bf-salary-ritual,
-.bf-snowball {
+.bf-salary-ritual {
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -2205,24 +2201,21 @@ html body .os-shell .bf-advisor-hero.bf-advisor-hero .bf-kicker.bf-kicker {
   color: var(--cf-ink);
 }
 .bf-envelope-move .bf-section-heading,
-.bf-salary-ritual .bf-section-heading,
-.bf-snowball-head {
+.bf-salary-ritual .bf-section-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 .bf-envelope-move h2,
-.bf-salary-ritual h2,
-.bf-snowball h2 {
+.bf-salary-ritual h2 {
   margin: 2px 0 6px;
   color: var(--cf-ink);
   font-family: "IBM Plex Sans", Georgia, serif;
   font-size: 22px;
   line-height: 1.12;
 }
-.bf-envelope-move h2 em,
-.bf-snowball h2 em { color: var(--cf-primary-strong); font-style: italic; }
+.bf-envelope-move h2 em { color: var(--cf-primary-strong); font-style: italic; }
 .bf-envelope-move p,
 .bf-salary-ritual p { margin: 0; color: var(--cf-muted); font-size: 12px; line-height: 1.45; }
 .bf-envelope-move .bf-transfer-form,
@@ -2344,23 +2337,6 @@ html body .os-shell .bf-advisor-hero.bf-advisor-hero .bf-kicker.bf-kicker {
   letter-spacing: -.04em;
 }
 .bf-snowball-next small { color: var(--cf-muted); font-size: 12px; }
-.bf-snowball-list {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.bf-snowball-list li {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 4px;
-  border-top: 1px solid var(--cf-line);
-  color: var(--cf-ink);
-}
-.bf-snowball-list li span { color: var(--cf-muted); font-size:12px; font-weight:600; }
 .bf-snowball-tag {
   display: inline-block;
   margin: 2px 0 4px;
@@ -4228,7 +4204,6 @@ html.theme-navy .bf-whats-new {
 }
 
 .os-shell .bf-segment,
-.os-shell .kind-switch,
 .os-shell .bf-insights-switch,
 .os-shell .bf-analysis-scope {
   gap: 6px !important;
@@ -4239,7 +4214,6 @@ html.theme-navy .bf-whats-new {
 }
 
 .os-shell .bf-segment button,
-.os-shell .kind-switch button,
 .os-shell .bf-insights-switch button,
 .os-shell .bf-analysis-scope button,
 .os-shell .bf-chip-list > span,

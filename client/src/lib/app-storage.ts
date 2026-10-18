@@ -284,7 +284,7 @@ export function parseBackup(raw: string): AppBackup {
     throw new Error(t("Fișierul e arhiva unui an închis, nu un backup. Îl deschizi din Setări → Copii de siguranță → Închide anul → „Vezi o arhivă”."));
   }
   if (parsed.kind !== "buget-familie-backup" || parsed.version !== BACKUP_VERSION || !parsed.data) {
-    throw new Error(t("Fișierul nu este un backup Buget Familie valid."));
+    throw new Error(t("Fișierul nu este un backup BonAI valid."));
   }
   return parsed as AppBackup;
 }

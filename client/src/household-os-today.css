@@ -536,10 +536,6 @@ html:not(.dark) .bf-os-decide {
   letter-spacing: .04em;
   text-transform: uppercase;
 }
-.bf-plic-pace.pace-ahead { color: #1b6a51; background: #ddf0e5; }
-.bf-plic-pace.pace-on_track { color: #3d5a4e; background: #e8eee9; }
-.bf-plic-pace.pace-behind { color: #9c6a11; background: #f9edcc; }
-.bf-plic-pace.pace-over { color: #a44e3e; background: #f8e5dd; }
 .bf-plic-bar { position: relative; }
 .bf-plic-expected {
   position: absolute;

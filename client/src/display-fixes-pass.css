@@ -48,22 +48,6 @@
 }
 
 /* Pastila de ritm avea doar paleta de zi; pe fundal întunecat ardea ochiul. */
-:is(html.dark, html.theme-dark, html.theme-navy) .bf-plic-pace.pace-ahead {
-  color: #8fe3bd;
-  background: color-mix(in srgb, #8fe3bd 16%, transparent);
-}
-:is(html.dark, html.theme-dark, html.theme-navy) .bf-plic-pace.pace-on_track {
-  color: #c3d3ca;
-  background: color-mix(in srgb, #c3d3ca 14%, transparent);
-}
-:is(html.dark, html.theme-dark, html.theme-navy) .bf-plic-pace.pace-behind {
-  color: #f0c98a;
-  background: color-mix(in srgb, #f0c98a 16%, transparent);
-}
-:is(html.dark, html.theme-dark, html.theme-navy) .bf-plic-pace.pace-over {
-  color: #ffa593 !important;
-  background: color-mix(in srgb, #ffa593 16%, transparent) !important;
-}
 
 /* —— 2. Previzualizare repartizare: deasupra barei de sistem, nu sub ea —— */
 .bf-allocation-preview,

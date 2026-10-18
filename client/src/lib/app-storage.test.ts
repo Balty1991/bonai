@@ -60,8 +60,8 @@ describe("backup Buget Familie", () => {
   });
 
   it("respinge JSON valid care nu este backup Buget Familie", () => {
-    expect(() => parseBackup(JSON.stringify({ kind: "alt-format", version: 1, data: {} }))).toThrow("backup Buget Familie valid");
-    expect(() => parseBackup(JSON.stringify({ kind: "buget-familie-backup", version: 99, data: {} }))).toThrow("backup Buget Familie valid");
+    expect(() => parseBackup(JSON.stringify({ kind: "alt-format", version: 1, data: {} }))).toThrow("backup BonAI valid");
+    expect(() => parseBackup(JSON.stringify({ kind: "buget-familie-backup", version: 99, data: {} }))).toThrow("backup BonAI valid");
     expect(() => parseBackup("nu este JSON")).toThrow();
   });
 

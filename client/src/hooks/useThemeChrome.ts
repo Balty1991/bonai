@@ -22,6 +22,8 @@ export function useThemeChrome() {
   const [themePickerOpen, setThemePickerOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeId>(() => resolveInitialTheme(window.localStorage));
   const [themeSchedule, setThemeSchedule] = useState<ThemeSchedule>(() => {
+    // BonAI (2.0.3): toată lumea pornește pe Automat (după telefon), o singură dată; apoi alegerea omului rămâne.
+    if (!window.localStorage.getItem("bonai:look-v1")) { safeSetItem(window.localStorage, "bonai:look-v1", "1"); return "system"; }
     const saved = window.localStorage.getItem("buget-familie:theme-schedule");
     if (saved === "auto" || saved === "system" || saved === "manual") return saved;
     // Cine a ales deja o temă o păstrează; cine vine acum urmează telefonul (luminos/întunecat).

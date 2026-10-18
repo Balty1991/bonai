@@ -10,7 +10,8 @@ import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
 import { liveWarranties } from "@/lib/warranties";
-import { lei } from "@/lib/money-format";
+import { lei as leiRon } from "@/lib/money-format";
+const lei = (value: number) => leiRon(value).replace(/\s?RON/, "\u00a0lei");
 import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
@@ -47,7 +48,7 @@ export function ProGate({ data, feature, title, pitch, children }: { data: AppDa
   if (hasFeature(plan, feature)) return <>{children}</>;
   const familyOnly = !hasFeature("pro", feature);
   const price = familyOnly ? BONUT_PRICES.familie : BONUT_PRICES.pro;
-  return <Card kicker={familyOnly ? t("BONUȚ FAMILIE") : t("BONUȚ PRO")} title={<><Lock size={18} aria-hidden="true" /> {title}</>}>
+  return <Card kicker={familyOnly ? t("BONAI FAMILIE") : t("BONAI PRO")} title={<><Lock size={18} aria-hidden="true" /> {title}</>}>
     <p className="sh-muted">{pitch}</p>
     <p><b>{t("{year} lei/an", { year: money2(price.year) })}</b> <small className="sh-muted">{t("sau {month} lei/lună · anual cu {percent}% mai ieftin", { month: money2(price.month), percent: yearlySavingPercent(familyOnly ? "familie" : "pro") })}</small></p>
     <p className="sh-muted">{data.receipts.length < TRIAL_AFTER_RECEIPTS ? t("Proba gratuită de {days} zile pornește singură după al {n}-lea bon scanat.", { days: TRIAL_DAYS, n: TRIAL_AFTER_RECEIPTS }) : t("Abonamentele pornesc în curând în Google Play.")}</p>
@@ -82,7 +83,7 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
     </header>
 
     {saved.saved > 0 && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri, lună de lună.")}>
-      <Card tone="accent" kicker={t("ECONOMISIT CU BONUȚ")} title={lei(saved.saved)}>
+      <Card tone="accent" kicker={t("ECONOMISIT CU BONAI")} title={lei(saved.saved)}>
         <p className="sh-muted">{t("din reducerile de pe {count} bonuri în {month}", { count: saved.receipts, month: monthName(saved.month) })}</p>
         <button type="button" className="sh-link" onClick={() => shareSaved(savedShareText(saved.saved, monthName(saved.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>
       </Card>
@@ -221,10 +222,12 @@ export function StoresView({ data }: { data: AppData }) {
   </div>;
 }
 
-export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget: () => void }) {
+export type Look = "light" | "dark" | "auto";
+export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget: () => void; look?: Look; onLook?: (look: Look) => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
   return <div className="sh-page">
     <header className="sh-head"><p className="sh-kicker">{t("GOSPODĂRIE")}</p><h1 className="sh-h1">{data.settings.familyName || t("Familia ta")}</h1></header>
+    {onLook && <section className="sh-card" aria-label={t("Aspect")}><p className="sh-kicker">{t("ASPECT")}</p><div className="sh-seg" role="group" aria-label={t("Tema aplicației")}>{([["light", t("Luminos")], ["dark", t("Noapte")], ["auto", t("Automat")]] as Array<[Look, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={look === id} onClick={() => onLook(id)}>{label}</button>)}</div><p className="sh-muted sh-note">{t("Automat urmează setarea telefonului.")}</p></section>}
     <div className="sh-rows">
       <Row icon={<Users size={20} />} title={t("Familia și sincronizarea")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
@@ -253,7 +256,7 @@ export function ShopWelcome({ onScan, onList, onJoin, onSkip }: { onScan: () => 
   ];
   return <div className="sh-page sh-welcome">
     <header className="sh-hero">
-      <p className="sh-kicker">{t("BINE AI VENIT ÎN BONUȚ")}</p>
+      <p className="sh-kicker">{t("BINE AI VENIT ÎN BONAI")}</p>
       <h1 className="sh-big sh-welcome-title">{t("Lista de cumpărături care îți arată cât economisești.")}</h1>
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează primul bon")}</button>
       <button type="button" className="sh-link" onClick={onList}><ListChecks size={16} aria-hidden="true" /> {t("Încep cu lista")}</button>

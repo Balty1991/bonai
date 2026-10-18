@@ -50,7 +50,7 @@ export function PremiumStudio() {
           ? t("Plata trece prin Google Play. Poți anula oricând din abonamentele contului Google.")
           : t("Plata trece prin Google Play, când listarea e live. Până atunci casa ta e deblocată — registrul nu se ține ostatic.")}
         {" · "}
-        {t("Buget Familie nu e sfat financiar, credit sau investiție. Este un registru de familie.")}
+        {t("BonAI nu e sfat financiar, credit sau investiție. Este un registru de familie.")}
       </small>
     </section>
   );

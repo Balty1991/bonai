@@ -208,9 +208,6 @@
 .bf-due-track::before{content:"";position:absolute;top:10px;left:0;right:0;height:2px;border-radius:2px;background:var(--cf-line,rgba(0,0,0,0.12))}
 .bf-due-track span.is-today{position:absolute;top:4px;left:0;width:2px;height:14px;border-radius:2px;background:var(--cf-primary)}
 .bf-due-track i{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border:2px solid var(--cf-surface,#fff);border-radius:50%;background:var(--cf-primary)}
-.bf-due-track i.kind-debt{background:var(--cf-coral,#c45b45)}
-.bf-due-track i.kind-event{background:var(--cf-honey,#c9973f)}
-.bf-due-track i.kind-need{background:#2f6fd6}
 .bf-due-track i.is-overdue{box-shadow:0 0 0 2px var(--cf-coral,#c45b45)}
 .bf-due-scale{display:flex;justify-content:space-between;color:var(--cf-muted);font-size:12px}
 .bf-obligation-entry small.bf-debt-free{display:block;color:var(--cf-primary);font-weight:600}

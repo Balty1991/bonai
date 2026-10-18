@@ -465,8 +465,8 @@ function ReminderHealthNote() {
       ? t("Reamintirea de {when} nu a sosit: telefonul a oprit aplicația în fundal.", { when: new Date(last).toLocaleString(getLocale(), { weekday: "long", hour: "2-digit", minute: "2-digit" }) })
       : t("Pe acest telefon, reamintirile pot întârzia sau lipsi dacă aplicația nu are voie să ruleze în fundal.")}</p>
     <p>{strict
-      ? t("Pe {maker}: Setări → Baterie / Lansare aplicații → Buget Familie → Gestionare manuală, cu „Lansare automată” și „Rulare în fundal” pornite.", { maker: health.manufacturer })
-      : t("Setări → Aplicații → Buget Familie → Baterie → „Fără restricții”.")}</p>
+      ? t("Pe {maker}: Setări → Baterie / Lansare aplicații → BonAI → Gestionare manuală, cu „Lansare automată” și „Rulare în fundal” pornite.", { maker: health.manufacturer })
+      : t("Setări → Aplicații → BonAI → Baterie → „Fără restricții”.")}</p>
     <button type="button" className="bf-secondary" onClick={() => void import("@/lib/local-notifications").then(({ openBatterySettings }) => openBatterySettings())}>{t("Deschide setarea")}</button>
   </div>;
 }

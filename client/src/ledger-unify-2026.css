@@ -300,14 +300,6 @@ html.theme-navy .os-shell .os-dock button.is-on {
   background: color-mix(in srgb, var(--lu-accent, #143c36) 12%, transparent);
   color: var(--lu-accent, #143c36);
 }
-.bf-upcoming-item.kind-debt .bf-upcoming-item-main span {
-  background: color-mix(in srgb, var(--lu-coral, #c2473c) 14%, transparent);
-  color: var(--lu-coral, #c2473c);
-}
-.bf-upcoming-item.kind-saving .bf-upcoming-item-main span {
-  background: color-mix(in srgb, var(--lu-honey, #b07d12) 16%, transparent);
-  color: var(--lu-honey, #b07d12);
-}
 .bf-upcoming-item-main b {
   display: block;
   font: 600 14px/1.25 "IBM Plex Sans", system-ui, sans-serif;

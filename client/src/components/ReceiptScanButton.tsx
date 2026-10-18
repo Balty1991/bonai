@@ -1,5 +1,6 @@
 import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import "../receipt-scan.css";
+import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanAnimation";
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Loader2 } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
@@ -22,6 +23,9 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
   const [shots, setShots] = useState(1);
   /** Pozele făcute cu camera până acum: un bon de hârtie lung se fotografiază pe bucăți, apoi se citesc împreună. */
   const [pending, setPending] = useState<File[]>([]);
+  const [photo, setPhoto] = useState<string>();
+  const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
   // Cronometrul citirii: omul vede că se lucrează și, când durează, de ce.
   useEffect(() => {
     if (!busy) { setSeconds(0); return; }
@@ -58,6 +62,7 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
       return;
     }
     setShots(files.length);
+    try { setPhoto(URL.createObjectURL(files[0])); } catch { setPhoto(undefined); }
     setBusy(true);
     setError("");
     try {
@@ -68,8 +73,10 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
       // Bonul scanat de două ori: doar avertizare, omul decide.
       const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
-      onResult(dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill);
+      const final = dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill;
+      setReveal({ items: receipt.items.filter((item) => item.amount > 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
     } catch (reason) {
+      setPhoto(undefined);
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
     } finally {
@@ -94,11 +101,12 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
         {pending.length < RECEIPT_SHOTS_MAX && <button type="button" className="bf-secondary" onClick={() => cameraRef.current?.click()}><Camera size={16} aria-hidden="true" /> {t("Mai fă o poză")}</button>}
         <button type="button" className="bf-link-button" onClick={() => setPending([])}>{t("Renunță")}</button>
       </div>
-    </div> : busy ? <p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p> : <div className="bf-scan-receipt-actions">
+    </div> : reveal ? <ReceiptScanAnimation photo={photo} seconds={0} items={reveal.items} total={reveal.total} onDone={() => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); }} />
+    : busy ? <><ReceiptScanAnimation photo={photo} seconds={seconds} /><p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p></> : <div className="bf-scan-receipt-actions">
       <button type="button" className="bf-scan-receipt-main" onClick={() => void pick("camera")}><Camera size={18} aria-hidden="true" /><span><b>{t("Scanează bonul")}</b><small>{t("Toate produsele, pe categorii")}</small></span></button>
       <button type="button" className="bf-scan-receipt-gallery" aria-label={t("Alege din galerie poza bonului sau mai multe capturi ale lui")} title={t("Din galerie: o poză sau mai multe capturi ale aceluiași bon")} onClick={() => void pick("gallery")}><ImagePlus size={18} aria-hidden="true" /></button>
     </div>}
-    {!busy && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
+    {!busy && !reveal && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
     {error && <p className="bf-form-error" role="alert">{error}</p>}
     <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(event) => addShot(event.target.files)} />
     <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={(event) => void read(event.target.files)} />

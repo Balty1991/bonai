@@ -55,11 +55,11 @@ async function shareInvite(code: string): Promise<boolean> {
   try {
     if (isNativeApp()) {
       const { Share } = await import("@capacitor/share");
-      await Share.share({ title: t("Invitație Buget Familie"), text });
+      await Share.share({ title: t("Invitație BonAI"), text });
       return true;
     }
     if (typeof navigator.share === "function") {
-      await navigator.share({ title: t("Invitație Buget Familie"), text });
+      await navigator.share({ title: t("Invitație BonAI"), text });
       return true;
     }
   } catch {

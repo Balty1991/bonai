@@ -209,7 +209,7 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
         </div>
       </section>
       <footer style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 14px", margin: "40px 0 0", color: "var(--cf-muted)", fontSize: 12 }}>
-        <span style={FOOT_LINK}>{t("Buget Familie {version}", { version: APP_VERSION })}</span>
+        <span style={FOOT_LINK}>{t("BonAI {version}", { version: APP_VERSION })}</span>
         <a href={publicLegalUrl(APP_PRIVACY_PATH)} target="_blank" rel="noreferrer" style={FOOT_LINK}>{t("Confidențialitate")}</a>
         <a href={publicLegalUrl(APP_TERMS_PATH)} target="_blank" rel="noreferrer" style={FOOT_LINK}>{t("Termeni")}</a>
         <a href={`mailto:${APP_SUPPORT_EMAIL}`} style={FOOT_LINK}>{t("Suport")}</a>

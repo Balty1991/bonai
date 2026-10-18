@@ -57,7 +57,7 @@ export function LedgerSafety({ data, onChange, onEdit, part = "alerts" }: { data
         <div>
           <p className="bf-kicker">{t("TELEFON CU APLICAȚIE VECHE")}</p>
           <h2>{t("Actualizează aplicația pe celălalt telefon")}</h2>
-          <p>{t("{device}, văzut ultima dată {when}, are o versiune veche. Versiunile vechi pot șterge din greșeală o parte din bonurile plătite din două surse, iar ștergerea ajunge prin sincronizare și aici. Actualizează Buget Familie din Magazin Play pe acel telefon.", { device: outdated[0].label, when: new Date(outdated[0].lastSeenAt).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) })}</p>
+          <p>{t("{device}, văzut ultima dată {when}, are o versiune veche. Versiunile vechi pot șterge din greșeală o parte din bonurile plătite din două surse, iar ștergerea ajunge prin sincronizare și aici. Actualizează BonAI din Magazin Play pe acel telefon.", { device: outdated[0].label, when: new Date(outdated[0].lastSeenAt).toLocaleString("ro-RO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) })}</p>
         </div>
       </div>
       <button type="button" className="bf-link-button" style={WRAP} onClick={() => hideDevice(`${outdated[0].id}:${outdated[0].lastSeenAt}`)}>{t("Nu mai folosesc acel telefon")}</button>
