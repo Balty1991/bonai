@@ -16,7 +16,7 @@ const config: CapacitorConfig = {
       iconColor: "#0F7B5F",
     },
     SystemBars: {
-      insetsHandling: "css",
+      insetsHandling: "disable",
       style: "DARK",
     },
   },

@@ -79,6 +79,9 @@ html.theme-dark .os-shell .os-dock {
   opacity: 1;
 }
 
+/* APK: WebView-ul e deja deasupra barei de sistem (padding nativ), fâșia nu mai trebuie. */
+html.capacitor-android .os-nav-fill { display: none !important; }
+
 /* Pe desktop nu e bară de navigare Android și nici dock: fâșia acoperea ultimul rând din liste. */
 @media (min-width: 1024px) {
   html:not(.is-android-standalone) .os-nav-fill { display: none; }

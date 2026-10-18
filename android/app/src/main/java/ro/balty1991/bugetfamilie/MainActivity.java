@@ -89,6 +89,11 @@ public class MainActivity extends BridgeActivity {
 
   private void applyChrome(int navColor, boolean lightIcons) {
     getWindow().setNavigationBarColor(navColor);
+    /* Fâșiile de sub bara de stare / navigare sunt padding-ul părintelui WebView-ului. */
+    if (getBridge() != null && getBridge().getWebView() != null
+      && getBridge().getWebView().getParent() instanceof View) {
+      ((View) getBridge().getWebView().getParent()).setBackgroundColor(navColor);
+    }
     getWindow().setStatusBarColor(Color.TRANSPARENT);
     WindowInsetsControllerCompat controller =
       WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
@@ -143,8 +148,14 @@ public class MainActivity extends BridgeActivity {
       final Insets bars = insets.getInsets(
         WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
       );
-      injectSafeArea(webView, bars);
-      return insets;
+      /* Edge-to-edge (targetSdk 36): WebView-ul nu primește inset-uri fiabile prin env()/JS
+         (injecția se pierde la reîncărcarea paginii). Mutăm WebView-ul nativ între bara de
+         stare și bara de navigare; pagina primește inset 0 și nu mai e acoperită. */
+      if (view.getParent() instanceof View) {
+        ((View) view.getParent()).setPadding(bars.left, bars.top, bars.right, bars.bottom);
+      }
+      injectSafeArea(webView, Insets.NONE);
+      return WindowInsetsCompat.CONSUMED;
     });
     ViewCompat.requestApplyInsets(webView);
     webView.post(() -> ViewCompat.requestApplyInsets(webView));
@@ -484,9 +495,6 @@ public class MainActivity extends BridgeActivity {
     final float density = getResources().getDisplayMetrics().density;
     int bottomPx = bars.bottom;
     /* Overlay 3 butoane (Huawei): systemBars.bottom e 0, dar bara acoperă WebView-ul. */
-    if (bottomPx < (int) (28f * density)) {
-      bottomPx = (int) (52f * density);
-    }
     final String top = (bars.top / density) + "px";
     final String right = (bars.right / density) + "px";
     final String bottom = (bottomPx / density) + "px";

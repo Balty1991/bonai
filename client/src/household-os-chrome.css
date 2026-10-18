@@ -67,7 +67,7 @@ html.is-android-standalone {
 /* WebView-urile mai vechi de Chromium 140 dau 0 la env(); valoarea reală vine atunci de la
    SystemBars, în --safe-area-inset-top. */
 html.capacitor-android {
-  --os-inset-top: max(24px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  --os-inset-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
 }
 
 /* ---- App bar: cub + Buget / Familie + 3 butoane rotunde ---- */
