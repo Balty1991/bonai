@@ -14,7 +14,7 @@ import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store } from "lucide-react";
+import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
 import { allocationStatus, autoPostDueRecurring, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, confirmRecurringPayment, addIsoDays, formatDate, inPlanPeriod, isoDate, isoToday, newId, transferBetweenEnvelopes, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
@@ -448,7 +448,8 @@ export default function Home() {
   useEffect(() => {
     const onOpenGuide = () => setGuideOn(true);
     window.addEventListener("buget-familie:open-guide", onOpenGuide);
-    return () => window.removeEventListener("buget-familie:open-guide", onOpenGuide);
+
+    return () => { window.removeEventListener("buget-familie:open-guide", onOpenGuide); };
   }, []);
   useEffect(() => {
     const skip = document.querySelector(".bf-skip-link");
@@ -900,7 +901,7 @@ export default function Home() {
     { id: "utilities", label: t("Mai mult"), icon: MoreHorizontal },
   ];
   const shopMode = appMode === "shop" && !memberModeActive;
-  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "list" as MainView, label: t("Cumpărături"), icon: ShoppingBasket }, { id: "products" as MainView, label: t("Prețuri"), icon: Store }, { id: "house" as MainView, label: t("Gospodărie"), icon: Users }];
+  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "list" as MainView, label: t("Cumpărături"), icon: ShoppingBasket }, { id: "products" as MainView, label: t("Prețuri"), icon: Store }, { id: "house" as MainView, label: t("Cont"), icon: UserRound }];
   const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
   /** Prima pornire în aplicația nouă s-a încheiat: nu mai întrebăm de salariu și plicuri. */
   // Orice drum spre „Notează” vechi (widget, scurtătură, tastatură) duce în BonAI la ecranul de bon.
@@ -929,7 +930,7 @@ export default function Home() {
     if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
-    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim casa…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Gospodărie") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
+    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
     if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
       // Bonul plătit din două surse se șterge întreg: ambele părți.
       next: { ...currentData, transactions: currentData.transactions.filter((item) => !splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => !splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")), deleted: [...currentData.deleted, ...splitGroupIds(currentData.transactions, id).map((removedId) => ({ entity: "transactions" as const, id: removedId, deletedAt: new Date().toISOString() }))].slice(-TOMBSTONE_MAX) },

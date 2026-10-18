@@ -56,7 +56,7 @@ Bara de jos are 5 locuri; „Scanează” e în centru, mai mare.
 2. **Cumpărături:** Listă (GRATUITĂ, comună, cu prețuri estimate din istoricul tău) | Stoc | Coș optimizat (PRO) | Meniul săptămânii (PRO).
 3. **Scanează:** camera direct · scanare cod de bare în magazin · galerie · PDF/e-mail · introducere rapidă → ecran de verificare → rezumat „aha”.
 4. **Prețuri:** Produsele mele | Magazine | Inflația mea | Promoții.
-5. **Gospodărie:** Bonuri | Facturi | Abonamente | Garanții | Membri | Asistent | Setări (în Setări: Arhiva veche, doar citire + export).
+5. **Cont:** profil + BonAI Pro | Bonuri | Toate costurile | Familie și membri | Garanții | Abonamente | Facturi | Export | Setări (Date și confidențialitate: „Descarcă datele vechi”) (în Setări: Arhiva veche, doar citire + export).
 
 ### Wireframe-uri (text)
 - **Acasă:** `[Octombrie: 1.284 lei · −6% față de media pe 3 luni]` `[Economisit cu BonAI: 142 lei ▸ Distribuie]` `[⚠ Ulei Floriol +18% · Garanție TV: retur până joi]` `[Lista: 7 de luat ▸]` `[Bonuri recente ×3]` `[Sfatul săptămânii]`

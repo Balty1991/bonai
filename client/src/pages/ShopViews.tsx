@@ -5,7 +5,7 @@
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
 import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, PiggyBank, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Wallet } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap } from "lucide-react";
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
@@ -16,8 +16,6 @@ import { t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
 import { idsFromTickReply, listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
-import { buildLegacyArchive, hasLegacyData } from "@/lib/legacy-archive";
-import { saveExport } from "@/lib/save-export";
 import { productObservations } from "@/lib/personal-inflation";
 import { pantryFromReceipts } from "@/lib/pantry";
 import { weeklyMenu } from "@/lib/weekly-menu";
@@ -227,24 +225,32 @@ export function StoresView({ data }: { data: AppData }) {
 }
 
 export type Look = "light" | "dark" | "auto";
-export function HouseView({ data, onOpenMore, onOpenJournal, onOpenBudget, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget: () => void; look?: Look; onLook?: (look: Look) => void }) {
+/** Cont: profilul, BonAI Pro, bonurile și costurile casei, familia, setările. Fără unelte din aplicația veche. */
+export function HouseView({ data, onOpenMore, onOpenJournal, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; look?: Look; onLook?: (look: Look) => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
+  const plan = currentBonutPlan(data, isoToday());
+  const self = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
+  const name = self?.name || data.settings.memberName || t("Contul tău");
+  const planLabel = plan === "familie" ? t("BonAI Familie") : plan === "pro" ? t("BonAI Pro") : t("Plan gratuit");
   return <div className="sh-page">
-    <header className="sh-head"><p className="sh-kicker">{t("GOSPODĂRIE")}</p><h1 className="sh-h1">{data.settings.familyName || t("Familia ta")}</h1></header>
+    <header className="sh-head"><p className="sh-kicker">{t("CONT")}</p><h1 className="sh-h1">{t("Cont")}</h1></header>
+    <section className="sh-card sh-profile" aria-label={t("Profil")}>
+      <span className="sh-avatar" aria-hidden="true">{name.trim().charAt(0).toLocaleUpperCase("ro-RO") || "B"}</span>
+      <span><b>{name}</b><small className="sh-muted">{data.settings.familyName ? `${data.settings.familyName} · ${planLabel}` : planLabel}</small></span>
+    </section>
+    {plan === "free" && <div className="sh-rows sh-pro-row"><Row icon={<Sparkles size={20} />} title={t("Treci la BonAI Pro")} hint={t("scanări nelimitate, inflația ta, meniul săptămânii · {year} lei/an", { year: money2(BONUT_PRICES.pro.year) })} onClick={() => onOpenMore("settings")} /></div>}
+    <div className="sh-rows">
+      <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => onOpenMore("receipts")} />
+      <Row icon={<ShoppingBasket size={20} />} title={t("Toate costurile")} hint={t("și cele fără bon")} onClick={onOpenJournal} />
+      <Row icon={<Users size={20} />} title={t("Familie și membri")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
+      <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
+      <Row icon={<Repeat size={20} />} title={t("Abonamente")} hint={t("Netflix, telefon, sală")} onClick={() => onOpenMore("recurring")} />
+      <Row icon={<Zap size={20} />} title={t("Facturi")} hint={t("curent, gaz, internet")} onClick={() => onOpenMore("recurring")} />
+    </div>
     {onLook && <section className="sh-card" aria-label={t("Aspect")}><p className="sh-kicker">{t("ASPECT")}</p><div className="sh-seg" role="group" aria-label={t("Tema aplicației")}>{([["light", t("Luminos")], ["dark", t("Noapte")], ["auto", t("Automat")]] as Array<[Look, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={look === id} onClick={() => onLook(id)}>{label}</button>)}</div><p className="sh-muted sh-note">{t("Automat urmează setarea telefonului.")}</p></section>}
     <div className="sh-rows">
-      <Row icon={<Users size={20} />} title={t("Familia și sincronizarea")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
-      <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
-      <Row icon={<ListChecks size={20} />} title={t("Lista de cumpărături")} hint={t("comună pentru toată familia")} onClick={() => onOpenMore("shopping")} />
-      <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => onOpenMore("receipts")} />
-      <Row icon={<ShoppingBasket size={20} />} title={t("Toate cheltuielile")} hint={t("și cele fără bon")} onClick={onOpenJournal} />
       <Row icon={<Download size={20} />} title={t("Export și copii de siguranță")} hint={t("fișier pe telefon")} onClick={() => onOpenMore("settings")} />
-      <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, temă")} onClick={() => onOpenMore("settings")} />
-    </div>
-    <div className="sh-rows">
-      {hasLegacyData(data) && <Row icon={<Download size={20} />} title={t("Exportă arhiva veche")} hint={t("fișier JSON cu bugetul de dinainte")} onClick={() => void saveExport(`bonut-arhiva-${isoToday()}.json`, new Blob([JSON.stringify(buildLegacyArchive(data), null, 2)], { type: "application/json" }))} />}
-      <Row icon={<Wallet size={20} />} title={t("Arhiva veche (buget)")} hint={t("plicurile, conturile și veniturile de dinainte, păstrate întregi")} onClick={onOpenBudget} />
-      <Row icon={<PiggyBank size={20} />} title={t("Toate uneltele")} hint={t("rapoarte, avere, investiții")} onClick={() => onOpenMore("overview")} />
+      <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, date și confidențialitate")} onClick={() => onOpenMore("settings")} />
     </div>
     <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
   </div>;

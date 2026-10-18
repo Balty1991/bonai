@@ -303,3 +303,7 @@ button.bn-chip { min-height: 40px; cursor: pointer; }
 .bn-scan-hub .bf-form-error { color: var(--bn-rise); }
 @keyframes bn-vf { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 200px, 0); } }
 @media (prefers-reduced-motion: reduce) { .bn-vf-beam { animation: none; transform: translate3d(0, 100px, 0); } }
+html[data-app="shop"] .sh-profile { display: flex; align-items: center; gap: 14px; }
+html[data-app="shop"] .sh-profile > span:last-child { display: grid; gap: 3px; min-width: 0; }
+html[data-app="shop"] .sh-profile b { font: 600 18px/1.2 var(--bn-display, inherit); color: var(--bn-ink); }
+html[data-app="shop"] .sh-avatar { display: grid; place-items: center; width: 52px; height: 52px; flex: none; border-radius: 50%; color: #fff; font: 700 20px/1 var(--bn-display, inherit); background: linear-gradient(135deg, #8b5cf6, #22d3ee); box-shadow: 0 6px 18px rgba(139, 92, 246, .35); }
