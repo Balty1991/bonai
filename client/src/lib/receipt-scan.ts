@@ -5,6 +5,7 @@
  */
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
+import { pickRotation, type Rotation } from "./receipt-orientation";
 import { productFactsOf, storeFactsOf, type ProductFacts, type StoreFacts } from "./receipt-products";
 
 const ENDPOINT = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/readReceipt";
@@ -188,8 +189,14 @@ export function receiptCategories(data: AppData): string[] {
   return Array.from(new Set([...base, ...data.settings.customCategories])).slice(0, 40);
 }
 
-/** Poza micșorată pe telefon: bonul rămâne lizibil, dar pleacă repede și costă puțin. */
-export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string }> {
+/** Poza decodată cu orientarea EXIF aplicată (telefonul salvează des poza „culcată” plus o etichetă). */
+async function decodeReceiptPhoto(file: File): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      return { source: bitmap, width: bitmap.width, height: bitmap.height, close: () => bitmap.close() };
+    } catch { /* format necunoscut pentru createImageBitmap: încercăm cu <img> */ }
+  }
   const url = URL.createObjectURL(file);
   try {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -198,19 +205,58 @@ export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<
       element.onerror = () => reject(new Error(t("Poza nu s-a putut deschide.")));
       element.src = url;
     });
-    const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+    return { source: image, width: image.naturalWidth, height: image.naturalHeight, close: () => undefined };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Rotația care pune bonul drept, după o mostră mică în tonuri de gri (câteva milisecunde). */
+function detectRotation(source: CanvasImageSource, width: number, height: number): Rotation {
+  try {
+    const scale = Math.min(1, 240 / Math.max(width, height));
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    canvas.width = w;
+    canvas.height = h;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return width > height ? 90 : 0;
+    context.drawImage(source, 0, 0, w, h);
+    const rgba = context.getImageData(0, 0, w, h).data;
+    const gray = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) gray[i] = (rgba[i * 4] * 77 + rgba[i * 4 + 1] * 150 + rgba[i * 4 + 2] * 29) >> 8;
+    canvas.width = 0;
+    canvas.height = 0;
+    return pickRotation(gray, w, h);
+  } catch {
+    return width > height ? 90 : 0;
+  }
+}
+
+/** Poza micșorată pe telefon și pusă drept: bonul rămâne lizibil, dar pleacă repede și costă puțin. */
+export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
+  const image = await decodeReceiptPhoto(file);
+  try {
+    const rotation = detectRotation(image.source, image.width, image.height);
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const w = Math.max(1, Math.round(image.width * scale));
+    const h = Math.max(1, Math.round(image.height * scale));
+    const sideways = rotation === 90 || rotation === 270;
+    const canvas = document.createElement("canvas");
+    canvas.width = sideways ? h : w;
+    canvas.height = sideways ? w : h;
     const context = canvas.getContext("2d");
     if (!context) throw new Error(t("Poza nu s-a putut pregăti."));
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    context.translate(canvas.width / 2, canvas.height / 2);
+    context.rotate((rotation * Math.PI) / 180);
+    context.drawImage(image.source, -w / 2, -h / 2, w, h);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     canvas.width = 0;
     canvas.height = 0;
-    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg" };
+    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg", rotation, preview: dataUrl };
   } finally {
-    URL.revokeObjectURL(url);
+    image.close();
   }
 }
 

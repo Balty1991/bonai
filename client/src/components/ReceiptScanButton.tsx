@@ -29,7 +29,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const [pending, setPending] = useState<File[]>([]);
   const [photo, setPhoto] = useState<string>();
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
-  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
+  useEffect(() => () => { if (photo?.startsWith("blob:")) URL.revokeObjectURL(photo); }, [photo]);
   // Cronometrul citirii: omul vede că se lucrează și, când durează, de ce.
   useEffect(() => {
     if (!busy) { setSeconds(0); return; }
@@ -71,7 +71,12 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     setError("");
     try {
       const images = [];
-      for (const file of files) images.push(await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000));
+      for (const file of files) {
+        const { preview, data: photoData, mimeType } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
+        // Animația arată bonul deja îndreptat (EXIF + rotire), nu poza culcată.
+        if (!images.length && preview) setPhoto(preview);
+        images.push({ data: photoData, mimeType });
+      }
       const receipt = await requestReceiptScan(images, receiptCategories(data));
       const prefill = scanToPrefill(receipt, data, memberId);
       // Bonul scanat de două ori: doar avertizare, omul decide.
