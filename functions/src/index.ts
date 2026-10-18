@@ -2,7 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import { createHash } from "node:crypto";
 import { getApps, initializeApp } from "firebase-admin/app";
-import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, Timestamp, type Transaction } from "firebase-admin/firestore";
 import { getAppCheck } from "firebase-admin/app-check";
 import { getAuth } from "firebase-admin/auth";
 import cors from "cors";
@@ -594,7 +594,7 @@ async function takeQuota(collection: string, key: string, limit: number, extra: 
     ensureAdmin();
     const db = getFirestore();
     const ref = db.collection(collection).doc(id);
-    return await db.runTransaction(async (tx) => {
+    return await db.runTransaction(async (tx: Transaction) => {
       const snap = await tx.get(ref);
       const count = snap.exists ? Number(snap.get("n") || 0) : 0;
       if (count >= limit) return false;
@@ -999,6 +999,13 @@ export const verifyPlayPurchase = onRequest(
       }
       try {
         const result = await syncPlayPurchase(purchaseToken, typeof body.roomId === "string" ? body.roomId : undefined);
+        // Dreptul se leagă și de telefonul care a cumpărat: serverul de scanare știe așa că e plătit (Pro nu are cameră).
+        const buyer = await callerUid(String(request.get("authorization") || ""));
+        if (buyer) {
+          const ref = getFirestore().collection("uidEntitlements").doc(buyer);
+          if (result.active) await ref.set({ productId: result.productId, expiresAt: result.expiresAt, updatedAt: new Date().toISOString() });
+          else await ref.delete().catch(() => undefined);
+        }
         response.json(result);
       } catch (error) {
         console.error("verifyPlayPurchase", error instanceof Error ? error.message : error);
@@ -1586,6 +1593,52 @@ async function readReceiptWithGroq(apiKey: string, images: ReceiptImage[], categ
   throw new GuideCallError(trail.join(" ") || "groq", 502);
 }
 
+/*
+ * Cota lunară de scanări AI, ținută pe server (nu doar în telefon, unde se putea ocoli).
+ * `aiScanUsage/{uid}`: luna curentă (ora României), câte scanări reușite, totalul și sfârșitul probei.
+ * Proba de 14 zile pornește o singură dată pe telefon, la al 3-lea bon (cerut de telefon sau numărat aici).
+ * Plătit: `uidEntitlements/{uid}` (Pro sau Familie cumpărate pe acest telefon) sau `familyEntitlements/{roomId}`.
+ * Cât plățile nu sunt pornite (AI_QUOTA_ENFORCED = false, la fel ca BILLING_LIVE în aplicație) se numără, dar nu se blochează.
+ */
+const AI_QUOTA_ENFORCED = false;
+const AI_FREE_PER_MONTH = 15;
+const AI_TRIAL_DAYS = 14;
+const AI_TRIAL_AFTER = 3;
+type AiQuota = { plan: "free" | "trial" | "paid"; used: number; limit: number; remaining: number | null; month: string; trialEndsAt?: string; enforced: boolean };
+const bucharestMonth = (now = new Date()) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Bucharest", year: "numeric", month: "2-digit" }).format(now).slice(0, 7);
+
+async function readAiQuota(uid: string, roomId?: string): Promise<AiQuota> {
+  if (!getApps().length) initializeApp();
+  const db = getFirestore();
+  const month = bucharestMonth();
+  const live = (doc: { expiresAt?: string } | undefined) => Boolean(doc?.expiresAt && Date.parse(doc.expiresAt) > Date.now());
+  const [usage, own, room] = await Promise.all([
+    db.collection("aiScanUsage").doc(uid).get(),
+    db.collection("uidEntitlements").doc(uid).get(),
+    roomId && /^[0-9a-f]{64}$/.test(roomId) ? db.collection("familyEntitlements").doc(roomId).get() : Promise.resolve(undefined),
+  ]);
+  const data = (usage.data() || {}) as { month?: string; used?: number; trialEndsAt?: string };
+  const used = data.month === month ? Number(data.used) || 0 : 0;
+  const plan = live(own.data()) || live(room?.data()) ? "paid" : data.trialEndsAt && Date.parse(data.trialEndsAt) > Date.now() ? "trial" : "free";
+  const limited = plan === "free";
+  return { plan, used, limit: AI_FREE_PER_MONTH, remaining: limited ? Math.max(0, AI_FREE_PER_MONTH - used) : null, month, trialEndsAt: data.trialEndsAt, enforced: AI_QUOTA_ENFORCED };
+}
+
+/** Numără o scanare reușită (tranzacție: două scanări simultane nu se pierd) și pornește proba la al 3-lea bon. */
+async function countAiScan(uid: string, receiptCount: number): Promise<{ used: number; trialEndsAt?: string }> {
+  const db = getFirestore();
+  const month = bucharestMonth();
+  const ref = db.collection("aiScanUsage").doc(uid);
+  return db.runTransaction(async (tx: Transaction) => {
+    const data = ((await tx.get(ref)).data() || {}) as { month?: string; used?: number; total?: number; trialEndsAt?: string };
+    const used = (data.month === month ? Number(data.used) || 0 : 0) + 1;
+    const total = (Number(data.total) || 0) + 1;
+    const trialEndsAt = data.trialEndsAt || (Math.max(total, receiptCount + 1) >= AI_TRIAL_AFTER ? new Date(Date.now() + AI_TRIAL_DAYS * 86_400_000).toISOString() : undefined);
+    tx.set(ref, { month, used, total, ...(trialEndsAt ? { trialEndsAt } : {}), updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    return { used, trialEndsAt };
+  });
+}
+
 export const readReceipt = onRequest(
   { region: "europe-central2", invoker: "public", secrets: [geminiApiKey, anthropicApiKey, groqApiKey], timeoutSeconds: 90, memory: "512MiB", maxInstances: 8 },
   (request, response) => {
@@ -1642,6 +1695,13 @@ export const readReceipt = onRequest(
       }
       if (!(await takeGlobalDaily("readReceiptQuota", RECEIPT_DAILY_CAP))) {
         response.status(429).json({ error: "Scanarea e foarte aglomerată azi. Încearcă mâine sau notează bonul de mână.", code: "quota" });
+        return;
+      }
+      const roomHint = typeof body.roomId === "string" ? body.roomId : undefined;
+      const receiptCount = Math.max(0, Math.min(1000, Math.floor(Number(body.receiptCount) || 0)));
+      let quota = await readAiQuota(uid, roomHint).catch((error) => { console.warn("ai quota read", error instanceof Error ? error.message : error); return undefined; });
+      if (quota?.enforced && quota.remaining === 0) {
+        response.status(402).json({ error: `Ai folosit cele ${AI_FREE_PER_MONTH} scanări AI ale lunii. Scanează în continuare gratuit cu „Offline”, pe telefon, sau treci la Pro.`, code: "ai_quota", quota });
         return;
       }
       const geminiKey = sanitizeKey(geminiApiKey.value() || "");
@@ -1708,7 +1768,14 @@ export const readReceipt = onRequest(
           response.status(422).json({ error: "Nu am găsit un bon în poză. Încearcă o poză mai de aproape, cu tot bonul în cadru.", code: "not_receipt" });
           return;
         }
-        response.json({ receipt });
+        if (quota) {
+          const counted = await countAiScan(uid, receiptCount).catch(() => undefined);
+          if (counted) {
+            const plan = quota.plan === "free" && counted.trialEndsAt && Date.parse(counted.trialEndsAt) > Date.now() ? "trial" : quota.plan;
+            quota = { ...quota, plan, used: counted.used, trialEndsAt: counted.trialEndsAt, remaining: plan === "free" ? Math.max(0, AI_FREE_PER_MONTH - counted.used) : null };
+          }
+        }
+        response.json({ receipt, quota });
       } catch (error) {
         const err = error instanceof GuideCallError ? error : new GuideCallError("unknown", 500);
         console.error("readReceipt failure", err.status, err.message.slice(0, 200));

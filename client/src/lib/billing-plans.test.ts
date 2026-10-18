@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { activePaidPlan, saveEntitlement } from "./billing-store";
 import { currentBonutPlan } from "./bonut-plan-current";
-import { BONUT_SKUS, FREE_SCANS_PER_MONTH, hasFeature, readAiScans, recordAiScan, scansLeft, trialDaysLeft } from "./bonut-plans";
+import { readAiQuota, syncAiQuota, BONUT_SKUS, FREE_SCANS_PER_MONTH, hasFeature, readAiScans, recordAiScan, scansLeft, trialDaysLeft } from "./bonut-plans";
 import { createEmptyAppData } from "./finance-data";
 
 const store = new Map<string, string>();
@@ -36,5 +36,14 @@ describe("paywall BonAI", () => {
     expect(activePaidPlan()).toBe("familie");
     saveEntitlement("play", { productId: "familie_anual", expiresAt: new Date(Date.now() - 5 * 86_400_000).toISOString(), verifiedAt: later });
     expect(activePaidPlan()).toBeUndefined();
+  });
+
+  it("cota de pe server înlocuiește numărătoarea locală (ștergerea datelor nu o resetează)", () => {
+    const storage = mem();
+    recordAiScan("2026-10-02", storage);
+    syncAiQuota({ plan: "free", used: 15, limit: 15, remaining: 0, month: "2026-10", enforced: true }, storage);
+    expect(readAiScans(storage).filter((d) => d.startsWith("2026-10"))).toHaveLength(15);
+    expect(scansLeft("free", readAiScans(storage), "2026-10-18")).toBe(0);
+    expect(readAiQuota(storage)?.remaining).toBe(0);
   });
 });

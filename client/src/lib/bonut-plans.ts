@@ -74,3 +74,21 @@ export function recordAiScan(today: string, storage: Pick<Storage, "getItem" | "
   const list = [...readAiScans(storage).filter((d) => d.slice(0, 7) >= today.slice(0, 7)), today];
   try { storage.setItem(AI_SCANS_KEY, JSON.stringify(list)); } catch { /* fără stocare */ }
 }
+
+/** Ce a răspuns serverul despre cota de scanări AI (sursa de adevăr; telefonul doar o arată). */
+export type ServerAiQuota = { plan: "free" | "trial" | "paid"; used: number; limit: number; remaining: number | null; month: string; trialEndsAt?: string; enforced: boolean };
+export const AI_QUOTA_KEY = "bonai:ai-quota-v1";
+
+/** Aliniază numărătoarea locală la cea de pe server: luna serverului câștigă, ca să nu se poată ocoli ștergând datele. */
+export function syncAiQuota(quota: ServerAiQuota, storage: Pick<Storage, "getItem" | "setItem"> = window.localStorage) {
+  try {
+    storage.setItem(AI_QUOTA_KEY, JSON.stringify({ ...quota, at: Date.now() }));
+    const other = readAiScans(storage).filter((d) => !d.startsWith(quota.month));
+    const used = Math.max(0, Math.min(1000, quota.used));
+    storage.setItem(AI_SCANS_KEY, JSON.stringify([...other, ...Array.from({ length: used }, () => `${quota.month}-01`)]));
+  } catch { /* fără stocare: rămâne ce știe serverul */ }
+}
+
+export function readAiQuota(storage: Pick<Storage, "getItem"> = window.localStorage): (ServerAiQuota & { at: number }) | undefined {
+  try { const v = JSON.parse(storage.getItem(AI_QUOTA_KEY) || "null"); return v && typeof v.used === "number" ? v : undefined; } catch { return undefined; }
+}

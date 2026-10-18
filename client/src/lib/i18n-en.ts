@@ -3417,6 +3417,7 @@ export const en: Record<string, string> = {
   "Abonamentul se cumpără din aplicația de pe Android (Google Play).": "The subscription is bought from the Android app (Google Play).",
   "Google Play nu a trimis confirmarea cumpărării.": "Google Play didn't send the purchase confirmation.",
   "Familia e activă. Mulțumim!": "Family is active. Thank you!",
+  "Ai folosit scanările AI ale lunii. Scanează gratuit cu „Offline”.": "You have used this month’s AI scans. Scan for free with “Offline”.",
   "BonAI Pro e activ. Mulțumim!": "BonAI Pro is active. Thank you!",
   "Abonamentul BonAI Pro a fost restaurat.": "Your BonAI Pro subscription has been restored.",
   "Anual · {year} lei": "Yearly · {year} lei",

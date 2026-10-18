@@ -4,7 +4,8 @@ import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanA
 import { useEffect, useRef, useState } from "react";
 import { Camera, FileText, ImagePlus, Info, Loader2, PenLine, WifiOff } from "lucide-react";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
-import { FREE_SCANS_PER_MONTH, readAiScans, recordAiScan, scansLeft } from "@/lib/bonut-plans";
+import { getActiveFamilyRoom } from "@/lib/billing";
+import { FREE_SCANS_PER_MONTH, readAiQuota, readAiScans, recordAiScan, scansLeft } from "@/lib/bonut-plans";
 import { isoToday } from "@/lib/finance-data";
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
@@ -35,7 +36,11 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const [offline, setOffline] = useState(false);
   const offlineRef = useRef(false);
   const today = isoToday();
-  const aiLeft = scansLeft(currentBonutPlan(data, today), readAiScans(), today);
+  // Serverul ține cota (aplicată doar cu plățile pornite); telefonul o arată pe cea primită luna asta, altfel o estimează.
+  const serverQuota = readAiQuota();
+  const aiLeft = serverQuota?.enforced && serverQuota.month === today.slice(0, 7)
+    ? serverQuota.remaining ?? Number.POSITIVE_INFINITY
+    : scansLeft(currentBonutPlan(data, today), readAiScans(), today);
   useEffect(() => { const id = window.setTimeout(() => { warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   const thumbsRef = useRef<string[]>([]);
@@ -96,8 +101,9 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       }
       const receipt = offlineRef.current
         ? await (await import("@/lib/receipt-offline")).offlineReadReceipt(images, receiptCategories(data))
-        : await requestReceiptScan(images, receiptCategories(data));
-      if (!offlineRef.current) recordAiScan(isoToday());
+        : await requestReceiptScan(images, receiptCategories(data), { receiptCount: data.receipts.length, roomId: getActiveFamilyRoom() });
+      // Serverul trimite numărătoarea adevărată; local doar dacă un server vechi n-a trimis-o.
+      if (!offlineRef.current && !readAiQuota()?.at) recordAiScan(isoToday());
       const scanned = scanToPrefill(receipt, data, memberId);
       const prefill = offlineRef.current ? { ...scanned, warning: [t("Citit pe telefon, fără AI: verifică produsele și totalul înainte să salvezi."), scanned.warning].filter(Boolean).join(" ") } : scanned;
       // Bonul scanat de două ori: doar avertizare, omul decide.

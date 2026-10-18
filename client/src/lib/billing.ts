@@ -25,9 +25,13 @@ export const getActiveFamilyRoom = () => activeRoomId;
 type VerifyResponse = { active: boolean; productId?: string; expiresAt?: string; error?: string };
 
 async function verifyOnServer(purchaseToken: string, productId: string, roomId?: string): Promise<VerifyResponse> {
+  // Identitatea telefonului leagă dreptul de el: serverul de scanare îl vede plătit (și pentru Pro, care n-are cameră).
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  const identity = await import("./realtime-sync").then(({ authHeader }) => authHeader()).catch(() => undefined);
+  if (identity) headers.Authorization = identity;
   const response = await fetch(VERIFY_URL, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({ purchaseToken, productId, roomId }),
   });
   const body = await response.json().catch(() => ({})) as VerifyResponse;

@@ -3,6 +3,7 @@
  * întoarce articolele pe categorii. Nimic nu se salvează singur: rezultatul umple
  * formularul „Adaugă mișcare”, iar omul verifică și apasă Salvează.
  */
+import { syncAiQuota, type ServerAiQuota } from "./bonut-plans";
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
 import { pickRotation, type Rotation } from "./receipt-orientation";
@@ -306,7 +307,9 @@ export function warmReceiptScan() {
 }
 
 /** O poză sau capturile aceluiași bon, în ordinea în care le-a ales omul. */
-export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[]): Promise<ScannedReceipt> {
+export class AiQuotaError extends Error { readonly code = "ai_quota"; }
+
+export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[], context: { receiptCount?: number; roomId?: string } = {}): Promise<ScannedReceipt> {
   // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
   const { appCheckHeader, authHeader } = await import("./realtime-sync");
   // Verificarea aplicației poate rămâne agățată fără rețea bună; după 8 s cererea pleacă oricum.
@@ -319,11 +322,13 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   if (identity) headers.Authorization = identity;
   let response: Response;
   try {
-    response = await fetch(ENDPOINT, { method: "POST", headers, body: JSON.stringify(images.length === 1 ? { image: images[0].data, mimeType: images[0].mimeType, categories } : { images, categories }), signal: AbortSignal.timeout(images.length > 1 ? 120_000 : 95_000) });
+    response = await fetch(ENDPOINT, { method: "POST", headers, body: JSON.stringify({ ...(images.length === 1 ? { image: images[0].data, mimeType: images[0].mimeType } : { images }), categories, receiptCount: context.receiptCount ?? 0, ...(context.roomId ? { roomId: context.roomId } : {}) }), signal: AbortSignal.timeout(images.length > 1 ? 120_000 : 95_000) });
   } catch {
     throw new Error(t("Nu am putut trimite poza. Verifică internetul și mai încearcă o dată."));
   }
-  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt & { trail?: string; usage?: { in: number; out: number } }; error?: string; reason?: string };
+  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt & { trail?: string; usage?: { in: number; out: number } }; error?: string; reason?: string; code?: string; quota?: ServerAiQuota };
+  if (payload.quota) syncAiQuota(payload.quota);
+  if (payload.code === "ai_quota") throw new AiQuotaError(payload.error || t("Ai folosit scanările AI ale lunii. Scanează gratuit cu „Offline”."));
   // Unde se duce timpul: tokenii pe telefon, apoi drumul + modelul (fără conținutul bonului).
   console.info("[BonAI] scanare", JSON.stringify({ tokensMs: Math.round(t1 - t0), serverMs: Math.round(performance.now() - t1), trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
   if (!response.ok || !payload.receipt) {
