@@ -567,3 +567,8 @@ html[data-app="shop"].theme-dark .sh-page *, html[data-app="shop"].theme-dark .b
 html[data-app="shop"].theme-dark .sh-page .sh-kicker, html[data-app="shop"].theme-navy .sh-page .sh-kicker { color: var(--bn-accent) !important; opacity: 1; }
 html[data-app="shop"].theme-dark .sh-page .sh-sub, html[data-app="shop"].theme-dark .sh-page .sh-muted, html[data-app="shop"].theme-navy .sh-page .sh-sub, html[data-app="shop"].theme-navy .sh-page .sh-muted { color: var(--bn-muted) !important; opacity: 1 !important; }
 html[data-app="shop"].theme-dark .sh-link, html[data-app="shop"].theme-navy .sh-link { color: #c4b5ff; }
+.bn-bc-found{display:flex;gap:12px;align-items:center;padding:10px;border-radius:14px;border:1px solid var(--bn-edge);background:var(--bn-glass-strong)}
+.bn-bc-found img,.bn-bc-noimg{flex:none;width:56px;height:56px;border-radius:10px;object-fit:contain;background:#fff}
+.bn-bc-noimg{background:color-mix(in srgb,var(--bn-accent) 14%,transparent)}
+.bn-bc-found p{margin:0;display:grid;gap:2px;min-width:0}.bn-bc-found b{overflow-wrap:anywhere}
+.bn-bc-found small{color:var(--bn-muted);font-size:.82rem}

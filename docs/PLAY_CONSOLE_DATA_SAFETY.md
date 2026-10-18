@@ -88,7 +88,7 @@ surse cu sold, categorii, scadențe, recurente, datorii, obiective, evenimente, 
 cu ziua lor, numele membrilor, totalurile lunii, data salariului).
 Nu pleacă jurnalul de mișcări, cheia sau parola camerei.
 
-Alți destinatari, fără date personale: Open Food Facts / Open Products Facts primesc doar cuvântul căutat în catalogul de produse.
+Alți destinatari, fără date personale: Open Food Facts / Open Products Facts primesc doar cuvântul căutat în catalogul de produse. La „Verifică prețul la raft”, codul de bare scanat (și nimic altceva) merge la Open Food Facts, Open Pet Food Facts, Open Products Facts, Open Beauty Facts și Wikidata (query.wikidata.org), direct de pe telefon, fără cont și fără identificator; răspunsul se ține local 30 de zile. Nu e „colectare” în sensul Play: datele nu ajung la noi.
 
 ```
 Ghidul răspunde întâi de pe telefon. Dacă nu înțelege, întrebarea, ultimele mesaje și un rezumat

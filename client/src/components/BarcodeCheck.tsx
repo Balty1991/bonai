@@ -3,13 +3,15 @@ import { useMemo, useState } from "react";
 import { Barcode, Check, Plus, Search, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { newId, isoToday, type AppData } from "@/lib/finance-data";
 import { productObservations } from "@/lib/personal-inflation";
-import { confidentMatch, isValidEan, nameScore, openFoodFactsName, readBarcodeLinks, shelfDiff, suggestProducts, verdictFor } from "@/lib/barcode-check";
+import { confidentMatch, isValidEan, nameScore, readBarcodeLinks, shelfDiff, suggestProducts, verdictFor } from "@/lib/barcode-check";
 import { lei } from "@/lib/money-format";
 import { withBarcodeLink } from "@/lib/barcode-links";
 import { OFFICIAL_ATTRIBUTION, OFFICIAL_PRICES_ENABLED, lookupOfficialPrice, type OfficialResult } from "@/lib/official-prices";
 import { t } from "@/lib/i18n";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { rememberShelf } from "@/lib/discount-check";
+import { BARCODE_SOURCES, lookupBarcode, productTitle, type BarcodeProduct } from "@/lib/barcode-sources";
+import { receiptCategories } from "@/lib/receipt-scan";
 
 const perText = (per: string) => (per === "buc" ? t("bucata") : per);
 const pctText = (value: number) => Math.abs(value).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
@@ -19,6 +21,8 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const [code, setCode] = useState("");
   const [ean, setEan] = useState<string>();
   const [offName, setOffName] = useState<string>();
+  const [found, setFound] = useState<BarcodeProduct>();
+  const [noNet, setNoNet] = useState(false);
   const [linked, setLinked] = useState<string>();
   const [linkedLabel, setLinkedLabel] = useState<string>();
   const [guessed, setGuessed] = useState(false);
@@ -47,7 +51,7 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const lastObs = useMemo(() => (verdict ? observations.find((o) => o.key === linked && o.label === verdict.label && o.date === verdict.last.date) : undefined), [verdict, linked, observations]);
   const diff = lastObs ? shelfDiff(shelfPrice, lastObs.piecePrice) : undefined;
 
-  const reset = () => { setKept(false); setPromo(false); setAdded(false); setOffName(undefined); setLinked(undefined); setLinkedLabel(undefined); setGuessed(false); setPicking(false); setQuery(""); setShelf(""); setTried(true); };
+  const reset = () => { setFound(undefined); setNoNet(false); setKept(false); setPromo(false); setAdded(false); setOffName(undefined); setLinked(undefined); setLinkedLabel(undefined); setGuessed(false); setPicking(false); setQuery(""); setShelf(""); setTried(true); };
   const check = async (value: string) => {
     const clean = value.replace(/\D/g, "");
     reset();
@@ -57,7 +61,9 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
     const known = link?.key || readBarcodeLinks()[clean];
     if (known) { setLinked(known); setLinkedLabel(link?.label); return; }
     setBusy(true);
-    const name = await openFoodFactsName(clean);
+    const result = await lookupBarcode(clean, receiptCategories(data));
+    const name = result.product ? productTitle(result.product) : undefined;
+    setFound(result.product); setNoNet(Boolean(result.offline && !result.product));
     setOffName(name); setBusy(false);
     const sure = name ? confidentMatch(suggestProducts(name, observations, 6)) : undefined;
     if (sure) { setLinked(sure.key); setLinkedLabel(sure.label); setGuessed(true); }
@@ -69,13 +75,19 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
     const text = verdict?.label || offName;
     if (!text) return;
     const base = ean && linked && guessed ? withBarcodeLink(data, ean, linked, undefined, linkedLabel) : data;
-    onChange({ ...base, settings: { ...base.settings, shoppingList: [...(base.settings.shoppingList || []), { id: newId("shop"), text, updatedAt: new Date().toISOString() }] } });
+    onChange({ ...base, settings: { ...base.settings, shoppingList: [...(base.settings.shoppingList || []), { id: newId("shop"), text, ...(found?.category ? { category: found.category } : {}), updatedAt: new Date().toISOString() }] } });
     setGuessed(false); setAdded(true);
   };
   const Trend = verdict?.trend === undefined ? null : verdict.trend > 0.5 ? TrendingUp : verdict.trend < -0.5 ? TrendingDown : Minus;
 
+  const productCard = found && <div className="bn-bc-found">
+    {found.image ? <img src={found.image} alt="" width={56} height={56} loading="lazy" referrerPolicy="no-referrer" /> : <span className="bn-bc-noimg" aria-hidden="true" />}
+    <p><b>{found.name}</b>{(found.brand || found.quantity) && <small>{[found.brand, found.quantity].filter(Boolean).join(" · ")}</small>}<small className="bn-bc-src">{t("după {source}", { source: BARCODE_SOURCES[found.source].label })}{found.category ? ` · ${found.category}` : ""}</small></p>
+  </div>;
   const picker = <div className="bn-bc-pick">
-    <p className="bn-bc-ask">{offName ? t("Pare să fie {name}. Leagă-l de produsul tău din bonuri, ca să-ți arăt prețul.", { name: offName }) : t("Nu-l recunosc după cod. Leagă-l de un produs din bonurile tale.")}</p>
+    {productCard}
+    {noNet && <p className="bn-bc-ask" role="status">{t("Fără internet nu pot căuta codul în bazele deschise. Leagă-l acum de un produs din bonuri sau încearcă mai târziu.")}</p>}
+    <p className="bn-bc-ask">{found ? (products.length ? t("Leagă-l de produsul tău din bonuri, ca să-ți arăt prețul.") : t("Încă nu l-ai cumpărat. Pune-l pe listă; după primul bon îți arăt prețul.")) : offName ? t("Pare să fie {name}. Leagă-l de produsul tău din bonuri, ca să-ți arăt prețul.", { name: offName }) : t("Nu-l recunosc după cod. Leagă-l de un produs din bonurile tale.")}</p>
     {products.length > 0 ? <>
       <label className="bn-bc-search"><Search size={18} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("Caută în produsele tale")} aria-label={t("Caută în produsele tale")} /></label>
       <ul className="bn-bc-options" aria-label={t("Leagă de un produs din bonuri")}>{options.map((item) => <li key={`${item.key}-${item.label}`}><button type="button" onClick={() => pick(item.key, item.label)}><span>{item.label}</span><Check size={18} aria-hidden="true" /></button></li>)}</ul>

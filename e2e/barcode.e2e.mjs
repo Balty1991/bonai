@@ -28,7 +28,7 @@ async function open(browser, { theme = "white", width = 360, camera = true } = {
     } catch { /* about:blank */ }
   }, theme);
   // Open Food Facts: numele produsului, fără rețea.
-  await context.route("https://world.openfoodfacts.org/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ product: { product_name: "Apă minerală carbogazoasă", brands: "Tușnad", quantity: "2 L" } }) }));
+  await context.route("https://world.openfoodfacts.org/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: 1, product: { product_name: "Apă minerală carbogazoasă", brands: "Tușnad", quantity: "2 L" } }) }));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(BASE); await page.waitForTimeout(1200);
@@ -74,7 +74,7 @@ try {
     // 3. Cifrele scrise: potrivirea după nume și gramaj arată cardul cu ultimul preț.
     await page.getByLabel("Codul de bare").fill(CODE);
     await page.getByRole("button", { name: /^Verifică$/ }).click();
-    await waitFor(() => page.locator(".bn-bc-card").isVisible(), "cardul produsului după cifre");
+    await waitFor(() => page.locator(".bn-bc-card").isVisible(), "cardul produsului după cifre").catch(async (error) => { await page.screenshot({ path: "/tmp/bc-fail.png" }); console.log(errors.join("; ")); throw error; });
     const card = await page.locator(".bn-bc-card").innerText();
     if (!/APA MIN TUSNAD 2L/.test(card) || !/3,20/.test(card) || !/Lidl/.test(card)) fail(`cardul nu arată ultimul preț corect: ${card}`);
     await page.getByLabel("Prețul de pe raft acum").fill("3,52");
@@ -93,6 +93,26 @@ try {
     await waitFor(() => page.locator(".bn-bc-card").isVisible(), "cardul după legare");
     await waitFor(() => page.evaluate(async (code) => { const s = await import("/src/lib/app-storage.ts"); const d = await s.readAppData(); return Boolean(d?.settings?.barcodeLinks?.[code]); }, CODE), "legătura cod → produs salvată", 10_000);
     if (errors.length) fail(`erori în pagină: ${errors.join("; ")}`);
+    await context.close();
+
+    // 5. Cod necunoscut în bonuri (hrană pisici): găsit în Open Pet Food Facts, cu poză, marcă, sursă și categorie; „Adaugă în listă”.
+    ({ context, page, errors } = await open(browser, { theme }));
+    await context.route(/open(food|petfood|products|beauty)facts\.org\/api|query\.wikidata\.org/, (route) => {
+      const url = route.request().url();
+      const body = url.includes("openpetfoodfacts") ? { status: 1, product: { product_name: "Hrană uscată pentru pisici adulte cu somon", brands: "Ultima", quantity: "1,5 kg", categories_tags: ["en:pet-food", "en:cat-food"] } } : url.includes("wikidata") ? { results: { bindings: [] } } : { status: 0 };
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+    });
+    await products(page);
+    await page.getByLabel("Codul de bare").fill("8445292288705");
+    await page.getByRole("button", { name: /^Verifică$/ }).click();
+    await waitFor(() => page.locator(".bn-bc-found").isVisible(), "produsul din Open Pet Food Facts");
+    const petText = await page.locator(".bn-bc-found").innerText();
+    if (!/pisici/.test(petText) || !/Ultima/.test(petText) || !/Open Pet Food Facts/.test(petText)) fail(`cardul produsului găsit: ${petText}`);
+    if (/Nu-l recunosc/.test(await page.locator(".bn-bc").innerText())) fail("încă spune „Nu-l recunosc”");
+    await page.locator(".bn-bc-found").scrollIntoViewIfNeeded();
+    await shot(page, `barcode-pet-${theme}`);
+    await page.getByRole("button", { name: /^Adaugă în listă$/ }).click();
+    await waitFor(() => page.evaluate(async () => { const s = await import("/src/lib/app-storage.ts"); const d = await s.readAppData(); return d.settings.shoppingList.some((i) => /pisici/.test(i.text)); }), "produsul pe listă");
     await context.close();
 
     // 4. Lista: butonul de scanare deschide scanerul.

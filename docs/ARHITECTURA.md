@@ -161,3 +161,25 @@ Riscurile mari sunt **calitatea parserului** și **distribuția** (ASO, recenzii
 Către: Consiliul Concurenței (registratura / e-mail public) · Subiect: Cerere de acord pentru reutilizarea datelor din Monitorul Prețurilor
 
 > Bună ziua, dezvolt aplicația BonAI, care ajută familiile să urmărească prețurile produselor pe care le cumpără. Vă rog să-mi spuneți dacă datele publicate pe monitorulpreturilor.info pot fi reutilizate într-o aplicație mobilă, cu citarea sursei și cu actualizare cel mult zilnică, și în ce condiții (licență, frecvență, atribuire). Mulțumesc, Alin Baltescu.
+
+
+## Coduri de bare: surse de nume (18.10.2026)
+Ordinea: legătura învățată (cod → produs din bonuri) → produsele locale → surse deschise → „Nu-l recunosc”.
+Cod: `client/src/lib/barcode-sources.ts` (cache local 30 zile pentru găsite, 3 zile pentru negăsite; 5 s pe sursă;
+la 429 sursa se sare 10 minute; fără internet doar cache-ul). Cererile pleacă direct de pe telefon (CORS deschis, fără chei).
+
+| Sursă | Licență | Uz comercial | Decizie |
+|---|---|---|---|
+| Open Food Facts (alimente, băuturi, alcool, dulciuri) | ODbL 1.0 | da, cu atribuire + share-alike pe date | **adăugată** (prima) |
+| Open Pet Food Facts (hrană animale) | ODbL 1.0 | da | **adăugată** |
+| Open Products Facts (casă, curățenie, electronice) | ODbL 1.0 | da | **adăugată** |
+| Open Beauty Facts (cosmetice, igienă) | ODbL 1.0 | da | **adăugată** |
+| Wikidata, proprietatea P3962 (GTIN) | CC0 1.0 | da | **adăugată** (ultima; ~3.000 de coduri) |
+| UPCitemdb, endpoint „trial” | termenii acordă licență doar planurilor plătite | neclar/nu | respinsă |
+| Open EAN/GTIN DB (opengtindb.org) | queryid cerut prin e-mail; date GFDL | nu fără înregistrare | respinsă |
+| GS1 GEPIR / Verified by GS1 | termenii interzic reutilizarea/stocarea | nu | respinsă |
+| Barcode Lookup, EAN-Search, EcomSource | cheie plătită (sau sandbox de test) | doar plătit | respinse |
+
+Categoria BonAI se ia din `categories_tags` (en:waters → Apă, en:chocolates → Dulciuri, en:beers → Băuturi,
+en:cat-food → Animale/Altele, en:shampoos → Sănătate, en:cleaning → Casă & facturi; altfel după bază: OPFF → Animale,
+OBF → Sănătate, OPF → Casă & facturi). Atribuirea ODbL e în Setări → Despre BonAI.
