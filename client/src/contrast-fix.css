@@ -71,7 +71,6 @@ html .bf-analysis-scope .active,
 html .bf-insights-switch .active,
 html .bf-segment .active,
 html .bf-journal-quickbar .active,
-html .bf-pocket-switch .active,
 html .bf-price-window .active,
 html .bf-plan-period .active {
   background-color: var(--cf-primary-strong) !important;
@@ -117,7 +116,6 @@ html .bf-today-add { color: var(--cf-ink); background-color: transparent; }
 .bf-health-missing ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
 .bf-health-missing li { font-size: 14px; line-height: 1.45; color: var(--cf-ink, inherit); }
 .bf-analysis-scope button,
-.bf-pocket-switch button,
 .bf-price-window button,
 .bf-segment button { min-height: 44px; }
 .bf-chip-list span button { min-width: 32px; min-height: 32px; }

@@ -19,3 +19,14 @@ describe("abonamente și facturi", () => {
   });
   it("tipul după categorie", () => { expect(kindOf(p({}))).toBe("sub"); expect(kindOf(p({ category: "Casă & facturi" }))).toBe("bill"); });
 });
+
+describe("migrarea plăților cu „adaugă automat”", async () => {
+  const { migrateRecurringToTracking } = await import("./house-costs");
+  it("oprește adăugarea automată și păstrează tot restul", () => {
+    const old = p({ id: "a", name: "Chirie", amount: 1500, sourceId: "card", memberId: "m1", autoPost: true, note: "proprietar", category: "Casă & facturi" });
+    const out = migrateRecurringToTracking({ recurring: [old, p({ id: "b", remindDays: 5 })] }, "2026-10-18T10:00:00.000Z");
+    expect(out.recurring[0]).toEqual({ ...old, autoPost: false, remindDays: 2, updatedAt: "2026-10-18T10:00:00.000Z" });
+    expect(out.recurring[1].remindDays).toBe(5);
+  });
+  it("fără plăți automate nu schimbă nimic", () => { const d = { recurring: [p({})] }; expect(migrateRecurringToTracking(d)).toBe(d); });
+});

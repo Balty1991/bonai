@@ -34,3 +34,13 @@ export function monthlyTotal(items: ReadonlyArray<RecurringPayment>): number {
 }
 
 export const daysUntil = (date: string, today: string) => Math.round((at(date).getTime() - at(today).getTime()) / 86_400_000);
+
+/**
+ * Migrarea în BonAI: plățile recurente care se adăugau singure în registru devin doar urmărite.
+ * Nimic nu se șterge (suma, sursa veche, membrul, nota rămân), doar „adaugă automat” se oprește,
+ * iar în loc primești o amintire cu 2 zile înainte, dacă nu aveai deja una.
+ */
+export function migrateRecurringToTracking<T extends { recurring: RecurringPayment[] }>(data: T, now = new Date().toISOString()): T {
+  if (!data.recurring.some((item) => item.autoPost)) return data;
+  return { ...data, recurring: data.recurring.map((item) => (item.autoPost ? { ...item, autoPost: false, remindDays: item.remindDays || 2, updatedAt: now } : item)) };
+}

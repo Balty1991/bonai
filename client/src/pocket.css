@@ -1,27 +1,4 @@
 /** Buzunarul copilului: o singură cifră mare, fără jargon de buget. */
-.bf-pocket-workspace{display:grid!important;gap:16px!important}
-.bf-pocket-switch{display:flex!important;gap:6px!important;flex-wrap:wrap!important}
-.bf-pocket-switch button{width:auto!important;height:auto!important;min-height:38px!important;padding:0 12px!important;border:1px solid var(--cf-line)!important;border-radius:12px !important;color:var(--cf-muted)!important;background:var(--cf-surface-alt)!important;font:750 11px/1 "IBM Plex Sans",sans-serif!important}
-.bf-pocket-switch button.active{border-color:var(--cf-primary-strong)!important;color:var(--cf-on-forest)!important;background:var(--cf-primary-strong)!important}
-
-.bf-pocket-hero{padding:22px 18px!important;border:1px solid var(--cf-line)!important;border-left:4px solid var(--cf-primary-strong)!important;border-radius:20px !important;background:var(--cf-surface)!important}
-.bf-pocket-hero.watch{border-left-color:#c58a1f!important}
-.bf-pocket-hero.over{border-left-color:#b4553f!important}
-.bf-pocket-hero h2{margin:6px 0 0!important;color:var(--cf-ink)!important;font:600 clamp(38px,12vw,54px)/1 "Fraunces",Georgia,serif!important;letter-spacing:-.05em!important}
-.bf-pocket-line{margin:8px 0 0!important;color:var(--cf-ink)!important;font:600 13px/1.5 "IBM Plex Sans",sans-serif!important}
-.bf-pocket-bar{height:9px!important;margin:14px 0 0!important;overflow:hidden!important;border-radius:99px!important;background:var(--cf-surface-alt)!important}
-.bf-pocket-bar i{display:block!important;height:100%!important;border-radius:inherit!important;background:var(--cf-primary-strong)!important}
-.bf-pocket-hero.watch .bf-pocket-bar i{background:#c58a1f!important}
-.bf-pocket-hero.over .bf-pocket-bar i{background:#b4553f!important}
-.bf-pocket-meta{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important;margin:10px 0 0!important;color:var(--cf-muted)!important;font:600 11px/1.5 "IBM Plex Sans",sans-serif!important}
-
-.bf-pocket-history{padding:18px!important;border:1px solid var(--cf-line)!important;border-radius:20px !important;background:var(--cf-surface)!important}
-.bf-pocket-list{display:grid!important;gap:8px!important;margin:0!important;padding:0!important;list-style:none!important}
-.bf-pocket-list li{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:11px!important;border:1px solid var(--cf-line)!important;border-radius:12px !important;background:var(--cf-surface-alt)!important}
-.bf-pocket-list b{display:block!important;color:var(--cf-ink)!important;font:750 12px/1.35 "IBM Plex Sans",sans-serif!important;overflow-wrap:anywhere!important}
-.bf-pocket-list small{display:block!important;margin-top:2px!important;color:var(--cf-muted)!important;font:600 10px/1.4 "IBM Plex Sans",sans-serif!important}
-.bf-pocket-list strong{flex:0 0 auto!important;color:var(--cf-ink)!important;font:750 13px/1.2 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
-.bf-pocket-empty{margin:0!important;color:var(--cf-muted)!important;font:600 11px/1.55 "IBM Plex Sans",sans-serif!important}
 
 /** Lista de membri din Setări, cu marcajul de copil. */
 .bf-member-rows{display:grid;gap:7px;margin:8px 0 10px}

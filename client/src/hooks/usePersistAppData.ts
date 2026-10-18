@@ -18,6 +18,8 @@ import {
   writeAppData,
   writeLocalStorageSnapshot,
 } from "@/lib/app-storage";
+import { readAppMode } from "@/lib/app-mode";
+import { migrateRecurringToTracking } from "@/lib/house-costs";
 import { t } from "@/lib/i18n";
 
 export function readInitialAppData(): AppData {
@@ -165,7 +167,8 @@ export function usePersistAppData(
 
   useEffect(() => {
     if (!storageReady) return;
-    setData((current) => autoPostDueRecurring(current));
+    // BonAI doar urmărește abonamentele și facturile: nu mai adaugă plăți singur, le migrează.
+    setData((current) => (readAppMode() === "shop" ? migrateRecurringToTracking(current) : autoPostDueRecurring(current)));
   }, [storageReady, setData]);
 
   return {

@@ -9,7 +9,7 @@ import "../atelier-review-final.css";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { warmLazy } from "@/lib/lazy-safe";
 import { recapReady, recapYearFor, yearRecap } from "@/lib/year-recap";
-import { ChartSpline, Landmark, TrendingDown, Sparkles, Sprout, MessageSquareWarning, BarChart3, Bell, BellRing, BrainCircuit, BookOpen, CalendarClock, Check, Inbox, ChevronLeft, ChevronRight, Cloud, Download, ListChecks, Search, Palette, PiggyBank, Plane, Plus, ReceiptText, Settings, ShieldCheck, ShoppingBasket, Store, PiggyBank as PiggyBankIcon, Trash2 } from "lucide-react";
+import { ChartSpline, Sparkles, MessageSquareWarning, BarChart3, Bell, BellRing, BrainCircuit, BookOpen, CalendarClock, Check, Inbox, ChevronLeft, ChevronRight, Cloud, Download, ListChecks, Search, Palette, PiggyBank, Plus, ReceiptText, Settings, ShieldCheck, ShoppingBasket, Store, PiggyBank as PiggyBankIcon, Trash2 } from "lucide-react";
 import { createEmptyAppData, isReceiptGapLabel, isoToday, type AppData, type Debt, type Receipt, type SavingsGoal } from "@/lib/finance-data";
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 import { setSimpleMode } from "@/lib/ui-prefs";
@@ -36,21 +36,11 @@ const RecurringPanel = lazy(() => import("@/components/RecurringPanel").then((mo
 const ReviewCenterPanel = lazy(() => import("@/components/ReviewCenterPanel").then((module) => ({ default: module.ReviewCenterPanel })));
 const PriceWatchPanel = lazy(() => import("@/components/PriceWatchPanel").then((module) => ({ default: module.PriceWatchPanel })));
 const WarrantiesPanel = lazy(() => import("@/components/WarrantiesPanel").then((module) => ({ default: module.WarrantiesPanel })));
-const PocketPanel = lazy(() => import("@/components/PocketPanel").then((module) => ({ default: module.PocketPanel })));
-const PlannedEventsPanel = lazy(() => import("@/components/PlannedEventsPanel").then((module) => ({ default: module.PlannedEventsPanel })));
 const AdvisorPanel = lazy(() => import("@/components/AdvisorPanel").then((module) => ({ default: module.AdvisorPanel })));
 const ReceiptsStudio = lazy(() => import("@/components/ReceiptsStudio").then((module) => ({ default: module.ReceiptsStudio })));
 const LearnedRulesPanel = lazy(() => import("@/components/LearnedRulesPanel").then((module) => ({ default: module.LearnedRulesPanel })));
-const YearPlanPanel = lazy(() => import("@/components/YearPlanPanel").then((module) => ({ default: module.YearPlanPanel })));
-const NetWorthPanel = lazy(() => import("@/components/NetWorthPanel").then((module) => ({ default: module.NetWorthPanel })));
-const DebtExitPanel = lazy(() => import("@/components/DebtExitPanel").then((module) => ({ default: module.DebtExitPanel })));
 const ChartsPanel = lazy(() => import("@/components/ChartsPanel").then((module) => ({ default: module.ChartsPanel })));
-const TrendsPanel = lazy(() => import("@/components/TrendsPanel").then((module) => ({ default: module.TrendsPanel })));
-const InvestSimPanel = lazy(() => import("@/components/InvestSimPanel").then((module) => ({ default: module.InvestSimPanel })));
-const MoneyCalendarPanel = lazy(() => import("@/components/MoneyCalendarPanel").then((module) => ({ default: module.MoneyCalendarPanel })));
 const YearRecapStory = lazy(() => import("@/components/YearRecapStory").then((module) => ({ default: module.YearRecapStory })));
-const MonthAdvisorPanel = lazy(() => import("@/components/MonthAdvisorPanel").then((module) => ({ default: module.MonthAdvisorPanel })));
-const TripPanel = lazy(() => import("@/components/TripPanel").then((module) => ({ default: module.TripPanel })));
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const ProductCatalogPanel = lazy(() => import("@/components/ProductCatalogPanel").then((module) => ({ default: module.ProductCatalogPanel })));
 const SettingsPanel = lazy(() => import("./SettingsPanel").then((module) => ({ default: module.SettingsPanel })));
@@ -59,10 +49,8 @@ const FamilyGuide = lazy(() => import("./FamilyGuide").then((module) => ({ defau
 
 /** Panoul din spatele fiecărei file: încălzit înainte de deschidere, ca scheletul „Pregătim…” să nu clipească. */
 const TAB_PANELS: Partial<Record<MoreView, (object | (() => Promise<unknown>))[]>> = {
-  receipts: [ReceiptsStudio], catalog: [ProductCatalogPanel], review: [ReviewCenterPanel], "year-plan": [YearPlanPanel],
-  "net-worth": [NetWorthPanel], "debt-exit": [DebtExitPanel], charts: [ChartsPanel], trends: [TrendsPanel], invest: [InvestSimPanel],
-  "money-calendar": [MoneyCalendarPanel], advisor: [MonthAdvisorPanel], trip: [TripPanel], shopping: [ShoppingListPanel],
-  prices: [PriceWatchPanel], warranties: [WarrantiesPanel], pocket: [PocketPanel], events: [PlannedEventsPanel], recurring: [RecurringPanel], reports: [ReportsPanel],
+  receipts: [ReceiptsStudio], catalog: [ProductCatalogPanel], review: [ReviewCenterPanel], charts: [ChartsPanel], shopping: [ShoppingListPanel],
+  prices: [PriceWatchPanel], warranties: [WarrantiesPanel], recurring: [RecurringPanel], reports: [ReportsPanel],
   assistant: [AdvisorPanel], learned: [LearnedRulesPanel], settings: [SettingsPanel, () => import("./SettingsPanel").then((module) => module.preloadSettingsParts())], guide: [FamilyGuide], sync: [SyncPanel], overview: [YearRecapStory],
 };
 const warmTabs = new Set<MoreView>(["debts", "savings", "feedback"]);
@@ -106,7 +94,6 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
     };
     window.setTimeout(tick, 40);
   };
-  const trip = data.settings.trip;
   const [storyOpen, setStoryOpen] = useState(false);
   const story = useMemo(() => { if (tab !== "overview") return undefined; const today = isoToday(); const recap = yearRecap(data.transactions, recapYearFor(today), today); return recapReady(recap) ? recap : undefined; }, [data.transactions, tab]);
   const shoppingCount = visibleShopping(data.settings.shoppingList || []).todo.length;
@@ -177,7 +164,6 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
       <section className="bf-more-group" aria-labelledby="more-plans-title">
         <p className="bf-kicker bf-more-section-label" id="more-plans-title">{t("PLANURI")}</p>
         <div className="bf-more-grid bf-settings-group">
-          <button type="button" className="bf-settings-row" onClick={() => setTab("trip")}><Plane size={20} /><span className="bf-settings-copy"><b>{t("Vacanță")}</b><small>{trip && !trip.closedAt && trip.end >= isoToday() ? t("{name} · până pe {date}", { name: trip.name, date: dateText(trip.end) }) : t("buget separat pentru o călătorie")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
         </div>
       </section>
       {/* Ecranele pentru cine vrea mai mult stau strânse: un om obișnuit vede doar ce folosește zilnic. */}
@@ -185,9 +171,6 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
         <summary className="bf-settings-row" id="more-plan-title" style={{ cursor: "pointer", listStyle: "none" }}><ChartSpline size={20} /><span className="bf-settings-copy"><b>{t("Instrumente avansate")}</b><small>{t("investiții, avere, datorii, prețuri, reguli")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></summary>
         <div className="bf-more-grid bf-settings-group">
           {story && <button type="button" className="bf-settings-row" onClick={() => setStoryOpen(true)}><Sparkles size={20} /><span className="bf-settings-copy"><b>{t("Povestea anului {year}", { year: story.year })}</b><small>{t("anul familiei în cifre, ecran cu ecran")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>}
-          <button type="button" className="bf-settings-row" onClick={() => setTab("invest")}><Sprout size={20} /><span className="bf-settings-copy"><b>{t("Investiții și pensie")}</b><small>{t("simulator: dobândă compusă, inflație, pensie")}</small></span><ChevronRight className="bf-settings-chevron" size={17} /></button>
-          <button type="button" className="bf-settings-row" onClick={() => setTab("net-worth")}><Landmark size={20} /><span className="bf-settings-copy"><b>{t("Averea familiei")}</b><small>{t("ce aveți minus ce datorați")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
-          {data.debts.some((debt) => debt.remaining > 0) && <button type="button" className="bf-settings-row" onClick={() => setTab("debt-exit")}><TrendingDown size={20} /><span className="bf-settings-copy"><b>{t("Ieșirea din datorii")}</b><small>{t("data în care sunteți liberi, dobânda economisită")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>}
           <button type="button" className="bf-settings-row" onClick={() => openSettingsSection("bf-merchant-rules")}><Store size={20} /><span className="bf-settings-copy"><b>{t("Reguli comerciant")}</b><small>{t("categorie și plic după magazin")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => setTab("learned")}><BrainCircuit size={20} /><span className="bf-settings-copy"><b>{t("Ce am învățat")}</b><small>{t("regulile după care îți propun")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
         </div>
@@ -199,7 +182,6 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
           <button type="button" className="bf-settings-row" onClick={() => setTab("sync")}><Cloud size={20} /><span className="bf-settings-copy"><b>{t("Sincronizare")}</b><small>{isCollaborative ? t("spațiu conectat") : t("opțională între telefoane")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => openSettingsSection("backup")}><Download size={20} /><span className="bf-settings-copy"><b>{t("Backup / Export")}</b><small>{t("o copie pe acest telefon")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
           <button type="button" className="bf-settings-row" onClick={() => window.dispatchEvent(new CustomEvent("buget-familie:open-theme"))}><Palette size={20} /><span className="bf-settings-copy"><b>{t("Aspect")}</b><small>{t("Alb, Întunecat sau Bleumarin")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>
-          {data.settings.members.some((item) => item.kind === "child") && <button type="button" className="bf-settings-row" onClick={() => setTab("pocket")}><PiggyBankIcon size={20} /><span className="bf-settings-copy"><b>{t("Buzunar")}</b><small>{t("banii copilului")}</small></span><ChevronRight className="bf-settings-chevron" size={18} aria-hidden="true" /></button>}
         </div>
       </section>
       <section className="bf-more-group" aria-labelledby="more-help-title">
@@ -222,20 +204,10 @@ export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, on
     if (tab === "receipts") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim bonurile…")}</div>}><div>{receiptStorageNotice && <p className="bf-notice" role="status"><ShieldCheck size={15} /> {receiptStorageNotice}</p>}<ReceiptsStudio data={data} onAddReceipt={onAddReceipt} /><div className="bf-receipt-list">{data.receipts.map((receipt) => <article key={receipt.id}><span className="bf-receipt-thumb" aria-hidden="true"><ReceiptText size={18} /></span><div><b>{receipt.vendor}</b><small>{dateText(receipt.date)} · {receipt.lines?.length || 1} {t("produse")}</small>{receipt.lines?.length ? <ul className="bf-receipt-lines" style={{ listStyle: "none", margin: "8px 0 0", padding: 0, display: "grid", gap: 3 }}>{receipt.lines.map((line) => <li key={line.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 13, lineHeight: 1.35 }}><span>{isReceiptGapLabel(line.label) ? t("Diferență neînregistrată") : (line.label || t(line.category))}</span><b style={{ fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{money(line.amount)}</b></li>)}</ul> : <p>{receipt.note || t("Fără detalii")}</p>}</div><strong>{money(receipt.amount)}</strong><button aria-label={t("Șterge bonul {vendor}", { vendor: receipt.vendor })} onClick={() => onDeleteReceipt(receipt.id)}><Trash2 size={16} /></button></article>)}{!data.receipts.length && <div className="bf-empty-state slim"><ReceiptText size={23} /><h2>{t("Niciun bon")}</h2><p>{t("Scrie un bon de mână sau caută un produs în catalog.")}</p></div>}</div></div></Suspense>;
     if (tab === "catalog") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim catalogul…")}</div>}><ProductCatalogPanel data={data} onSaveReceipt={onSaveReceipt} onOpenReceiptForm={onAddReceipt} /></Suspense>;
     if (tab === "review") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim revizuirea…")}</div>}><ReviewCenterPanel data={data} onChange={onChange} /></Suspense>;
-    if (tab === "year-plan") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim planul…")}</div>}><YearPlanPanel data={data} /></Suspense>;
-    if (tab === "net-worth") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim averea…")}</div>}><NetWorthPanel data={data} onChange={onChange} /></Suspense>;
-    if (tab === "debt-exit") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim planul de datorii…")}</div>}><DebtExitPanel data={data} /></Suspense>;
     if (tab === "charts") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim graficele…")}</div>}><ChartsPanel data={data} /></Suspense>;
-    if (tab === "trends") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim tendințele…")}</div>}><TrendsPanel data={data} onChange={onChange} /></Suspense>;
-    if (tab === "invest") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim simulatorul…")}</div>}><InvestSimPanel data={data} /></Suspense>;
-    if (tab === "money-calendar") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim calendarul…")}</div>}><MoneyCalendarPanel data={data} /></Suspense>;
-    if (tab === "advisor") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim raportul…")}</div>}><MonthAdvisorPanel data={data} /></Suspense>;
-    if (tab === "trip") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim vacanța…")}</div>}><TripPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "shopping") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "prices") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PriceWatchPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "warranties") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim garanțiile…")}</div>}><WarrantiesPanel data={data} onChange={onChange} /></Suspense>;
-    if (tab === "pocket") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim buzunarul…")}</div>}><PocketPanel data={data} /></Suspense>;
-    if (tab === "events") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim evenimentele…")}</div>}><PlannedEventsPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "recurring") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim scadențele…")}</div>}><RecurringPanel data={data} onChange={onChange} /></Suspense>;
     if (tab === "reports") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim statisticile…")}</div>}><ReportsPanel data={data} onGo={onGo} /></Suspense>;
     if (tab === "assistant") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim asistentul…")}</div>}><AdvisorPanel data={data} onChange={onChange} /></Suspense>;
