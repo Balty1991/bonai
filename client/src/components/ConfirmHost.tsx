@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { subscribeConfirm, type ConfirmRequest } from "@/lib/confirm-dialog";
@@ -20,7 +21,8 @@ export function ConfirmHost() {
 function ConfirmDialog({ request, onAnswer }: { request: ConfirmRequest; onAnswer: (value: boolean) => void }) {
   const dialogRef = useFocusTrap<HTMLElement>(() => onAnswer(false));
   const titleId = `bf-confirm-title-${request.id}`;
-  return (
+  // Pe body: dialogul trebuie să stea și peste ecranele pe tot ecranul (Bonuri, editorul bonului).
+  return createPortal(
     <div className="bf-modal-backdrop bf-confirm-backdrop" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget) onAnswer(false); }}>
       <section ref={dialogRef} tabIndex={-1} className="bf-confirm" role={request.notice ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby={titleId} aria-describedby={`${titleId}-text`}>
         <h2 id={titleId}>{request.title || (request.notice ? t("De știut") : t("Ești sigur?"))}</h2>
@@ -36,6 +38,6 @@ function ConfirmDialog({ request, onAnswer }: { request: ConfirmRequest; onAnswe
           )}
         </footer>
       </section>
-    </div>
+    </div>, document.body,
   );
 }

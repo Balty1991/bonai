@@ -429,3 +429,72 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button span
 /* Ecranul de bon: coloanele nu se lățesc după cel mai lung conținut (rândul în editare ieșea din ecran). */
 .bn-review-scroll { grid-template-columns: minmax(0, 1fr); }
 .bn-review-scroll > *, .bn-group, .bn-group * { min-width: 0; }
+/* Verifică în magazin: cardul produsului după codul de bare. */
+html[data-app="shop"] .bn-bc-lead { margin: 0; color: var(--bn-ink-2, var(--bn-ink)); font-size: 15px; line-height: 1.45; }
+html[data-app="shop"] .bn-bc-pick { display: grid; gap: 10px; min-width: 0; }
+html[data-app="shop"] .bn-bc-ask { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-search { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); }
+html[data-app="shop"] .bn-bc-search input { flex: 1; min-width: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 16px; outline: none; }
+html[data-app="shop"] .bn-bc-options { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+html[data-app="shop"] .bn-bc-options button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); font: 600 15px/1.35 var(--bn-body, inherit); text-align: left; cursor: pointer; }
+html[data-app="shop"] .bn-bc-options button span { min-width: 0; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-card { display: grid; gap: 10px; min-width: 0; padding: 16px; border-radius: 20px; background: linear-gradient(140deg, rgba(124, 58, 237, .14), rgba(14, 116, 144, .1)), var(--bn-glass); border: 1px solid rgba(139, 92, 246, .35); }
+html[data-app="shop"] .bn-bc-card h3 { margin: 0; font: 700 18px/1.3 var(--bn-head); overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-card p { margin: 0; }
+html[data-app="shop"] .bn-bc-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+html[data-app="shop"] .bn-bc-last span { flex-basis: 100%; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+html[data-app="shop"] .bn-bc-last b { font: 750 28px/1.1 var(--bn-head); }
+html[data-app="shop"] .bn-bc-last small { font-size: 15px; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-trend, html[data-app="shop"] .bn-bc-verdict { display: flex; align-items: center; gap: 6px; font-weight: 650; }
+html[data-app="shop"] .bn-bc-trend.is-up, html[data-app="shop"] .bn-bc-verdict.is-up { color: #b91c1c; }
+html[data-app="shop"] .bn-bc-trend.is-down, html[data-app="shop"] .bn-bc-verdict.is-down { color: #047857; }
+html.dark[data-app="shop"] .bn-bc-trend.is-up, html.dark[data-app="shop"] .bn-bc-verdict.is-up { color: #fca5a5; }
+html.dark[data-app="shop"] .bn-bc-trend.is-down, html.dark[data-app="shop"] .bn-bc-verdict.is-down { color: #6ee7b7; }
+html[data-app="shop"] .bn-bc-shelf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html[data-app="shop"] .bn-bc-shelf span { flex: 1 1 150px; font-weight: 600; }
+html[data-app="shop"] .bn-bc-shelf input { width: 104px; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); font-size: 16px; text-align: right; }
+html[data-app="shop"] .bn-bc-shelf em { font-style: normal; }
+html[data-app="shop"] .bn-bc-guess { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 14px; }
+html[data-app="shop"] .bn-bc-change { justify-self: start; }
+html[data-app="shop"] .bn-bc-add { margin-top: 2px; }
+html[data-app="shop"] .bn-bc-note { font-size: 13px; }
+/* Scanerul: camera pe tot ecranul, cu cadru și mesaj clar. */
+.bn-barcode { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; background: #000; color: #fff; }
+.bn-barcode-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px; background: rgba(0, 0, 0, .6); position: relative; z-index: 2; font-size: 17px; }
+.bn-barcode-x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .16); color: #fff; }
+.bn-barcode-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bn-barcode-frame { position: absolute; left: 10%; right: 10%; top: 38%; height: 22%; border: 3px solid rgba(255, 255, 255, .9); border-radius: 18px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .35); z-index: 1; }
+.bn-barcode-hint, .bn-barcode-msg { position: absolute; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); z-index: 2; margin: 0; padding: 14px 16px; border-radius: 16px; background: rgba(0, 0, 0, .72); font-size: 16px; line-height: 1.45; text-align: center; }
+.bn-barcode-msg p { margin: 0 0 12px; }
+.bn-barcode-msg div { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.bn-barcode-msg .sh-scan { min-height: 48px; padding: 0 18px; margin: 0; }
+html[data-app] .bn-barcode-msg .sh-link { color: #fff; text-decoration: underline; }
+html[data-app="shop"] .bn-bc-search:focus-within { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124, 58, 237, .35); }
+html[data-app="shop"] .bn-bc .bn-bc-search input:focus, html[data-app="shop"] .bn-bc .bn-bc-search input:focus-visible { outline: 0; box-shadow: none; border: 0; }
+/* Bonul salvat: editare și ștergere. Dialogul și „Anulează” stau peste ecranele pe tot ecranul. */
+html body .bf-confirm-backdrop { z-index: 2200; }
+html body .bf-undo-bar { z-index: 2150; }
+.bn-history-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bn-btn.is-danger { color: #b91c1c; border-color: rgba(185, 28, 28, .35); }
+html.dark .bn-btn.is-danger { color: #fca5a5; border-color: rgba(252, 165, 165, .4); }
+.bn-icon-btn.is-ghost { visibility: hidden; }
+.bn-edit-date { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 6px; }
+.bn-edit-date span { font-weight: 600; font-size: 14px; }
+.bn-edit-date input { min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--bn-edge); background: var(--bn-glass-strong); color: var(--bn-ink); font: inherit; font-size: 16px; color-scheme: light dark; }
+.bn-sheet-backdrop { position: fixed; inset: 0; z-index: 2100; display: flex; align-items: flex-end; background: rgba(0, 0, 0, .45); }
+.bn-sheet { display: grid; gap: 4px; width: 100%; padding: 12px 12px calc(env(safe-area-inset-bottom, 0px) + 16px); border-radius: 24px 24px 0 0; background: var(--bn-bg, #fff); color: var(--bn-ink); box-shadow: 0 -8px 30px rgba(0, 0, 0, .25); }
+html.dark .bn-sheet { background: #17132a; }
+.bn-sheet header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 4px 4px 10px; }
+.bn-sheet header b { font-size: 17px; overflow-wrap: anywhere; }
+.bn-sheet header small { grid-row: 2; opacity: .85; }
+.bn-sheet header .bn-icon-btn { grid-row: 1 / span 2; grid-column: 2; }
+.bn-sheet > button { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border: 0; border-radius: 16px; background: none; color: inherit; font: 600 16px/1.2 var(--bn-head, inherit); text-align: left; cursor: pointer; }
+.bn-sheet > button:active { background: rgba(124, 58, 237, .12); }
+.bn-sheet > button.is-danger { color: #b91c1c; }
+html.dark .bn-sheet > button.is-danger { color: #fca5a5; }
+/* Dialogul de confirmare în culorile BonAI. */
+html[data-app="shop"] .bf-confirm { border-radius: 24px; background: #fff; color: #17132a; border: 1px solid rgba(124, 58, 237, .25); font-family: var(--bn-body, inherit); }
+html.dark[data-app="shop"] .bf-confirm { background: #17132a; color: #f4f2ff; border-color: rgba(167, 139, 250, .3); }
+html[data-app="shop"] .bf-confirm .bf-primary { background: #5b21b6 var(--bn-grad) !important; color: #fff; border: 0; }
+html[data-app="shop"] .bf-confirm .bf-confirm-danger { color: #b91c1c; border-color: rgba(185, 28, 28, .45); background: transparent; }
+html.dark[data-app="shop"] .bf-confirm .bf-confirm-danger { color: #fca5a5; border-color: rgba(252, 165, 165, .45); }

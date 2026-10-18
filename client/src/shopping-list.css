@@ -22,3 +22,4 @@ html body .bf-shopping .bf-shop-finish{width:100%;min-height:52px}
 .bf-shop-estimate p{display:flex;align-items:baseline;justify-content:space-between;margin:0}
 .bf-shop-estimate b{color:var(--cf-ink);font:600 24px/1 Fraunces,Georgia,serif}
 .bf-shop-estimate .is-tip{color:var(--cf-primary-strong);font-weight:600}
+html body .bf-shopping .bf-shop-barcode{flex:none;display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--cf-line);border-radius:14px;background:var(--cf-surface);color:inherit}

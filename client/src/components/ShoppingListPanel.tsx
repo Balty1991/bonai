@@ -4,8 +4,11 @@
  * sincronizează cu partenerul ca restul datelor familiei.
  */
 import "../shopping-list.css";
-import { useMemo, useState } from "react";
-import { Check, ListChecks, Plus, ReceiptText, X } from "lucide-react";
+import { lazy, Suspense, useMemo, useState } from "react";
+import { Barcode, Check, ListChecks, Plus, ReceiptText, X } from "lucide-react";
+import { nameScore, openFoodFactsName, readBarcodeLinks } from "@/lib/barcode-check";
+import { productObservations } from "@/lib/personal-inflation";
+const BarcodeScanner = lazy(() => import("@/components/BarcodeScanner").then((module) => ({ default: module.BarcodeScanner })));
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { lei } from "@/lib/money-format";
 import { estimateShopping } from "@/lib/shopping-price";
@@ -15,6 +18,8 @@ import { SHOPPING_LIMIT, splitShoppingText, visibleShopping, type ShoppingItem }
 
 export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
   const [draft, setDraft] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [scanNote, setScanNote] = useState<string>();
   const list = data.settings.shoppingList || [];
   const { todo, done } = visibleShopping(list);
   const me = selfMemberIdOf(data);
@@ -32,6 +37,19 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
     const fresh = names.filter((name) => !open.has(name.toLocaleLowerCase("ro-RO"))).map((text, index) => ({ id: newId("shop"), text, by: me, updatedAt: new Date(now + index).toISOString() }));
     if (fresh.length) save([...fresh, ...list]);
     setDraft("");
+  };
+  /** Codul scanat devine numele produsului tău (legătura salvată) sau numele din Open Food Facts; altfel îl scrii tu. */
+  const scanned = async (code: string) => {
+    setScanning(false);
+    const key = data.settings.barcodeLinks?.[code]?.key || readBarcodeLinks()[code];
+    const mine = key ? productObservations(data).find((o) => o.key === key)?.label : undefined;
+    setScanNote(t("Caut produsul…"));
+    const name = mine || await openFoodFactsName(code);
+    // Produsul e deja pe listă: îl bifezi, nu-l mai adaugi o dată.
+    const onList = name ? todo.map((item) => ({ item, score: nameScore(name, item.text) })).filter((x) => x.score >= 0.5).sort((a, b) => b.score - a.score)[0]?.item : undefined;
+    if (onList) { touch(onList.id, { done: true }); setScanNote(t("Bifat în coș: {name}.", { name: onList.text })); return; }
+    if (name) { setDraft(name); setScanNote(t("Am găsit: {name}. Apasă Adaugă.", { name })); }
+    else setScanNote(t("Nu găsesc codul {code}. Scrie numele produsului.", { code }));
   };
   const finish = () => {
     const stamp = new Date().toISOString();
@@ -54,8 +72,11 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
     </header>
     <form className="bf-shop-add" onSubmit={(event) => { event.preventDefault(); add(); }}>
       <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={t("lapte, pâine, ouă…")} aria-label={t("Ce trebuie luat")} enterKeyHint="done" />
+      <button type="button" className="bf-shop-barcode" aria-label={t("Scanează codul de bare")} onClick={() => { setScanNote(undefined); setScanning(true); }}><Barcode size={20} aria-hidden="true" /></button>
       <button type="submit" className="bf-primary" disabled={!draft.trim()}><Plus size={18} aria-hidden="true" /> {t("Adaugă")}</button>
     </form>
+    {scanNote && <p className="bf-helper" role="status">{scanNote}</p>}
+    {scanning && <Suspense fallback={null}><BarcodeScanner onCode={(code) => void scanned(code)} onClose={() => setScanning(false)} /></Suspense>}
     {estimate.known > 0 && <div className="bf-shop-estimate">
       <p><small className="bf-kicker">{t("COȘ ESTIMAT")}</small><b>~{lei(estimate.total)}</b></p>
       <span>{estimate.known === todo.length ? t("după prețurile de pe bonurile voastre") : t("pentru {known} din {count} produse, după bonurile voastre", { known: estimate.known, count: todo.length })}</span>

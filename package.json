@@ -19,6 +19,8 @@
     "format": "prettier --write .",
     "test:layout": "node e2e/layout.e2e.mjs",
     "test:review-scroll": "node e2e/review-scroll.e2e.mjs",
+    "test:barcode": "node e2e/barcode.e2e.mjs",
+    "test:receipt-edit": "node e2e/receipt-edit.e2e.mjs",
     "test:sync": "firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\"",
     "test:sync:current": "E2E_RULES=auth firebase emulators:exec --config firebase.e2e.auth.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\""
   },
@@ -33,6 +35,8 @@
     "@capgo/native-purchases": "^8.8.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@sentry/react": "^10.76.2",
+    "@zxing/browser": "0.2.1",
+    "@zxing/library": "^0.23.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "express": "^4.22.3",

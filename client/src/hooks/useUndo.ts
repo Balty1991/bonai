@@ -11,11 +11,11 @@ export function useUndo(data: AppData, setData: (value: AppData | ((current: App
   const [undo, setUndo] = useState<UndoAction | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
 
-  const offerUndo = (action: UndoAction | undefined) => {
+  const offerUndo = (action: UndoAction | undefined, ms = 9000) => {
     window.clearTimeout(undoTimer.current);
     if (!action) return;
     setUndo(action);
-    undoTimer.current = window.setTimeout(() => setUndo(null), 9000);
+    undoTimer.current = window.setTimeout(() => setUndo(null), ms);
   };
 
   const runUndo = () => {
@@ -29,11 +29,12 @@ export function useUndo(data: AppData, setData: (value: AppData | ((current: App
   const deleteWithUndo = (
     label: string,
     pick: (current: AppData) => { next: AppData; removed: Parameters<typeof buildUndo>[1] },
+    ms?: number,
   ) => {
     const { next, removed } = pick(data);
     setData(next);
     haptic("reject");
-    offerUndo(buildUndo(label, removed));
+    offerUndo(buildUndo(label, removed), ms);
   };
 
   return { undo, setUndo, runUndo, deleteWithUndo, offerUndo };

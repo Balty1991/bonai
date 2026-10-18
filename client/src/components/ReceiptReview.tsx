@@ -22,23 +22,26 @@ export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date
  */
 
 
-export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan: () => void }) {
+export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode = "new" }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; mode?: "new" | "edit" }) {
+  const editMode = mode === "edit";
   const [rows, setRows] = useState<ReviewRow[]>(() => rowsFromPrefill(prefill));
   const [store, setStore] = useState(() => prefill.title.replace(/^Bon\s*[—-]\s*/, ""));
   const [editing, setEditing] = useState<string>();
   const [memberId, setMemberId] = useState<string | undefined>(data.settings.selfMemberId);
   const [saved, setSaved] = useState<ReviewSave>();
-  const date = prefill.date || new Date().toISOString().slice(0, 10);
+  const [date, setDate] = useState(() => prefill.date || new Date().toISOString().slice(0, 10));
   const categories = useMemo(() => receiptCategories(data), [data]);
   const groups = groupRows(rows);
   const total = rowsTotal(rows);
-  const gap = totalGap(prefill.amount, rows);
+  // La editare, totalul de pe bon se poate corecta și el (ex. bonul fusese citit greșit).
+  const [printed, setPrinted] = useState(prefill.amount);
+  const gap = totalGap(printed, rows);
   const discount = round2(rows.reduce((sum, row) => sum + row.discount, 0));
   const members = data.settings.members.filter((member) => member.kind !== "child");
   const previous = useMemo(() => data.receipts.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [data.receipts, store, date]);
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
   const addRow = (row?: Partial<ReviewRow>) => { const key = `m${Date.now()}`; setRows((list) => [...list, { key, label: "", raw: "", qty: 1, amount: 0, discount: 0, category: categories[0] || "Alimente", manual: true, ...row }]); if (!row) setEditing(key); };
-  const save = () => { const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId }; onSave(result); setSaved(result); };
+  const save = () => { const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
 
   if (saved) {
     const split = groupRows(saved.rows);
@@ -57,25 +60,27 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
     </div></Layer>;
   }
 
-  return <Layer><div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Verifică bonul")}>
+  return <Layer><div className="bn-review" role="dialog" aria-modal="true" aria-label={editMode ? t("Editează bonul") : t("Verifică bonul")}>
     <header className="bn-review-top">
       <button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={onCancel}><ChevronLeft size={22} /></button>
       <label className="bn-store-pill"><span className="bn-avatar" aria-hidden="true">{(store.trim()[0] || "?").toUpperCase()}</span><input value={store} placeholder={t("Magazinul")} onChange={(event) => setStore(event.target.value)} aria-label={t("Magazinul")} /></label>
-      <button type="button" className="bn-icon-btn" aria-label={t("Scanează din nou")} onClick={onRescan}><RotateCcw size={19} /></button>
+      {onRescan && !editMode ? <button type="button" className="bn-icon-btn" aria-label={t("Scanează din nou")} onClick={onRescan}><RotateCcw size={19} /></button> : <span className="bn-icon-btn is-ghost" aria-hidden="true" />}
     </header>
     <div className="bn-review-scroll">
       <section className="bn-review-hero">
+        {editMode ? <label className="bn-edit-date"><span>{t("Data bonului")}</span><input type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => event.target.value && setDate(event.target.value)} /></label> : null}
         <p className="sh-kicker">{fmtDate(date)}{prefill.store?.time ? ` · ${prefill.store.time}` : ""}{prefill.store?.city ? ` · ${prefill.store.city}` : ""}</p>
         <p className="bn-review-total">{lei(total)}</p>
         <div className="bn-chips">
           <span className="bn-chip">{rows.length === 1 ? t("1 produs") : t("{count} produse", { count: rows.length })}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
-          {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {prefill.amount > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
+          {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {printed > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
         </div>
         {groups.length > 1 && <div className="bn-split" aria-hidden="true">{groups.map((group, index) => <i key={group.category} style={{ flexGrow: group.share, background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />)}</div>}
         {gap !== 0 && <div className="bn-gap-actions">
+          {editMode && <button type="button" className="bn-btn" onClick={() => setPrinted(total)}><Check size={16} aria-hidden="true" /> {t("Totalul de pe bon e {amount}", { amount: lei(total) })}</button>}
           {gap > 0 && <button type="button" className="bn-btn" onClick={() => addRow({ label: t("Diferență bon"), raw: "", amount: gap, category: "Altele" })}><Plus size={16} aria-hidden="true" /> {t("Adaugă rând cu diferența")}</button>}
-          <button type="button" className="bn-btn" onClick={onRescan}><RotateCcw size={16} aria-hidden="true" /> {t("Scanează din nou")}</button>
+          {onRescan && !editMode && <button type="button" className="bn-btn" onClick={onRescan}><RotateCcw size={16} aria-hidden="true" /> {t("Scanează din nou")}</button>}
         </div>}
         {prefill.warning && <p className="sh-muted sh-note">{prefill.warning}</p>}
       </section>
@@ -88,6 +93,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
             <div className="bn-edit-grid">
               <label><span>{t("Cantitate")}</span><input inputMode="decimal" defaultValue={String(row.qty).replace(".", ",")} onChange={(event) => patch(row.key, { qty: num(event.target.value) || 1 })} /></label>
               <label><span>{t("Total (lei)")}</span><input inputMode="decimal" defaultValue={row.amount ? String(row.amount).replace(".", ",") : ""} onChange={(event) => patch(row.key, { amount: round2(num(event.target.value)) })} /></label>
+              <label><span>{t("Reducere (lei)")}</span><input inputMode="decimal" defaultValue={row.discount ? String(row.discount).replace(".", ",") : ""} placeholder="0" onChange={(event) => patch(row.key, { discount: Math.max(0, round2(num(event.target.value))) })} /></label>
             </div>
             <label><span>{t("Categorie")}</span><select value={row.category} onChange={(event) => patch(row.key, { category: event.target.value })}>{categories.map((item) => <option key={item} value={item}>{categoryIcon(item)} {item}</option>)}</select></label>
             <div className="bn-edit-actions"><button type="button" className="bn-btn" onClick={() => { setRows((list) => list.filter((item) => item.key !== row.key)); setEditing(undefined); }}><Trash2 size={16} aria-hidden="true" /> {t("Șterge")}</button><button type="button" className="bn-btn is-primary" onClick={() => setEditing(undefined)}><Check size={16} aria-hidden="true" /> {t("Gata")}</button></div>
@@ -103,7 +109,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
     <footer className="bn-review-bar">
       <div className="bn-bar-total"><small>{t("Total")}</small><b>{lei(total)}</b></div>
       <button type="button" className="bn-btn" onClick={onCancel}><X size={16} aria-hidden="true" /> {t("Anulează")}</button>
-      <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={save}>{t("Salvează bonul")}</button>
+      <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={save}>{editMode ? t("Salvează modificările") : t("Salvează bonul")}</button>
     </footer>
   </div></Layer>;
 }

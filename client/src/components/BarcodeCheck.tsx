@@ -1,15 +1,17 @@
 /** Verifică un produs în magazin după codul de bare, față de prețurile din bonurile tale. */
 import { useMemo, useState } from "react";
-import { Barcode, Check, Plus } from "lucide-react";
+import { Barcode, Check, Plus, Search, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { newId, isoToday, type AppData } from "@/lib/finance-data";
 import { productObservations } from "@/lib/personal-inflation";
-import { isValidEan, openFoodFactsName, readBarcodeLinks, scanBarcodeNative, suggestProducts, verdictFor } from "@/lib/barcode-check";
+import { confidentMatch, isValidEan, nameScore, openFoodFactsName, readBarcodeLinks, shelfDiff, suggestProducts, verdictFor } from "@/lib/barcode-check";
 import { lei } from "@/lib/money-format";
 import { withBarcodeLink } from "@/lib/barcode-links";
 import { OFFICIAL_ATTRIBUTION, OFFICIAL_PRICES_ENABLED, lookupOfficialPrice, type OfficialResult } from "@/lib/official-prices";
 import { t } from "@/lib/i18n";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 
 const perText = (per: string) => (per === "buc" ? t("bucata") : per);
+const pctText = (value: number) => Math.abs(value).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
 const dayText = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 
 export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
@@ -17,61 +19,95 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const [ean, setEan] = useState<string>();
   const [offName, setOffName] = useState<string>();
   const [linked, setLinked] = useState<string>();
+  const [linkedLabel, setLinkedLabel] = useState<string>();
+  const [guessed, setGuessed] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState("");
+  const [shelf, setShelf] = useState("");
   const [busy, setBusy] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [tried, setTried] = useState(false);
   const [added, setAdded] = useState(false);
   const [official, setOfficial] = useState<OfficialResult | null>();
   const city = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).find((r) => r.city)?.city || "", [data.receipts]);
   const observations = useMemo(() => productObservations(data), [data]);
-  const products = useMemo(() => { const seen = new Map<string, string>(); for (const o of observations) if (!seen.has(o.key)) seen.set(o.key, o.label); return Array.from(seen, ([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label, "ro")); }, [observations]);
+  const products = useMemo(() => { const seen = new Map<string, { key: string; label: string }>(); for (const o of observations) { const id = `${o.key}\u0000${o.label}`; if (!seen.has(id)) seen.set(id, { key: o.key, label: o.label }); } return Array.from(seen.values()).sort((a, b) => a.label.localeCompare(b.label, "ro")); }, [observations]);
   const today = isoToday();
-  const verdict = linked ? verdictFor(linked, observations, today) : undefined;
-  const suggestions = offName ? suggestProducts(offName, observations) : [];
+  const verdict = linked ? verdictFor(linked, observations, today, linkedLabel || offName) : undefined;
+  const suggestions = useMemo(() => (offName ? suggestProducts(offName, observations, 6) : []), [offName, observations]);
+  const options = useMemo(() => {
+    const q = query.trim();
+    if (!q) { const top = new Set(suggestions.map((s) => s.label)); return [...suggestions.map((s) => ({ key: s.key, label: s.label })), ...products.filter((p) => !top.has(p.label))].slice(0, 8); }
+    return products.map((p) => ({ ...p, score: nameScore(q, p.label) + (p.label.toLocaleLowerCase("ro-RO").includes(q.toLocaleLowerCase("ro-RO")) ? 0.5 : 0) })).filter((p) => p.score > 0.2).sort((a, b) => b.score - a.score).slice(0, 8);
+  }, [query, suggestions, products]);
+  const shelfPrice = Number(shelf.replace(",", "."));
+  const lastObs = useMemo(() => (verdict ? observations.find((o) => o.key === linked && o.label === verdict.label && o.date === verdict.last.date) : undefined), [verdict, linked, observations]);
+  const diff = lastObs ? shelfDiff(shelfPrice, lastObs.piecePrice) : undefined;
 
+  const reset = () => { setAdded(false); setOffName(undefined); setLinked(undefined); setLinkedLabel(undefined); setGuessed(false); setPicking(false); setQuery(""); setShelf(""); setTried(true); };
   const check = async (value: string) => {
     const clean = value.replace(/\D/g, "");
-    setAdded(false); setOffName(undefined); setLinked(undefined);
+    reset();
     if (!isValidEan(clean)) { setEan(undefined); return; }
     setEan(clean);
-    const known = data.settings.barcodeLinks?.[clean]?.key || readBarcodeLinks()[clean];
-    if (known) { setLinked(known); return; }
+    const link = data.settings.barcodeLinks?.[clean];
+    const known = link?.key || readBarcodeLinks()[clean];
+    if (known) { setLinked(known); setLinkedLabel(link?.label); return; }
     setBusy(true);
-    setOffName(await openFoodFactsName(clean));
-    setBusy(false);
+    const name = await openFoodFactsName(clean);
+    setOffName(name); setBusy(false);
+    const sure = name ? confidentMatch(suggestProducts(name, observations, 6)) : undefined;
+    if (sure) { setLinked(sure.key); setLinkedLabel(sure.label); setGuessed(true); }
   };
-  const scan = async () => { const value = await scanBarcodeNative().catch(() => undefined); if (value) { setCode(value); void check(value); } };
-  const pick = (key: string) => { if (!ean) return; onChange(withBarcodeLink(data, ean, key)); setLinked(key); };
+  const scanned = (value: string) => { setScanning(false); setCode(value); void check(value); };
+  const pick = (key: string, label: string) => { if (!ean) return; onChange(withBarcodeLink(data, ean, key, undefined, label)); setLinked(key); setLinkedLabel(label); setGuessed(false); setPicking(false); };
+  const confirm = () => { if (ean && linked && guessed) { onChange(withBarcodeLink(data, ean, linked, undefined, linkedLabel)); setGuessed(false); } };
   const addToList = () => {
     const text = verdict?.label || offName;
     if (!text) return;
-    onChange({ ...data, settings: { ...data.settings, shoppingList: [...(data.settings.shoppingList || []), { id: newId("shop"), text, updatedAt: new Date().toISOString() }] } });
-    setAdded(true);
+    const base = ean && linked && guessed ? withBarcodeLink(data, ean, linked, undefined, linkedLabel) : data;
+    onChange({ ...base, settings: { ...base.settings, shoppingList: [...(base.settings.shoppingList || []), { id: newId("shop"), text, updatedAt: new Date().toISOString() }] } });
+    setGuessed(false); setAdded(true);
   };
+  const Trend = verdict?.trend === undefined ? null : verdict.trend > 0.5 ? TrendingUp : verdict.trend < -0.5 ? TrendingDown : Minus;
 
-  return <section className="sh-card">
+  const picker = <div className="bn-bc-pick">
+    <p className="bn-bc-ask">{offName ? t("Pare să fie {name}. Leagă-l de produsul tău din bonuri, ca să-ți arăt prețul.", { name: offName }) : t("Nu-l recunosc după cod. Leagă-l de un produs din bonurile tale.")}</p>
+    {products.length > 0 ? <>
+      <label className="bn-bc-search"><Search size={18} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("Caută în produsele tale")} aria-label={t("Caută în produsele tale")} /></label>
+      <ul className="bn-bc-options" aria-label={t("Leagă de un produs din bonuri")}>{options.map((item) => <li key={`${item.key}-${item.label}`}><button type="button" onClick={() => pick(item.key, item.label)}><span>{item.label}</span><Check size={18} aria-hidden="true" /></button></li>)}</ul>
+      {options.length === 0 && <p className="sh-muted">{t("Niciun produs nu se potrivește. Încearcă alt cuvânt.")}</p>}
+    </> : <p className="sh-muted">{t("Încă nu ai bonuri cu produse. Scanează un bon și data viitoare îți spun dacă prețul e bun.")}</p>}
+  </div>;
+
+  return <section className="sh-card bn-bc">
     <p className="sh-kicker">{t("VERIFICĂ ÎN MAGAZIN")}</p>
-    <button type="button" className="sh-scan" onClick={() => void scan()}><Barcode size={20} aria-hidden="true" /> {t("Scanează codul de bare")}</button>
+    <p className="bn-bc-lead">{t("Scanează un produs de pe raft și vezi cât l-ai plătit ultima dată și unde — afli pe loc dacă prețul e bun.")}</p>
+    <button type="button" className="sh-scan" onClick={() => setScanning(true)}><Barcode size={20} aria-hidden="true" /> {t("Scanează codul de bare")}</button>
+    {scanning && <BarcodeScanner onCode={scanned} onClose={() => setScanning(false)} />}
     <form className="sh-row-form" onSubmit={(event) => { event.preventDefault(); void check(code); }}>
-      <input inputMode="numeric" aria-label={t("Codul de bare")} placeholder={t("sau scrie cifrele de sub cod")} value={code} onChange={(event) => setCode(event.target.value)} />
+      <input inputMode="numeric" aria-label={t("Codul de bare")} placeholder={t("sau scrie cifrele de sub cod")} value={code} onChange={(event) => { setCode(event.target.value); setTried(false); }} />
       <button type="submit" className="sh-link">{t("Verifică")}</button>
     </form>
-    {code && !ean && !busy && code.replace(/\D/g, "").length >= 8 && <p className="sh-muted">{t("Codul nu pare corect. Verifică cifrele.")}</p>}
-    {busy && <p className="sh-muted">{t("Caut produsul…")}</p>}
-    {ean && !linked && !busy && <div className="sh-rows">
-      <p className="sh-muted">{offName ? t("Pare să fie: {name}. Care e, din ce ai cumpărat?", { name: offName }) : t("Nu-l găsesc după cod. Care e, din ce ai cumpărat?")}</p>
-      {suggestions.map((item) => <button key={item.key} type="button" className="sh-row" onClick={() => pick(item.key)}><span className="sh-row-copy"><b>{item.label}</b></span><Check size={18} aria-hidden="true" /></button>)}
-      {products.length > 0 ? <select aria-label={t("Alege produsul")} defaultValue="" onChange={(event) => event.target.value && pick(event.target.value)}><option value="">{t("Alege din toate produsele tale")}</option>{products.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
-        : <p className="sh-muted">{t("Încă nu ai bonuri cu produse. Scanează un bon și data viitoare îți spun dacă prețul e bun.")}</p>}
-    </div>}
-    {verdict && <div className="sh-rows">
-      <p><b>{verdict.label}</b></p>
-      <p>{t("Ultima dată ai dat {price} pe {per}, la {vendor} ({date}).", { price: lei(verdict.last.price), per: perText(verdict.last.per), vendor: verdict.last.vendor, date: dayText(verdict.last.date) })}</p>
-      {verdict.cheapest && <p className="sh-down">{t("Cel mai mic preț la tine: {price} pe {per}, la {vendor} ({date}).", { price: lei(verdict.cheapest.price), per: perText(verdict.cheapest.per), vendor: verdict.cheapest.vendor, date: dayText(verdict.cheapest.date) })}</p>}
-      <p className="sh-muted">{t("Compară cu prețul de pe raft. Prețurile vin doar din bonurile tale.")}</p>
-    </div>}
+    {!ean && !busy && (tried || code.replace(/\D/g, "").length >= 8) && <p className="sh-muted" role="status">{code.replace(/\D/g, "") ? t("Codul nu pare corect. Verifică cifrele.") : t("Scrie cifrele de sub codul de bare (8 sau 13 cifre).")}</p>}
+    {busy && <p className="sh-muted" role="status">{t("Caut produsul…")}</p>}
+    {ean && !busy && (!verdict || picking) && picker}
+    {verdict && !picking && <article className="bn-bc-card" aria-live="polite">
+      <h3>{verdict.label}</h3>
+      <p className="bn-bc-last"><span>{t("Ultima dată")}</span><b>{lei(lastObs?.piecePrice ?? verdict.last.price)}</b><small>{t("la {vendor} ({date})", { vendor: verdict.last.vendor, date: dayText(verdict.last.date) })}{verdict.last.per !== "buc" ? ` · ${lei(verdict.last.price)}/${verdict.last.per}` : ""}</small></p>
+      {Trend && verdict.previous && <p className={`bn-bc-trend ${verdict.trend! > 0.5 ? "is-up" : verdict.trend! < -0.5 ? "is-down" : ""}`}><Trend size={18} aria-hidden="true" /> {verdict.trend! > 0.5 ? t("+{pct}% față de data trecută ({price})", { pct: pctText(verdict.trend!), price: lei(verdict.previous.price) }) : verdict.trend! < -0.5 ? t("−{pct}% față de data trecută ({price})", { pct: pctText(verdict.trend!), price: lei(verdict.previous.price) }) : t("La fel ca data trecută")}</p>}
+      {verdict.cheapest && <p className="bn-bc-cheap">{t("Cel mai mic preț la tine: {price} pe {per}, la {vendor} ({date}).", { price: lei(verdict.cheapest.price), per: perText(verdict.cheapest.per), vendor: verdict.cheapest.vendor, date: dayText(verdict.cheapest.date) })}</p>}
+      <label className="bn-bc-shelf"><span>{t("Prețul de pe raft acum")}</span><input inputMode="decimal" value={shelf} onChange={(event) => setShelf(event.target.value)} placeholder="0,00" aria-label={t("Prețul de pe raft acum")} /><em>RON</em></label>
+      {diff !== undefined && <p className={`bn-bc-verdict ${diff > 0.5 ? "is-up" : diff < -0.5 ? "is-down" : ""}`} role="status">{diff > 0.5 ? t("Mai scump cu {pct}% decât ai dat ultima dată.", { pct: pctText(diff) }) : diff < -0.5 ? t("Mai ieftin cu {pct}% decât ai dat ultima dată.", { pct: pctText(diff) }) : t("Același preț ca ultima dată.")}</p>}
+      {guessed && <p className="bn-bc-guess">{t("Potrivit după nume.")} <button type="button" className="sh-link" onClick={confirm}>{t("E corect")}</button> <button type="button" className="sh-link" onClick={() => setPicking(true)}>{t("Alt produs")}</button></p>}
+      {!guessed && <button type="button" className="sh-link bn-bc-change" onClick={() => setPicking(true)}>{t("Schimbă produsul legat")}</button>}
+      <button type="button" className="sh-scan bn-bc-add" onClick={addToList} disabled={added}>{added ? <><Check size={18} aria-hidden="true" /> {t("Adăugat în listă")}</> : <><Plus size={18} aria-hidden="true" /> {t("Adaugă în listă")}</>}</button>
+      <p className="sh-muted bn-bc-note">{t("Prețurile vin doar din bonurile tale.")}</p>
+    </article>}
     {OFFICIAL_PRICES_ENABLED && city && (verdict || offName) && (official === undefined
       ? <button type="button" className="sh-link" onClick={() => { setOfficial(null); void lookupOfficialPrice(verdict?.label || offName || "", city).then((result) => setOfficial(result || null)); }}>{t("Prețul oficial în {city}", { city })}</button>
       : official && official.offers.length > 0 ? <div className="sh-rows"><ul className="sh-list">{official.offers.slice(0, 3).map((offer) => <li key={`${offer.store}-${offer.price}`}><span><b>{offer.network || offer.store}</b><small>{offer.address || offer.store}</small></span><b>{lei(offer.price)}</b></li>)}</ul><p className="sh-muted sh-note">{OFFICIAL_ATTRIBUTION}</p></div>
       : official === null ? <p className="sh-muted">{t("Caut produsul…")}</p> : null)}
-    {(verdict || offName) && <button type="button" className="sh-link" onClick={addToList} disabled={added}>{added ? <><Check size={16} aria-hidden="true" /> {t("Adăugat în listă")}</> : <><Plus size={16} aria-hidden="true" /> {t("Adaugă în listă")}</>}</button>}
+    {!verdict && offName && <button type="button" className="sh-link" onClick={addToList} disabled={added}>{added ? <><Check size={16} aria-hidden="true" /> {t("Adăugat în listă")}</> : <><Plus size={16} aria-hidden="true" /> {t("Adaugă în listă")}</>}</button>}
   </section>;
 }

@@ -57,3 +57,9 @@ jobs:
       - name: Verifică derularea ecranului de verificare a bonului
         timeout-minutes: 5
         run: pnpm test:review-scroll
+      - name: Verifică scanerul de cod de bare
+        timeout-minutes: 5
+        run: pnpm test:barcode
+      - name: Verifică editarea și ștergerea bonului
+        timeout-minutes: 5
+        run: pnpm test:receipt-edit

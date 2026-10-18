@@ -23,6 +23,7 @@ import { allocationStatus, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon,
 
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 import { queueReceiptForReview, attachReceiptDetail } from "@/lib/receipt-review";
+import { applyReceiptEdit, prefillFromReceipt, removeReceipt } from "@/lib/receipt-edit";
 
 import { safeSetItem } from "@/lib/safe-storage";
 import { closeTopDialog } from "@/hooks/use-focus-trap";
@@ -213,6 +214,7 @@ export default function Home() {
     return () => { window.removeEventListener("buget-familie:open-expense", openExpense); window.removeEventListener("buget-familie:open-shopping", openShopping); };
   }, []);
   const [scanPrefill, setScanPrefill] = useState<ScanPrefill>();
+  const [editReceipt, setEditReceipt] = useState<Receipt>();
   const receiptStorageNotice = "";
   const legacyReceiptMigrationStarted = useRef(false);
   const setupOffered = useRef(setupOpen);
@@ -484,20 +486,12 @@ export default function Home() {
     }
   };
   const saveReceipt = (item: Receipt) => update((current) => queueReceiptForReview(current, item));
-  const deleteReceipt = (id: string) => {
-    deleteWithUndo(t("Bonul a fost șters."), (current) => {
-      const currentReceipt = current.receipts.find((item) => item.id === id);
-      // Pleacă doar mișcările făcute de bon. Cheltuiala notată de mână, cu bonul atașat ca detaliu, rămâne fără bon.
-      const madeByReceipt = (txId: string) => txId === `receipt-tx-${id}` || txId.startsWith(`receipt-tx-${id}-`);
-      const linked = [...(currentReceipt?.linkedTransactionIds || []), currentReceipt?.linkedTransactionId, `receipt-tx-${id}`, ...current.transactions.map((item) => item.id)]
-        .filter((value): value is string => Boolean(value) && madeByReceipt(value as string));
-      const now = new Date().toISOString();
-      const removedTransactions = current.transactions.filter((item) => linked.includes(item.id));
-      return {
-        next: { ...current, receipts: current.receipts.filter((item) => item.id !== id), transactions: current.transactions.filter((item) => !linked.includes(item.id)).map((item) => item.receiptId === id ? { ...item, receiptId: undefined, updatedAt: now } : item), pendingReview: current.pendingReview.filter((draft) => draft.transaction.receiptId !== id && !linked.includes(draft.transaction.id)), deleted: [...current.deleted, { entity: "receipts" as const, id, deletedAt: now }, ...linked.map((transactionId) => ({ entity: "transactions" as const, id: transactionId, deletedAt: now }))].slice(-TOMBSTONE_MAX) },
-        removed: { receipts: currentReceipt ? [currentReceipt] : [], transactions: removedTransactions },
-      };
-    });
+  /** Șterge bonul (și mișcarea lui) după confirmare; 5 secunde de „Anulează”. Sincronizarea duce pietrele de mormânt la familie. */
+  const deleteReceipt = async (receipt: Receipt): Promise<boolean> => {
+    const ok = await askConfirm(t("Bonul de la {store} ({amount}) dispare din istoric, prețuri și statistici, și de pe telefoanele familiei.", { store: receipt.vendor, amount: money(receipt.amount) }), { title: t("Ștergi bonul?"), confirmLabel: t("Șterge bonul"), danger: true });
+    if (!ok) return false;
+    deleteWithUndo(t("Bonul a fost șters."), (current) => removeReceipt(current, receipt.id), 5000);
+    return true;
   };
   const openTx = (item?: Transaction) => {
     // În BonAI, „notează de mână” e același ecran de bon, gol: fără surse, plicuri sau venituri.
@@ -638,7 +632,7 @@ export default function Home() {
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
     if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenCosts={setCostsKind} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
-    if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
+    if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={(id) => { const found = data.receipts.find((item) => item.id === id); if (found) void deleteReceipt(found); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
     return null;
   };
   return <div className={"bf-app os-shell" + ((setupOpen && !shopMode) || onboardingOpen ? " is-setup" : "")}>
@@ -652,12 +646,13 @@ export default function Home() {
     <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("shop")}><BrandMark /><span className="os-brand-copy bn-wordmark"><b>Bon</b><i>AI</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onClick={openScan}><ScanLine size={17} aria-hidden="true" /><span>{t("Scanează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools">{!shopMode && <button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button>}<button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onClick={openScan}><ScanLine size={20} aria-hidden="true" /><span>{t("Scanează")}</span></button>}
     {demo && !setupOpen && <aside className="bf-demo-banner" role="status"><span><b>{t("Familie exemplu")}</b> · {t("datele sunt inventate")}</span><button type="button" className="bf-primary" onClick={() => void leaveDemo()}>{t("Încep cu datele mele")}</button></aside>}
     <main id="main-content" key={today} className={(setupOpen && !shopMode) || onboardingOpen ? "is-setup-main" : undefined}>{setupOpen ? (shopMode ? <Suspense fallback={null}><ShopWelcome onScan={() => { finishShopWelcome(); openScan(); }} onList={() => { finishShopWelcome(); go("list"); }} onJoin={() => { finishShopWelcome(); setMore("sync"); go("utilities"); }} onSkip={finishShopWelcome} /></Suspense> : null) : memberModeActive ? <MemberModeScreen data={data} memberId={memberMode} onChange={applyData} /> : current()}</main>
-    {undo && (
+    {/* Pe body: bara apare și peste ecranele pe tot ecranul (Bonuri, editorul bonului). */}
+    {undo && createPortal(
       <div className="bf-undo-bar" role="status" aria-live="polite">
         <span>{undo.label}</span>
         <button type="button" onClick={runUndo}><RotateCcw size={15} aria-hidden="true" /> {t("Anulează")}</button>
         <button type="button" className="bf-undo-close" aria-label={t("Închide")} onClick={() => setUndo(null)}><X size={16} /></button>
-      </div>
+      </div>, document.body,
     )}
 
     {data.pendingReview.length > 0 && <button type="button" className="bf-dock-review-badge" onClick={() => { setMore("review"); go("utilities"); }} aria-label={t("Deschide De verificat · {count}", { count: data.pendingReview.length })}><Inbox size={15} /> {t("De verificat")} · {data.pendingReview.length}</button>}
@@ -672,7 +667,8 @@ export default function Home() {
       return <button key={item.id} className={on ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerDown={() => { preloadView(item.id as MainView); void ensureDeferredStyles(); }} onClick={() => { if (item.id === "utilities") setMore("overview"); go(item.id as MainView); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span>{(item.id === "journal" || item.id === "utilities") && data.pendingReview.length > 0 ? <i className="bf-dock-dot" aria-hidden="true" /> : null}</button>;
     })}</nav>}
     {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
-    {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} /></Suspense>}
+    {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} onEdit={setEditReceipt} onDelete={deleteReceipt} /></Suspense>}
+    {shopMode && editReceipt && <Suspense fallback={null}><ReceiptReview key={editReceipt.id} mode="edit" data={data} prefill={prefillFromReceipt(editReceipt)} onCancel={() => setEditReceipt(undefined)} onSave={(review) => update((current) => applyReceiptEdit(current, editReceipt.id, review))} /></Suspense>}
     {shopMode && (costsKind === "sub" || costsKind === "bill") && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && guideOn && <Suspense fallback={null}><BonAIAssistant data={data} onChange={applyData} onClose={() => setGuideOn(false)} onGo={(screen) => { setGuideOn(false); if (screen === "scan") { openScan(); return; } if (screen === "prices") { go("products"); return; } go("list"); if (screen !== "list") window.setTimeout(() => window.dispatchEvent(new CustomEvent("bonai:list-tab", { detail: screen })), 0); }} /></Suspense>}
     
