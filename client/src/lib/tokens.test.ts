@@ -59,9 +59,9 @@ describe("plafonul de !important", () => {
     // 27.09: 3263 după scoaterea regulilor moarte (clase care nu mai apar în cod).
     // 02.10: 3241 după clasele moarte (ghidul vechi, fotografiile de bon, pastilele din Analiză) și dungile din Mai mult.
     // 03.10: 3215 după declarațiile umbrite (vezi css-shadow.test.ts), dovedite cu 163 de instantanee de stil calculat.
-    // 18.10: 3266. Designul BonAI (shop.css) trebuie să bată temele vechi marcate !important pe bara de sus/jos și butoane (+53); 57 de reguli moarte scoase (−3). Scade când temele vechi pleacă din arhivă.
+    // 18.10: 3272 (+6 bara plutitoare). Designul BonAI (shop.css) trebuie să bată temele vechi marcate !important pe bara de sus/jos și butoane (+53); 57 de reguli moarte scoase (−3). Scade când temele vechi pleacă din arhivă.
     // 07.10: 3216, butonul ales Cheltuială / Venit din Notează: fundal și text împreună (textul ajungea verde pe verde sau alb pe alb).
-    expect(count).toBeLessThanOrEqual(3266);
+    expect(count).toBeLessThanOrEqual(3272);
   });
 
   it("CSS-ul sursă nu crește: bugetul de mărime (P2-10 / D24)", () => {

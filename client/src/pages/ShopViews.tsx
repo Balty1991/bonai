@@ -73,7 +73,11 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
   const saved = useMemo(() => monthSaved(data, today), [data, today]);
   const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
   const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
+  const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
+  const hour = new Date().getHours();
+  const hello = hour < 11 ? t("Bună dimineața") : hour < 18 ? t("Bună ziua") : t("Bună seara");
   return <div className="sh-page">
+    <div className="sh-greet"><span className="sh-greet-avatar" aria-hidden="true">{(me?.name || "B").trim().charAt(0).toUpperCase()}</span><p><small>{hello}{me?.name && me.name !== "Eu" ? "," : ""}</small><b>{me?.name && me.name !== "Eu" ? me.name : t("Ce cumpărăm azi?")}</b></p></div>
     <header className="sh-hero">
       <p className="sh-kicker">{t("CUMPĂRĂTURILE TALE ÎN {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
       <h1 className="sh-big">{lei(month.spent)}</h1>

@@ -159,6 +159,15 @@ html[data-app="shop"] body .bf-app.os-shell .os-dock .os-dock-add { color: var(-
 html[data-app="shop"] body .bf-app.os-shell .os-dock .os-dock-add-disc { background-color: #5b21b6 !important; background-image: var(--bn-grad) !important; color: #fff !important; box-shadow: var(--bn-glow) !important; transform: translateY(-10px); outline: 3px solid var(--bn-bg); }
 html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .sh-page .sh-big, html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .sh-page .sh-title, html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .sh-page .sh-h1, html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .sh-page .sh-kicker, html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .sh-page .sh-list li > b { font-family: var(--bn-head) !important; }
 
+/* Bara de jos plutitoare: o pastilă de sticlă deasupra conținutului. */
+html[data-app="shop"] body .bf-app.os-shell .os-dock { left: 12px !important; right: 12px !important; bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important; border-radius: 28px !important; border: 1px solid var(--bn-edge) !important; padding: 6px 6px !important; }
+html[data-app="shop"] body .bf-app.os-shell main { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+html[data-app="shop"] .sh-greet { display: flex; align-items: center; gap: 12px; padding: 4px 2px 0; }
+html[data-app="shop"] .sh-greet p { display: grid; gap: 2px; margin: 0; }
+html[data-app="shop"] .sh-greet small { color: var(--bn-muted); font-weight: 600; }
+html[data-app="shop"] .sh-greet b { font: 700 20px/1.15 var(--bn-head); letter-spacing: -0.02em; }
+html[data-app="shop"] .sh-greet-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff; font: 700 18px/1 var(--bn-head); background-color: #5b21b6; background-image: var(--bn-grad); box-shadow: var(--bn-glow); }
+
 /* Panourile refolosite (listă, bonuri, setări) primesc aceleași jetoane. */
 html[data-app="shop"] body .bf-app.os-shell { --os-bg: var(--bn-bg); --os-surface: var(--bn-glass-strong); --os-surface-2: var(--bn-soft); --os-line: var(--bn-edge); --os-line-strong: var(--bn-edge); --os-ink: var(--bn-ink); --os-fg: var(--bn-ink); --os-muted: var(--bn-muted); --os-subtle: var(--bn-muted); --os-mint: var(--bn-accent); --os-mint-fg: #fff; --os-mint-dim: var(--bn-soft); --cf-bg: var(--bn-bg); --cf-ink: var(--bn-ink); --cf-muted: var(--bn-muted); --cf-line: var(--bn-edge); --cf-primary: var(--bn-accent); --cf-on-primary: #fff; }
 html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) :is(h1, h2, h3) { font-family: var(--bn-head) !important; letter-spacing: -0.02em; }

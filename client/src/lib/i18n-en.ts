@@ -5220,6 +5220,7 @@ export const en: Record<string, string> = {
   "1 buc": "1 pc",
   "Adaugă un produs": "Add an item",
   "CINE A CUMPĂRAT (OPȚIONAL)": "WHO BOUGHT IT (OPTIONAL)",
+  "Ce cumpărăm azi?": "What are we buying today?",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",
