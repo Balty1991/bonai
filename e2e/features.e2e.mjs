@@ -7,9 +7,10 @@
  * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
  * Rulare: node e2e/features.e2e.mjs (CHROMIUM_PATH, THEMES, ONLY=regex, SHOTS=dir opționale).
  */
-/* global document, getComputedStyle */
+/* global document, getComputedStyle, window */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright-core";
+import { contrastOffenders } from "./lib/contrast.mjs";
 
 const PORT = 5196, BASE = `http://127.0.0.1:${PORT}/`;
 const fail = (message) => { throw new Error(message); };
@@ -207,6 +208,19 @@ const FEATURES = {
     await waitFor(() => review.isVisible(), "verificarea bonului citit offline", 90_000);
     if (!/Citit pe telefon/.test(await review.innerText())) fail("rezultatul offline nu e marcat");
     await shot(page, `offline-review-${theme}`);
+  },
+  /** 7. Contrast: fiecare text de pe Acasă, Cumpărături, Prețuri, Cont și Scanează: cel puțin 4,5:1 ziua și 7:1 noaptea (3:1 la text mare). */
+  async contrast(page, theme) {
+    const bad = [];
+    const dock = page.locator(".os-dock-v2 > button");
+    for (const [label, open] of [["Acasă", () => dock.nth(0).click()], ["Cumpărături", () => dock.nth(1).click()], ["Prețuri", () => dock.nth(3).click()], ["Cont", () => dock.nth(4).click()], ["Scanează", () => dock.nth(2).click()]]) {
+      await open(); await page.waitForTimeout(900);
+      for (let y = 0; y < 4; y++) { bad.push(...(await contrastOffenders(page, "body", Number(process.env.MIN_CONTRAST || (theme === "dark" ? 7 : 4.5)))).map((x) => `${label}: ${x}`)); await page.mouse.wheel(0, 700); await page.waitForTimeout(250); }
+      await shot(page, `contrast-${label}-${theme}`);
+      await page.keyboard.press("Escape"); await page.evaluate(() => window.scrollTo(0, 0));
+    }
+    const unique = [...new Set(bad)];
+    if (unique.length) fail(`contrast sub 4,5:1 (${unique.length}):\n${unique.join("\n")}`);
   },
 };
 

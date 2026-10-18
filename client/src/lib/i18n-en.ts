@@ -5483,6 +5483,7 @@ export const en: Record<string, string> = {
   "scanări AI nelimitate, inflația ta, meniul săptămânii · {year} lei/an": "unlimited AI scans, your inflation, weekly menu · {year} lei/yr",
   "Gratuit rămân {n} scanări AI pe lună și scanarea offline pe telefon, nelimitată.": "Free keeps {n} AI scans a month plus unlimited offline scanning on the phone.",
   "Planul gratuit: {n} scanări AI pe lună, apoi scanare offline nelimitată (citită pe telefon, o verifici înainte de salvare).": "Free plan: {n} AI scans a month, then unlimited offline scanning (read on the phone, you check it before saving).",
+  "din 1 bon": "from 1 receipt",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",
