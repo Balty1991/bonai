@@ -231,7 +231,7 @@ export function StoresView({ data }: { data: AppData }) {
 
 export type Look = "light" | "dark" | "auto";
 /** Cont: profilul, BonAI Pro, bonurile și costurile casei, familia, setările. Fără unelte din aplicația veche. */
-export function HouseView({ data, onOpenMore, onOpenJournal, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; look?: Look; onLook?: (look: Look) => void }) {
+export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; onOpenCosts?: (kind: "sub" | "bill") => void; look?: Look; onLook?: (look: Look) => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
   const plan = currentBonutPlan(data, isoToday());
   const self = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -249,8 +249,8 @@ export function HouseView({ data, onOpenMore, onOpenJournal, look, onLook }: { d
       <Row icon={<ShoppingBasket size={20} />} title={t("Toate costurile")} hint={t("și cele fără bon")} onClick={onOpenJournal} />
       <Row icon={<Users size={20} />} title={t("Familie și membri")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
-      <Row icon={<Repeat size={20} />} title={t("Abonamente")} hint={t("Netflix, telefon, sală")} onClick={() => onOpenMore("recurring")} />
-      <Row icon={<Zap size={20} />} title={t("Facturi")} hint={t("curent, gaz, internet")} onClick={() => onOpenMore("recurring")} />
+      <Row icon={<Repeat size={20} />} title={t("Abonamente")} hint={t("Netflix, telefon, sală")} onClick={() => onOpenCosts?.("sub")} />
+      <Row icon={<Zap size={20} />} title={t("Facturi")} hint={t("curent, gaz, internet")} onClick={() => onOpenCosts?.("bill")} />
     </div>
     {onLook && <section className="sh-card" aria-label={t("Aspect")}><p className="sh-kicker">{t("ASPECT")}</p><div className="sh-seg" role="group" aria-label={t("Tema aplicației")}>{([["light", t("Luminos")], ["dark", t("Noapte")], ["auto", t("Automat")]] as Array<[Look, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={look === id} onClick={() => onLook(id)}>{label}</button>)}</div><p className="sh-muted sh-note">{t("Automat urmează setarea telefonului.")}</p></section>}
     <div className="sh-rows">

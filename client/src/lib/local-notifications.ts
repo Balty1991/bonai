@@ -27,6 +27,8 @@ import { loggingStreak } from "@/lib/logging-habits";
 import { partnersLoggedToday, selfLoggedToday } from "@/lib/habit-hold";
 import { notifyKindOf, readNotifyPrefs } from "@/lib/notify-prefs";
 import { warrantyReminders } from "@/lib/warranties";
+import { nextDue } from "./house-costs";
+const daysBetweenIso = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
 import { readAutoBackup } from "@/lib/auto-backup";
 
 /** Cu PIN pe aplicație, notificarea spune doar ce s-a întâmplat, fără sume sau nume. */
@@ -370,6 +372,17 @@ function buildAlerts(data: AppData): PlannedAlert[] {
         tag: `food-day-${day}`,
       });
     }
+  }
+
+  // BonAI: abonamente și facturi cu amintire aleasă (N zile înainte, la 9:00).
+  for (const item of data.recurring) {
+    if (item.active === false || !item.remindDays) continue;
+    const due = nextDue(item, today);
+    const ahead = daysBetweenIso(today, due) - item.remindDays;
+    if (ahead < 0 || ahead > 30) continue;
+    const at = atLocalHour(ahead, 9, 0);
+    if (at.getTime() <= Date.now()) continue;
+    alerts.push({ id: id++, title: t("Scadență: {name}", { name: item.name }), body: item.amount > 0 ? t("{amount}, pe {date}.", { amount: money(item.amount), date: due.split("-").reverse().join(".") }) : t("Pe {date}.", { date: due.split("-").reverse().join(".") }), at, tag: `cost-${item.id}-${due}` });
   }
 
   // Scadențe în următoarele 3 zile

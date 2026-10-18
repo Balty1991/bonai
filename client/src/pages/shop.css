@@ -322,3 +322,28 @@ html[data-app="shop"] .sh-avatar { display: grid; place-items: center; width: 52
 .bn-assist-input input { flex: 1; min-width: 0; min-height: 48px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--bn-edge); color: var(--bn-ink); background: var(--bn-glass); font: 500 15px/1 var(--bn-body); }
 .bn-assist-input input::placeholder { color: var(--bn-muted); }
 .bn-assist-input .bn-btn { flex: none; width: 52px; min-height: 48px; padding: 0; display: grid; place-items: center; }
+/* Centrul de scanare: subtitlul lizibil în ambele teme (alte foi îl înnegreau), vizorul luminos pe Luminos. */
+html body .bn-hub .bn-viewfinder .bn-vf-copy small { color: #d6daf2; opacity: 1; }
+html:not(.dark) body .bn-viewfinder { color: #1e1b4b; border-color: rgba(124, 58, 237, .35); background: radial-gradient(80% 60% at 25% 5%, rgba(167, 139, 250, .35), transparent 60%), radial-gradient(70% 50% at 90% 100%, rgba(34, 211, 238, .28), transparent 60%), linear-gradient(160deg, rgba(255, 255, 255, .92), rgba(237, 233, 254, .9)); box-shadow: 0 18px 40px rgba(124, 58, 237, .18), inset 0 1px 0 #fff; }
+html:not(.dark) body .bn-hub .bn-viewfinder .bn-vf-copy small { color: #4338ca; }
+html:not(.dark) body .bn-viewfinder .bn-vf-copy b, html:not(.dark) body .bn-viewfinder .bn-vf-copy svg { color: #1e1b4b; }
+html:not(.dark) body .bn-vf-corner { border-color: #7c3aed; }
+html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .45), 0 0 30px 6px rgba(34, 211, 238, .25); }
+.bn-costs { position: fixed; inset: 0; z-index: 2000; display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; color: var(--bn-ink); font-family: var(--bn-body); background: radial-gradient(120% 50% at 0% 0%, var(--bn-bg-glow-a), transparent 60%), var(--bn-bg); }
+.bn-costs-head { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: max(12px, env(safe-area-inset-top)) 12px 8px; text-align: center; font: 700 17px/1.2 var(--bn-head); }
+.bn-costs-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 14px; padding: 8px 16px max(24px, env(safe-area-inset-bottom)); }
+.bn-costs-hero { display: grid; gap: 6px; padding: 20px; border-radius: 24px; border: 1px solid var(--bn-edge); background: linear-gradient(150deg, var(--bn-soft), transparent 70%), var(--bn-glass); }
+.bn-costs-hero small { color: var(--bn-muted); font: 700 11px/1 var(--bn-body); letter-spacing: .08em; } .bn-costs-hero strong { font: 700 32px/1.1 var(--bn-head); } .bn-costs-hero span { color: var(--bn-muted); }
+.bn-costs-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-radius: 22px; overflow: hidden; border: 1px solid var(--bn-edge); background: var(--bn-glass); }
+.bn-costs-list li + li { border-top: 1px solid var(--bn-edge); }
+.bn-costs-list button { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 64px; padding: 10px 14px; border: 0; color: inherit; background: none; text-align: left; font: inherit; }
+.bn-costs-day { display: grid; place-items: center; height: 48px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #7c3aed, #0891b2); } .bn-costs-day b { font: 700 17px/1 var(--bn-head); } .bn-costs-day small { font-size: 10px; text-transform: uppercase; }
+.bn-costs-copy { display: grid; gap: 3px; min-width: 0; } .bn-costs-copy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bn-costs-copy small { color: var(--bn-muted); font-size: 12px; }
+.bn-costs-amount { font: 700 15px/1 var(--bn-head); white-space: nowrap; }
+.bn-costs-add { justify-self: stretch; min-height: 50px; } .bn-costs-note { margin: 0; color: var(--bn-muted); font-size: 13px; text-align: center; }
+.bn-costs-form label { display: grid; gap: 6px; } .bn-costs-form label > span { color: var(--bn-muted); font: 600 13px/1 var(--bn-body); }
+.bn-costs-form input:not([type="checkbox"]):not([type="file"]), .bn-costs-form select { min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--bn-edge); color: var(--bn-ink); background: var(--bn-glass); font: 500 16px/1 var(--bn-body); }
+.bn-costs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bn-costs-form .bn-check { display: flex; align-items: center; gap: 10px; } .bn-costs-form .bn-check > span { color: var(--bn-ink); }
+.bn-costs-form .bn-file { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px dashed var(--bn-edge); color: var(--bn-ink); } .bn-costs-form .bn-file > span { color: var(--bn-ink); } .bn-file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.bn-costs-error { margin: 0; color: #e11d48; font-weight: 600; } .bn-costs-actions { display: flex; gap: 10px; justify-content: flex-end; } .bn-costs-actions .bn-btn { min-height: 48px; padding: 0 20px; }
