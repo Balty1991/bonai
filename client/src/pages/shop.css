@@ -498,3 +498,5 @@ html.dark[data-app="shop"] .bf-confirm { background: #17132a; color: #f4f2ff; bo
 html[data-app="shop"] .bf-confirm .bf-primary { background: #5b21b6 var(--bn-grad) !important; color: #fff; border: 0; }
 html[data-app="shop"] .bf-confirm .bf-confirm-danger { color: #b91c1c; border-color: rgba(185, 28, 28, .45); background: transparent; }
 html.dark[data-app="shop"] .bf-confirm .bf-confirm-danger { color: #fca5a5; border-color: rgba(252, 165, 165, .45); }
+html[data-app="shop"] .sh-saved-big { display: block; font: 750 34px/1.1 var(--bn-head); letter-spacing: -.01em; }
+html[data-app="shop"] .sh-saved-item { margin: 0; padding-left: 0; }

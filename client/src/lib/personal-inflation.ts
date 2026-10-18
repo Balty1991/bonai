@@ -23,6 +23,8 @@ export type ProductObservation = {
   piecePrice: number;
   /** Gramajul unei bucăți în kg sau l, când se știe. */
   size?: number;
+  /** De unde vine: bonul, rândul și reducerea tipărită pe rând (deja scăzută din `paid`). */
+  receiptId?: string; lineId?: string; discount?: number;
 };
 
 const SKIP = new Set(["Rest bon", "Diferență neînregistrată", "Diferență față de bon"]);
@@ -56,6 +58,7 @@ export function productObservations(data: AppData): ProductObservation[] {
         per: known ? known.per : "buc",
         piecePrice: line.qty ? piecePrice : unit.amount,
         size: baseSize(line),
+        receiptId: receipt.id, lineId: line.id, ...(line.discount ? { discount: line.discount } : {}),
       });
     }
   }

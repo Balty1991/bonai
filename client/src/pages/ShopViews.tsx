@@ -19,7 +19,8 @@ import { idsFromTickReply, listShareLink, listShareText, whatsappShareUrl } from
 import { productObservations } from "@/lib/personal-inflation";
 import { pantryFromReceipts } from "@/lib/pantry";
 import { weeklyMenu } from "@/lib/weekly-menu";
-import { monthSaved, savedShareText, threeMonthAverage } from "@/lib/savings-summary";
+import { threeMonthAverage } from "@/lib/savings-summary";
+import { savedShareTextV2, savedWithBonAI } from "@/lib/saved-with-bonai";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
 import { BONUT_PRICES, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
@@ -70,7 +71,7 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
   const shrink = useMemo(() => shrinkflationAlerts(data, today).slice(0, 2), [data, today]);
   const warranties = useMemo(() => liveWarranties(data, today).filter((item) => item.status.state === "return" || item.status.state === "expiring").slice(0, 2), [data, today]);
   const diff = month.spent - month.lastMonthSoFar;
-  const saved = useMemo(() => monthSaved(data, today), [data, today]);
+  const savedNow = useMemo(() => savedWithBonAI(data, today), [data, today]);
   const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
   const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -86,10 +87,17 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
     </header>
 
-    {saved.saved > 0 && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri, lună de lună.")}>
-      <Card tone="accent" kicker={t("ECONOMISIT CU BONAI")} title={lei(saved.saved)}>
-        <p className="sh-muted">{t("din reducerile de pe {count} bonuri în {month}", { count: saved.receipts, month: monthName(saved.month) })}</p>
-        <button type="button" className="sh-link" onClick={() => shareSaved(savedShareText(saved.saved, monthName(saved.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>
+    {(savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
+      <Card tone="accent" kicker={t("ECONOMISIT CU BONAI · {month}", { month: monthName(savedNow.month).toLocaleUpperCase("ro-RO") })} title={<span className="sh-saved-big">{lei(savedNow.total)}</span>}>
+        <ul className="sh-list sh-saved-split">
+          {savedNow.discounts > 0 && <li><span><b>{t("Reduceri pe bon")}</b><small>{t("tipărite pe bonurile tale")}</small></span><b className="sh-down">{lei(savedNow.discounts)}</b></li>}
+          {savedNow.store > 0 && <li><span><b>{t("Magazin mai ieftin")}</b><small>{t("față de ce ai dat ultima dată în alt magazin")}</small></span><b className="sh-down">{lei(savedNow.store)}</b></li>}
+          {savedNow.drop > 0 && <li><span><b>{t("Preț mai mic")}</b><small>{t("același magazin, mai ieftin decât data trecută")}</small></span><b className="sh-down">{lei(savedNow.drop)}</b></li>}
+        </ul>
+        {savedNow.items.filter((item) => item.kind !== "discount").slice(0, 2).map((item) => <p key={`${item.label}-${item.date}-${item.vendor}`} className="sh-muted sh-saved-item">{item.kind === "drop" ? t("{label}: {amount} mai puțin la {vendor} decât data trecută", { label: item.label, amount: lei(item.amount), vendor: item.vendor }) : t("{label}: {amount} mai puțin la {vendor} decât la {was}", { label: item.label, amount: lei(item.amount), vendor: item.vendor, was: item.was!.vendor })}</p>)}
+        {savedNow.allTime > savedNow.total && <p className="sh-muted">{t("De la început: {amount}", { amount: lei(savedNow.allTime) })}</p>}
+        <p className="sh-muted sh-note">{t("Doar bani reali din bonurile tale, nimic estimat.")}</p>
+        {savedNow.total > 0 && <button type="button" className="sh-link" onClick={() => shareSaved(savedShareTextV2(savedNow.total, monthName(savedNow.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>}
       </Card>
     </ProGate>}
 

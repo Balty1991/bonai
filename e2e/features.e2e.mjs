@@ -1,0 +1,92 @@
+/**
+ * Funcțiile BonAI pe aplicația reală, cu bonuri de test (Vite + Chromium), în ambele teme, la 360 px:
+ *   1. Economisit cu BonAI pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
+ * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
+ * Rulare: node e2e/features.e2e.mjs (CHROMIUM_PATH, THEMES, ONLY=regex, SHOTS=dir opționale).
+ */
+/* global document, getComputedStyle */
+import { spawn } from "node:child_process";
+import { chromium } from "playwright-core";
+
+const PORT = 5196, BASE = `http://127.0.0.1:${PORT}/`;
+const fail = (message) => { throw new Error(message); };
+async function waitFor(check, what, timeout = 20_000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) { if (await check().catch(() => false)) return; await new Promise((r) => setTimeout(r, 300)); }
+  fail(`Timp depășit: ${what}`);
+}
+const shot = async (page, name, locator) => { if (!process.env.SHOTS) return; if (locator) await locator.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${process.env.SHOTS}/${name}.png` }); };
+const clipped = (page, selector) => page.evaluate((selector) => Array.from(document.querySelectorAll(`${selector} *`)).filter((el) => el.children.length === 0 && el.textContent.trim() && el.getBoundingClientRect().width > 0 && el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflow !== "visible").map((el) => el.textContent.trim().slice(0, 40)), selector);
+
+/** Bonuri de test: date relative la azi, ca luna curentă să aibă conținut. */
+async function seed(page) {
+  await page.evaluate(async () => {
+    const storage = await import("/src/lib/app-storage.ts");
+    const { createEmptyAppData, isoToday } = await import("/src/lib/finance-data.ts");
+    const data = await storage.readAppData() ?? createEmptyAppData();
+    const today = isoToday();
+    const day = (o) => { const d = new Date(`${today}T12:00:00`); d.setDate(d.getDate() + o); return d.toISOString().slice(0, 10); };
+    // Ziua bonurilor din luna curentă: cel mult azi, dar în aceeași lună.
+    const inMonth = (o) => { const d = day(-o); return d.slice(0, 7) === today.slice(0, 7) ? d : `${today.slice(0, 7)}-01`; };
+    const now = new Date().toISOString();
+    const L = (id, label, amount, category = "Alimente", extra = {}) => ({ id, label, amount, category, ...extra });
+    const R = (id, vendor, date, lines) => ({ id, vendor, date, category: "Cumpărături", amount: Math.round(lines.reduce((s, l) => s + l.amount, 0) * 100) / 100, lines, updatedAt: now });
+    data.receipts = [
+      R("e1", "Kaufland", day(-40), [L("k1", "Ulei Spornic 1L", 9.5), L("k2", "Lapte Zuzu 1L", 7.49), L("k3", "Pâine albă", 5.2)]),
+      R("e2", "Kaufland", day(-26), [L("k4", "Lapte Zuzu 1L", 7.49), L("k5", "Ouă 10 buc", 12.9), L("k6", "Pâine albă", 5.2)]),
+      R("e3", "Lidl", day(-12), [L("l1", "Ulei Spornic 1L", 8.0), L("l2", "Lapte Zuzu 1L", 6.99), L("l3", "Pâine albă", 5.2), L("l4", "Detergent Ariel 2L", 39.9, "Casă")]),
+      R("e4", "Lidl", inMonth(2), [L("m1", "Ulei Spornic 1L", 7.0, "Alimente", { discount: 0.5 }), L("m2", "Lapte Zuzu 1L", 6.99), L("m3", "Ouă 10 buc", 11.9), L("m4", "Pâine albă", 5.2, "Alimente", { discount: 0.6 })]),
+    ];
+    data.settings.shoppingList = [];
+    const later = new Date(Date.now() + 3_600_000).toISOString();
+    await storage.writeAppData(data, later); storage.writeLocalStorageSnapshot(JSON.stringify(data), later);
+  });
+}
+
+async function open(browser, theme) {
+  const context = await browser.newContext({ viewport: { width: 360, height: 800 }, locale: "ro-RO" });
+  await context.addInitScript((theme) => {
+    try {
+      for (const [k, v] of Object.entries({ "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:theme": theme, "buget-familie:whats-new-2026-10h": "1", "bonai:look-v1": "1", "buget-familie:theme-schedule": "manual" })) localStorage.setItem(k, v);
+      for (const key of ["catalog", "ink", "atelier", "premium", "ui-chrome"]) localStorage.setItem(`buget-familie:theme-migrated-${key}-2026-09`, "1");
+    } catch { /* about:blank */ }
+  }, theme);
+  const page = await context.newPage();
+  const errors = []; page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto(BASE); await page.waitForTimeout(1200);
+  await seed(page); await page.reload(); await page.waitForTimeout(2000);
+  return { context, page, errors };
+}
+const expected = (page) => page.evaluate(async () => { const { savedWithBonAI } = await import("/src/lib/saved-with-bonai.ts"); const s = await import("/src/lib/app-storage.ts"); const { isoToday } = await import("/src/lib/finance-data.ts"); return savedWithBonAI(await s.readAppData(), isoToday()); });
+const leiRo = (v) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const FEATURES = {
+  /** 1. Contorul de pe Acasă arată exact suma calculată din bonuri și defalcarea ei. */
+  async saved(page, theme) {
+    const want = await expected(page);
+    if (!(want.total > 0)) fail(`datele de test ar trebui să dea economii, nu ${want.total}`);
+    const card = page.locator(".sh-card", { hasText: "ECONOMISIT CU BONAI" }).first();
+    await waitFor(() => card.isVisible(), "cardul Economisit cu BonAI");
+    const text = await card.innerText();
+    if (!text.includes(leiRo(want.total))) fail(`cardul nu arată ${leiRo(want.total)}: ${text}`);
+    for (const [label, value] of [["Reduceri pe bon", want.discounts], ["Magazin mai ieftin", want.store], ["Preț mai mic", want.drop]]) if (value > 0 && !text.includes(label)) fail(`lipsește „${label}”`);
+    await shot(page, `saved-${theme}`, card);
+    const cut = await clipped(page, ".sh-card");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+  },
+};
+
+const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+try {
+  await waitFor(async () => (await fetch(BASE)).ok, "Vite", 60_000);
+  const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
+  for (const theme of (process.env.THEMES || "white,dark").split(",")) for (const [name, run] of Object.entries(FEATURES)) {
+    if (only && !only.test(name)) continue;
+    const { context, page, errors } = await open(browser, theme);
+    try { await run(page, theme); } catch (error) { throw new Error(`${name} (${theme}): ${error.message}`, { cause: error }); }
+    if (errors.length) fail(`${name} (${theme}): erori în pagină: ${errors.join("; ")}`);
+    await context.close();
+  }
+  console.log(`✓ Funcțiile BonAI: ${Object.keys(FEATURES).join(", ")}.`);
+} finally { await browser.close(); vite.kill(); }

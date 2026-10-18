@@ -21,6 +21,7 @@
     "test:review-scroll": "node e2e/review-scroll.e2e.mjs",
     "test:barcode": "node e2e/barcode.e2e.mjs",
     "test:receipt-edit": "node e2e/receipt-edit.e2e.mjs",
+    "test:features": "node e2e/features.e2e.mjs",
     "test:sync": "firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\"",
     "test:sync:current": "E2E_RULES=auth firebase emulators:exec --config firebase.e2e.auth.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\""
   },

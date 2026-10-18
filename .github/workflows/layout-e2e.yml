@@ -63,3 +63,6 @@ jobs:
       - name: Verifică editarea și ștergerea bonului
         timeout-minutes: 5
         run: pnpm test:receipt-edit
+      - name: Verifică funcțiile BonAI (economisit, listă, ți se termină, reduceri, ce urmează, scanare offline)
+        timeout-minutes: 8
+        run: pnpm test:features
