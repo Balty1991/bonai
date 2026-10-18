@@ -412,3 +412,16 @@ html:not(.dark) .bn-scan-term li b { color: #0e7490; }
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 { display: flex; gap: 2px; }
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button { flex: 1 1 auto; min-width: max-content; width: auto; padding-inline: 7px; }
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button span { white-space: nowrap; }
+/* Ecranul de analiză încape în 100dvh, fără derulare: bonul virtual se micșorează, jurnalul arată ultimele rânduri, mesajul de stare rămâne vizibil. */
+.bn-scan-hub .bn-review-scroll:has(.bn-scan) { display: flex; flex-direction: column; overflow: hidden; gap: 10px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.bn-scan-hub .bf-scan-receipt:has(.bn-scan) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.bn-scan-hub .bn-scan { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.bn-scan-hub .bn-scan-title { flex: none; font-size: 17px; }
+.bn-scan-hub .bn-scan-thumbs, .bn-scan-hub .bn-scan-stages { flex: none; }
+.bn-scan-hub .bn-scan-thumbs li { flex-basis: 36px; height: 46px; }
+.bn-scan-hub .bn-scan-stage { flex: 1 1 auto; min-height: 120px; overflow: hidden; padding: 8px; align-items: start; }
+.bn-scan-hub .bn-vr { max-height: 100%; display: flex; flex-direction: column; }
+.bn-scan-hub .bn-vr-lines { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.bn-scan-hub .bn-scan-term { flex: none; min-height: 0; max-height: none; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px 12px; }
+.bn-scan-hub .bf-scan-receipt-busy { flex: none; margin: 0; }
+@media (max-height: 700px) { .bn-scan-hub .bn-scan { padding: 10px; gap: 8px; } .bn-scan-hub .bn-scan-stages li { font-size: 11px; } .bn-scan-hub .bn-vr { padding: 10px 12px; } .bn-scan-hub .bn-vr-lines { gap: 5px; } }

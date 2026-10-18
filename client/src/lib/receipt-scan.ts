@@ -244,12 +244,28 @@ function detectRotation(source: CanvasImageSource, width: number, height: number
   }
 }
 
+const yieldToFrame = () => new Promise<void>((resolve) => { if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => setTimeout(resolve, 0)); else setTimeout(resolve, 0); });
+
+function canvasToJpegDataUrl(canvas: HTMLCanvasElement, quality: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (typeof canvas.toBlob !== "function") { resolve(canvas.toDataURL("image/jpeg", quality)); return; }
+    canvas.toBlob((blob) => {
+      if (!blob) { resolve(canvas.toDataURL("image/jpeg", quality)); return; }
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error(t("Poza nu s-a putut pregăti.")));
+      reader.readAsDataURL(blob);
+    }, "image/jpeg", quality);
+  });
+}
+
 /** Poza micșorată pe telefon și pusă drept: bonul rămâne lizibil, dar pleacă repede și costă puțin. */
 export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
   const image = await decodeReceiptPhoto(file);
   try {
     // Orientarea se decide după text (OCR pe 0/180°, plus 90/270° la poze culcate); fără OCR, portretul rămâne neatins.
     const byText = await detectRotationByText(image.source, image.width, image.height);
+    await yieldToFrame();
     const rotation = byText ?? (image.width > image.height ? detectRotation(image.source, image.width, image.height) : 0);
     const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
     const w = Math.max(1, Math.round(image.width * scale));
@@ -263,10 +279,12 @@ export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<
     context.translate(canvas.width / 2, canvas.height / 2);
     context.rotate((rotation * Math.PI) / 180);
     context.drawImage(image.source, -w / 2, -h / 2, w, h);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    // Codarea JPEG asincronă (toBlob + FileReader), nu toDataURL: firul principal rămâne liber, animația nu sacadează.
+    await yieldToFrame();
+    const dataUrl = await canvasToJpegDataUrl(canvas, 0.85);
     canvas.width = 0;
     canvas.height = 0;
-    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg", rotation, preview: dataUrl };
+    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg", rotation };
   } finally {
     image.close();
   }
