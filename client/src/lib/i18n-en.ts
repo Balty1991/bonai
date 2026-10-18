@@ -3417,6 +3417,8 @@ export const en: Record<string, string> = {
   "Abonamentul se cumpără din aplicația de pe Android (Google Play).": "The subscription is bought from the Android app (Google Play).",
   "Google Play nu a trimis confirmarea cumpărării.": "Google Play didn't send the purchase confirmation.",
   "Familia e activă. Mulțumim!": "Family is active. Thank you!",
+  "{lines} citite": "{lines} read",
+  "Am citit {products}": "I read {products}",
   "Cifrele de sub codul de bare": "The digits under the barcode",
   "Caută produsul": "Find the product",
   "Rate pe lună: {monthly} · {debts}": "Monthly payments: {monthly} · {debts}",
