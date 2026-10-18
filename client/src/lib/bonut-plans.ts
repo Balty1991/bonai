@@ -1,5 +1,5 @@
 /**
- * Planurile Bonuț (docs/ARHITECTURA.md §9). Logică pură, fără Play: cine e GRATUIT, PRO sau FAMILIE,
+ * Planurile BonAI (docs/ARHITECTURA.md §9). Logică pură, fără Play: cine e GRATUIT, PRO sau FAMILIE,
  * câte scanări mai are luna asta și când pornește proba de 14 zile (după al 3-lea bon).
  * Plata reală rămâne în billing.ts, oprită cât BILLING_LIVE e false (produsele se creează în Play Console).
  */

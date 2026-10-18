@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Widgetul Bonuț: primele produse din lista de cumpărături, câte mai sunt și scanarea
+ * Widgetul BonAI: primele produse din lista de cumpărături, câte mai sunt și scanarea
  * bonului dintr-o atingere. Nu calculează nimic: arată ce publică aplicația. Fără sume.
  */
 public class ShoppingWidgetProvider extends AppWidgetProvider {

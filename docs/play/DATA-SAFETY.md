@@ -21,5 +21,5 @@
 
 ## Pași manuali (Alin)
 1. Play Console → Conținutul aplicației → Siguranța datelor: completează conform tabelului.
-2. Publică politica de confidențialitate actualizată (Bonuț) și URL-ul de ștergere a contului.
+2. Publică politica de confidențialitate actualizată (BonAI) și URL-ul de ștergere a contului.
 3. Verifică termenii furnizorului AI (retenție zero / procesator).

@@ -1,14 +1,19 @@
 # Changelog
 
-## 2.0.0 — Bonuț
+## 2.0.2 — BonAI
 
-Aplicația devine **Bonuț**, lista de cumpărături care îți arată cât economisești (docs/ARHITECTURA.md).
+- Numele aplicației devine **BonAI** (fost Bonuț în 2.0.0–2.0.1): titlu, launcher, widget, pagina listei partajate, texte.
+- Identificatorii interni (appId, SKU-urile bonut_pro / bonut_familie, numele fișierelor) rămân neschimbați; datele nu se ating.
+
+## 2.0.0 — BonAI
+
+Aplicația devine **BonAI**, lista de cumpărături care îți arată cât economisești (docs/ARHITECTURA.md).
 
 - Nume, icon (bonul zimțat cu bifă) și culori noi; bara de jos: Acasă · Cumpărături · Scanează · Prețuri · Gospodărie.
 - Lista familiei gratuită, trimisă pe WhatsApp ca link web pe care îl bifează și cine nu are aplicația (l.html).
 - Cămara din bonuri și Meniul săptămânii (cost doar din prețurile tale).
 - Codul de bare în magazin (ML Kit): cât ai dat ultima dată și unde a fost mai ieftin.
-- Acasă: media pe 3 luni, „Economisit cu Bonuț” (reducerile de pe bonuri), distribuire.
+- Acasă: media pe 3 luni, „Economisit cu BonAI” (reducerile de pe bonuri), distribuire.
 - Planurile Gratuit / Pro / Familie și paywall-ul în context (plata încă oprită: totul deschis).
 - Widget Android cu lista și scanarea dintr-o atingere.
 - Bugetul vechi devine Arhiva veche, doar citire, exportabilă; migrarea la schema 2 face înainte o copie completă pe telefon. Nicio dată nu se șterge.

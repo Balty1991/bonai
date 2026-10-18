@@ -1,7 +1,7 @@
 /**
  * Arhiva veche (doar citire): tot ce ținea de buget — plicuri, conturi și solduri, venituri,
  * transferuri, datorii, obiective de economii, bani de buzunar — extras ca fișier, fără să atingă datele.
- * Retransformarea în Bonuț nu șterge nimic; arhiva e copia pe care omul o poate păstra oricând.
+ * Retransformarea în BonAI nu șterge nimic; arhiva e copia pe care omul o poate păstra oricând.
  */
 import type { AppData } from "./finance-data";
 

@@ -1,5 +1,5 @@
 /**
- * Migrarea versionată la Bonuț (schema 2): cheltuielile devin „costuri”, bugetul vechi devine arhivă.
+ * Migrarea versionată la BonAI (schema 2): cheltuielile devin „costuri”, bugetul vechi devine arhivă.
  * Nu modifică AppData: costurile sunt aceleași înregistrări (eticheta se schimbă în interfață), iar
  * câmpurile vechi rămân în pachet (sync și export merg ca înainte). Înainte de a marca schema 2,
  * salvează o copie completă în IndexedDB („bonut-backups”), de unde se poate reveni oricând.
@@ -14,7 +14,7 @@ export const PRE_MIGRATION_ID = "pre-schema-2";
 
 export type CostView = { id: string; title: string; amount: number; date: string; category: string; receiptId?: string };
 
-/** Ce vede Bonuț ca „costuri”: doar cheltuielile reale (fără venituri și fără transferuri între conturi). */
+/** Ce vede BonAI ca „costuri”: doar cheltuielile reale (fără venituri și fără transferuri între conturi). */
 export function costsOf(data: AppData): CostView[] {
   const receiptByTx = new Map(data.receipts.map((r) => [r.linkedTransactionId, r.id]));
   return data.transactions

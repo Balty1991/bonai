@@ -17,6 +17,6 @@ describe("rezumatul lunii", () => {
     expect(threeMonthAverage(data, "2026-10-18")).toEqual({ average: 200, months: 2 });
   });
   it("textul de distribuit", () => {
-    expect(savedShareText(12.5, "octombrie", "https://x")).toBe("În octombrie am economisit 12,50 lei din reducerile de pe bonuri, urmărite cu Bonuț. https://x");
+    expect(savedShareText(12.5, "octombrie", "https://x")).toBe("În octombrie am economisit 12,50 lei din reducerile de pe bonuri, urmărite cu BonAI. https://x");
   });
 });

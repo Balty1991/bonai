@@ -1,4 +1,4 @@
-/* Lista partajată din Bonuț: datele vin din fragmentul adresei (#…), bifele stau în localStorage. */
+/* Lista partajată din BonAI: datele vin din fragmentul adresei (#…), bifele stau în localStorage. */
 /* global atob, TextDecoder, location, document, localStorage, window */
 (function () {
   "use strict";

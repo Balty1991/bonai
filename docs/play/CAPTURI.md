@@ -11,5 +11,5 @@ Ordinea contează: primele 3 apar în căutare. Folosește o familie demo, nu da
 7. **Cămară / Meniu** — meniul săptămânii. Titlu: „Meniu și cămară, legate de listă”.
 8. **Widget** — ecranul de pornire cu widgetul listei. Titlu: „Lista pe ecranul principal”.
 
-Grafică recomandată (feature graphic, 1024×500): iconul Bonuț + „Bonurile tale, prețuri reale”.
+Grafică recomandată (feature graphic, 1024×500): iconul BonAI + „Bonurile tale, prețuri reale”.
 Generare: `pnpm dev`, Chrome DevTools pe Pixel 7, cu un profil demo importat din backup.

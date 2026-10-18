@@ -11,7 +11,7 @@ const EVENT = "buget-familie:app-mode";
 
 /**
  * „budget” = vizita în Arhiva veche, doar citire. Ține doar cât sesiunea (sessionStorage): la repornire
- * aplicația e mereu Bonuț. Vechea preferință din localStorage se ignoră și se șterge.
+ * aplicația e mereu BonAI. Vechea preferință din localStorage se ignoră și se șterge.
  */
 /** Doar pentru testele cap-coadă vechi (e2e/): bugetul rămâne scriibil și persistent. Nu se setează din aplicație. */
 const LEGACY_TEST_KEY = "buget-familie:legacy-writable";

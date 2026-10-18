@@ -171,7 +171,7 @@ export function publishWeek(payload: WeekWidget): void {
   }
 }
 
-/** Widgetul Bonuț: primele produse din listă (doar text, fără sume) și câte mai sunt. */
+/** Widgetul BonAI: primele produse din listă (doar text, fără sume) și câte mai sunt. */
 export type ShoppingWidget = { items: string[]; count: string };
 
 export function shoppingWidgetData(todo: ReadonlyArray<{ text: string }>, countLabel: (n: number) => string): ShoppingWidget {

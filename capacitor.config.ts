@@ -1,16 +1,16 @@
-/** Wrapper Android Capacitor — Bonuț (fost Buget Familie) păstrează același build web ca GitHub Pages. */
+/** Wrapper Android Capacitor — BonAI (fost Buget Familie) păstrează același build web ca GitHub Pages. */
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "ro.balty1991.bugetfamilie",
-  appName: "Bonuț",
+  appName: "BonAI",
   webDir: "dist/public",
   android: {
     backgroundColor: "#E4E9E6",
     adjustMarginsForEdgeToEdge: "disable",
   },
   plugins: {
-    // Iconul mic al notificării: bonul Bonuț, colorat ca în launcher.
+    // Iconul mic al notificării: bonul BonAI, colorat ca în launcher.
     LocalNotifications: {
       smallIcon: "ic_stat_notify",
       iconColor: "#0F7B5F",

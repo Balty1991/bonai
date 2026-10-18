@@ -1,5 +1,5 @@
 /**
- * Lista trimisă pe WhatsApp: text simplu, cu bife, plus invitația spre Bonuț.
+ * Lista trimisă pe WhatsApp: text simplu, cu bife, plus invitația spre BonAI.
  * Linkul web: lista e codată în fragmentul adresei (#…), deci merge pe GitHub Pages fără server și
  * nu ajunge în jurnalele niciunui server. Cine îl primește bifează în browser (bifele rămân la el) și
  * poate trimite înapoi pe WhatsApp ce a luat. Sincronizarea live a bifelor e pasul următor (Firestore).

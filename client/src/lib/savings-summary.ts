@@ -45,5 +45,5 @@ export function threeMonthAverage(data: AppData, today: string): { average: numb
 
 export function savedShareText(saved: number, monthName: string, link: string): string {
   const amount = saved.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `În ${monthName} am economisit ${amount} lei din reducerile de pe bonuri, urmărite cu Bonuț. ${link}`;
+  return `În ${monthName} am economisit ${amount} lei din reducerile de pe bonuri, urmărite cu BonAI. ${link}`;
 }

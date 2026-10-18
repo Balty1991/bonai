@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { effectivePlan, hasFeature, scansLeft, trialDaysLeft, trialStart, yearlySavingPercent } from "./bonut-plans";
 
-describe("planurile Bonuț", () => {
+describe("planurile BonAI", () => {
   it("lista, partajarea și codul de bare sunt gratuite; inflația și meniul sunt PRO; garanțiile sunt FAMILIE", () => {
     expect(hasFeature("free", "listShare")).toBe(true);
     expect(hasFeature("free", "barcode")).toBe(true);

@@ -1,19 +1,20 @@
-# Listare Google Play — Bonuț (RO)
+# Listare Google Play — BonAI (RO)
 
-## Nume aplicație (max 30)
-Bonuț – bonuri și cumpărături
+## Nume aplicație (max 30 caractere în Play)
+Dorit: „BonAI: Scanare bonuri și listă de cumpărături” (45 caractere, peste limita de 30 a Play Console).
+Variantă care încape: **BonAI: bonuri și cumpărături** (28). Restul cuvintelor-cheie stau în descrierea scurtă.
 
 ## Descriere scurtă (max 80)
 Scanezi bonul, vezi unde e mai ieftin și faci lista pentru toată familia.
 
 ## Descriere completă (max 4000)
-Bonuț transformă bonurile tale de la magazin în informații utile pentru gospodărie.
+BonAI transformă bonurile tale de la magazin în informații utile pentru gospodărie.
 
 📸 SCANEZI BONUL
-Fă o poză bonului fiscal. Bonuț citește magazinul, data, produsele, cantitățile și prețurile. Tu verifici și salvezi. Dacă ai scanat deja același bon, te avertizăm ca să nu-l numeri de două ori.
+Fă o poză bonului fiscal. BonAI citește magazinul, data, produsele, cantitățile și prețurile. Tu verifici și salvezi. Dacă ai scanat deja același bon, te avertizăm ca să nu-l numeri de două ori.
 
 🏷️ PREȚURILE TALE, NU ALE NIMĂNUI ALTCUIVA
-Fiecare preț din Bonuț vine de pe un bon real scanat de familia ta. Nu inventăm prețuri. Vezi cât ai plătit ultima dată pe un produs, la ce magazin, și dacă prețul a crescut.
+Fiecare preț din BonAI vine de pe un bon real scanat de familia ta. Nu inventăm prețuri. Vezi cât ai plătit ultima dată pe un produs, la ce magazin, și dacă prețul a crescut.
 
 🛒 LISTA DE CUMPĂRĂTURI A FAMILIEI
 O singură listă, sincronizată criptat între telefoanele familiei. Trimite lista pe WhatsApp cu un link — cine merge la magazin o deschide în browser, fără cont și fără aplicație.
@@ -36,4 +37,4 @@ Ai folosit Buget Familie? Datele vechi sunt păstrate într-o „Arhivă veche�
 Cumpărături (Shopping). Etichete: listă cumpărături, bonuri, prețuri.
 
 ## Ce e nou în 2.0.0
-Buget Familie devine Bonuț: scanare de bonuri, prețuri din bonurile tale, listă comună cu link WhatsApp, cămară, meniu, cod de bare și widget. Datele vechi sunt păstrate în Arhiva veche.
+Buget Familie devine BonAI (2.0.2: numele nou BonAI): scanare de bonuri, prețuri din bonurile tale, listă comună cu link WhatsApp, cămară, meniu, cod de bare și widget. Datele vechi sunt păstrate în Arhiva veche.

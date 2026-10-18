@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Bonuț</string>
-    <string name="title_activity_main">Bonuț</string>
+    <string name="app_name">BonAI</string>
+    <string name="title_activity_main">BonAI</string>
     <string name="package_name">ro.balty1991.bugetfamilie</string>
     <string name="custom_url_scheme">ro.balty1991.bugetfamilie</string>
-    <string name="widget_title">Bonuț</string>
+    <string name="widget_title">BonAI</string>
     <string name="widget_subtitle">Notează acum, verifici mai târziu</string>
     <string name="widget_expense">Cheltuială</string>
     <string name="widget_receipt">Bon</string>
@@ -19,7 +19,7 @@
     <string name="widget_env_title">Plicurile mele · rămași</string>
     <string name="widget_env_empty">Deschide aplicația o dată ca să apară plicurile.</string>
     <string name="widget_env_description">Arată pe ecranul principal primele trei plicuri: cât a rămas în fiecare și cât s-a consumat.</string>
-    <string name="widget_shop_title">Lista · Bonuț</string>
+    <string name="widget_shop_title">Lista · BonAI</string>
     <string name="widget_shop_empty">Lista e goală. Adaugă din aplicație.</string>
     <string name="widget_shop_scan">Scanează bonul</string>
     <string name="widget_shop_description">Lista de cumpărături a familiei pe ecranul principal și scanarea bonului dintr-o atingere.</string>

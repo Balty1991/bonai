@@ -4,7 +4,7 @@ import { costsOf, needsMigration, rollbackSchema, runBonutMigration, storedSchem
 
 const memory = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); } }; };
 
-describe("migrarea la Bonuț", () => {
+describe("migrarea la BonAI", () => {
   it("costurile sunt doar cheltuielile, cu bonul legat", () => {
     const data = createEmptyAppData();
     data.transactions.push(

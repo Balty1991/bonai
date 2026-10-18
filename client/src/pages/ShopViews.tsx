@@ -81,7 +81,7 @@ export function ShopHome({ data, onScan, onOpenProducts, onOpenStores, onOpenMor
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
     </header>
 
-    {saved.saved > 0 && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu Bonuț")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri, lună de lună.")}>
+    {saved.saved > 0 && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri, lună de lună.")}>
       <Card tone="accent" kicker={t("ECONOMISIT CU BONUȚ")} title={lei(saved.saved)}>
         <p className="sh-muted">{t("din reducerile de pe {count} bonuri în {month}", { count: saved.receipts, month: monthName(saved.month) })}</p>
         <button type="button" className="sh-link" onClick={() => shareSaved(savedShareText(saved.saved, monthName(saved.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>
@@ -249,7 +249,7 @@ export function ShopWelcome({ onScan, onList, onJoin, onSkip }: { onScan: () => 
     [<ListChecks size={22} key="list" />, t("Lista familiei, gratuit"), t("Comună pe toate telefoanele, cu prețul estimat din bonurile voastre. O trimiți pe WhatsApp și se bifează și fără aplicație.")],
     [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
     [<Store size={22} key="store" />, t("Verifici prețul în magazin"), t("Scanezi codul de bare și vezi cât ai dat ultima dată și unde a fost mai ieftin.")],
-    [<Sparkles size={22} key="pro" />, t("Inflația ta și cât economisești"), t("După al {n}-lea bon primești {days} zile de Bonuț Pro gratuit.", { n: TRIAL_AFTER_RECEIPTS, days: TRIAL_DAYS })],
+    [<Sparkles size={22} key="pro" />, t("Inflația ta și cât economisești"), t("După al {n}-lea bon primești {days} zile de BonAI Pro gratuit.", { n: TRIAL_AFTER_RECEIPTS, days: TRIAL_DAYS })],
   ];
   return <div className="sh-page sh-welcome">
     <header className="sh-hero">
