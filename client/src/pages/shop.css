@@ -606,3 +606,6 @@ html[data-app="shop"] .bn-store-pill { min-width: 0; }
 /* Inelul de focus doar la tastatură: după o atingere (tab, buton) nu mai rămâne un chenar rătăcit. */
 html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [role="tab"]:focus:not(:focus-visible), html[data-app="shop"] a:focus:not(:focus-visible) { outline: none; }
 html[data-app="shop"] .sh-tabs:focus-within { outline: none; }
+/* „Sari la conținut”: ascuns complet până la Tab, apoi țintă de 44 px. */
+html[data-app="shop"] .bf-skip-link:not(:focus):not(:focus-visible) { position: absolute !important; left: -10000px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip-path: inset(50%) !important; }
+html[data-app="shop"] .bf-skip-link:is(:focus, :focus-visible) { min-height: 44px; display: inline-flex !important; align-items: center; }
