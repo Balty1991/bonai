@@ -364,9 +364,11 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 .bn-stats-total { display: grid; gap: 4px; } .bn-stats-total strong { font: 700 30px/1.1 var(--bn-head); color: var(--bn-ink); } .bn-stats-total small { color: var(--bn-muted); }
 .bn-stats-chart { display: flex; align-items: flex-end; gap: 3px; height: 150px; padding-top: 6px; }
 .bn-stats-chart > span { position: relative; display: grid; flex: 1; height: 100%; align-items: end; justify-items: center; } .bn-stats-chart.is-week > span, .bn-stats-chart.is-year > span, .bn-stats-chart.is-day > span { gap: 4px; }
-.bn-stats-chart i { display: block; width: 100%; max-width: 28px; height: calc(100% - 18px); border-radius: 6px 6px 3px 3px; transform-origin: bottom; background: linear-gradient(180deg, #22d3ee, #7c3aed); animation: bn-grow .55s cubic-bezier(.2, .8, .2, 1) both; }
-.bn-stats-chart small { position: absolute; bottom: -2px; color: var(--bn-muted); font-size: 10px; } .bn-stats-chart { padding-bottom: 16px; }
+.bn-stats-chart i { display: block; width: 100%; max-width: 28px; height: 100%; border-radius: 6px 6px 3px 3px; transform-origin: bottom; background: linear-gradient(180deg, #22d3ee, #7c3aed); animation: bn-grow .55s cubic-bezier(.2, .8, .2, 1) both; }
+.bn-stats-chart small { position: absolute; bottom: -16px; color: var(--bn-muted); font-size: 10px; } .bn-stats-chart { padding-bottom: 16px; }
 @keyframes bn-grow { from { opacity: 0; scale: 1 0; } to { opacity: 1; scale: 1 1; } }
 .bn-stats-cats { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; } .bn-stats-cats li { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; color: var(--bn-ink); font-size: 13px; }
 .bn-stats-cats i { height: 8px; border-radius: 8px; transform-origin: left; background: linear-gradient(90deg, #7c3aed, #22d3ee); transition: transform .5s ease; } .bn-stats-cats span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .bn-stats-chart i { animation: none; } }
+html[data-app="shop"] .bf-danger-zone { padding: 4px 0 24px; background: none; border: 0; box-shadow: none; }
+html[data-app="shop"] .bf-danger-zone .bf-danger { width: 100%; min-height: 48px; border-radius: 16px; border: 1px solid rgb(239 68 68 / .45); background: rgb(239 68 68 / .1); color: #ef4444; font-weight: 700; }
