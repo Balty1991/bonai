@@ -603,3 +603,6 @@ html[data-app="shop"] .bn-costs-copy, html[data-app="shop"] .sh-list li > span {
 html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[data-app="shop"] .sh-list li > span > b { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 html[data-app="shop"] .bn-store-pill { min-width: 0; }
+/* Inelul de focus doar la tastatură: după o atingere (tab, buton) nu mai rămâne un chenar rătăcit. */
+html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [role="tab"]:focus:not(:focus-visible), html[data-app="shop"] a:focus:not(:focus-visible) { outline: none; }
+html[data-app="shop"] .sh-tabs:focus-within { outline: none; }

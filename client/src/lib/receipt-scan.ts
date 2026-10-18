@@ -331,10 +331,19 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   if (token) headers["X-Firebase-AppCheck"] = token;
   if (identity) headers.Authorization = identity;
   const body = JSON.stringify({ ...(images.length === 1 ? { image: images[0].data, mimeType: images[0].mimeType } : { images }), categories, receiptCount: context.receiptCount ?? 0, ...(context.roomId ? { roomId: context.roomId } : {}) });
-  const send = () => fetch(ENDPOINT, { method: "POST", headers, body, signal: AbortSignal.timeout(images.length > 1 ? 120_000 : 95_000) });
+  const send = (limit = images.length > 1 ? 120_000 : 95_000) => fetch(ENDPOINT, { method: "POST", headers, body, signal: AbortSignal.timeout(limit) });
   let response: Response;
   try {
-    response = await send();
+    // Un bon se citește de obicei în 3–6 s. Dacă cererea atârnă (ex. funcția tocmai se republică),
+    // după ~15 s o trimitem încă o dată, automat; a doua oară primește tot timpul.
+    const hang = images.length > 1 ? 25_000 : 15_000;
+    try {
+      response = await send(hang);
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "TimeoutError")) throw error;
+      console.info("[BonAI] scanare: fără răspuns în", hang, "ms, reîncerc o dată");
+      response = await send();
+    }
     // Token expirat sau identitate încă neconfirmată: o singură reîncercare automată, cu token proaspăt.
     if (response.status === 401 && (await response.clone().json().catch(() => ({})) as { code?: string }).code === "identity") {
       const again = await freshAuthHeader(true);
