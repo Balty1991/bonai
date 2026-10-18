@@ -8,7 +8,7 @@ import { candidateRotations, chooseByText, chooseLandscape, ocrScore, type Rotat
 type Worker = { recognize: (image: HTMLCanvasElement) => Promise<{ data: { text: string; confidence: number } }>; terminate: () => Promise<unknown> };
 let workerPromise: Promise<Worker> | undefined;
 
-function getWorker(): Promise<Worker> {
+export function getWorker(): Promise<Worker> {
   // Totul vine din aplicație (public/ocr), nu de pe un CDN: merge offline și pornește repede.
   const base = `${import.meta.env.BASE_URL || "/"}ocr/`;
   workerPromise ??= import("tesseract.js").then(({ createWorker }) => createWorker("eng", 1, { workerPath: `${base}worker.min.js`, corePath: base, langPath: base.replace(/\/$/, ""), gzip: true, workerBlobURL: false }) as unknown as Promise<Worker>).catch((error) => { workerPromise = undefined; throw error; });

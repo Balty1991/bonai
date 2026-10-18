@@ -64,3 +64,13 @@ export function yearlySavingPercent(plan: Exclude<BonutPlan, "free">): number {
   const { month, year } = BONUT_PRICES[plan];
   return Math.round((1 - year / (month * 12)) * 100);
 }
+
+/** Scanările AI făcute pe acest telefon (date AAAA-LL-ZZ). Cele offline nu se numără. */
+export const AI_SCANS_KEY = "bonai:ai-scans-v1";
+export function readAiScans(storage: Pick<Storage, "getItem"> = window.localStorage): string[] {
+  try { const list = JSON.parse(storage.getItem(AI_SCANS_KEY) || "[]"); return Array.isArray(list) ? list.filter((d): d is string => typeof d === "string") : []; } catch { return []; }
+}
+export function recordAiScan(today: string, storage: Pick<Storage, "getItem" | "setItem"> = window.localStorage) {
+  const list = [...readAiScans(storage).filter((d) => d.slice(0, 7) >= today.slice(0, 7)), today];
+  try { storage.setItem(AI_SCANS_KEY, JSON.stringify(list)); } catch { /* fără stocare */ }
+}

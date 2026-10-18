@@ -1,3 +1,4 @@
+import { askConfirm } from "@/lib/confirm-dialog";
 import { useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -46,7 +47,13 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   const previous = useMemo(() => data.receipts.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [data.receipts, store, date]);
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
   const addRow = (row?: Partial<ReviewRow>) => { const key = `m${Date.now()}`; setRows((list) => [...list, { key, label: "", raw: "", qty: 1, amount: 0, discount: 0, category: categories[0] || "Alimente", manual: true, ...row }]); if (!row) setEditing(key); };
-  const save = () => { const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
+  const save = async () => {
+    // Citit offline: un total care nu se potrivește nu se salvează fără să întrebăm.
+    if (prefill.readBy === "offline" && gap !== 0 && printed > 0) {
+      const ok = await askConfirm(t("Produsele fac {sum}, dar pe bon scrie {printed}. Salvez {sum}? Poți corecta rândurile înainte.", { sum: lei(total), printed: lei(printed) }), { title: t("Totalul nu se potrivește"), confirmLabel: t("Salvez {sum}", { sum: lei(total) }) });
+      if (!ok) return;
+    }
+    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
 
   if (saved) {
     const split = groupRows(saved.rows);
@@ -77,6 +84,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
         <p className="sh-kicker">{fmtDate(date)}{prefill.store?.time ? ` · ${prefill.store.time}` : ""}{prefill.store?.city ? ` · ${prefill.store.city}` : ""}</p>
         <p className="bn-review-total">{lei(total)}</p>
         <div className="bn-chips">
+          {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
           <span className="bn-chip">{rows.length === 1 ? t("1 produs") : t("{count} produse", { count: rows.length })}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
           {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {printed > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
@@ -115,7 +123,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
     <footer className="bn-review-bar">
       <div className="bn-bar-total"><small>{t("Total")}</small><b>{lei(total)}</b></div>
       <button type="button" className="bn-btn" onClick={onCancel}><X size={16} aria-hidden="true" /> {t("Anulează")}</button>
-      <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={save}>{editMode ? t("Salvează modificările") : t("Salvează bonul")}</button>
+      <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={() => void save()}>{editMode ? t("Salvează modificările") : t("Salvează bonul")}</button>
     </footer>
   </div></Layer>;
 }

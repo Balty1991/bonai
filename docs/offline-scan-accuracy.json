@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "receipts": 5,
+    "totalExact": 2,
+    "itemsSumExact": 1,
+    "usableWithoutEdit": 0,
+    "flaggedForReview": 5,
+    "silentWrong": 0,
+    "aiReference": "receipt-smoke cere total exact pe toate"
+  },
+  "rows": [
+    {
+      "receipt": "crumpled-44.58.jpg",
+      "expected": 44.58,
+      "store": "",
+      "total": 44.58,
+      "items": 9,
+      "sum": 36.67,
+      "warning": true,
+      "prefillAmount": 44.58,
+      "totalOk": true,
+      "sumOk": false,
+      "ms": 2608
+    },
+    {
+      "receipt": "familia-57.30.jpg",
+      "expected": 57.3,
+      "store": "",
+      "total": 0,
+      "items": 10,
+      "sum": 41.28,
+      "warning": true,
+      "prefillAmount": 41.28,
+      "totalOk": false,
+      "sumOk": false,
+      "ms": 2852
+    },
+    {
+      "receipt": "profi-82.71",
+      "expected": 82.71,
+      "store": "",
+      "total": 82.71,
+      "items": 6,
+      "sum": 57.19,
+      "warning": true,
+      "prefillAmount": 82.71,
+      "totalOk": true,
+      "sumOk": false,
+      "ms": 4024
+    },
+    {
+      "receipt": "sinsay-50.97.jpg",
+      "expected": 50.97,
+      "store": "",
+      "total": 0,
+      "items": 4,
+      "sum": 79.65,
+      "warning": true,
+      "prefillAmount": 79.65,
+      "totalOk": false,
+      "sumOk": false,
+      "ms": 1028
+    },
+    {
+      "receipt": "vodka-39.76.jpg",
+      "expected": 39.76,
+      "store": "Familiar",
+      "total": 39.05,
+      "items": 4,
+      "sum": 39.76,
+      "warning": true,
+      "prefillAmount": 39.05,
+      "totalOk": false,
+      "sumOk": true,
+      "ms": 1583
+    }
+  ]
+}

@@ -189,6 +189,25 @@ const FEATURES = {
     await card.getByRole("button", { name: /Rată mașină/ }).click();
     await waitFor(async () => /Rată mașină/.test(await page.locator("[role=dialog]").last().innerText().catch(() => "")), "rata deschide Datoriile");
   },
+  /** 6. Scanare offline: „Offline” citește pe telefon, marcat „Citit pe telefon”; totalul nepotrivit cere confirmare. */
+  async offline(page, theme) {
+    await page.evaluate(() => { const d = new Date().toISOString().slice(0, 10); localStorage.setItem("bonai:ai-scans-v1", JSON.stringify(Array(15).fill(d))); localStorage.setItem("buget-familie:receipt-scan-consent", "1"); });
+    await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
+    const hub = page.locator(".bn-hub");
+    await waitFor(() => hub.isVisible(), "centrul de scanare");
+    // Cât timp plata e oprită toți au planul complet; limita de 15 e acoperită de testele bonut-plans.
+    await shot(page, `offline-hub-${theme}`);
+    const cut = await clipped(page, ".bn-hub");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+    const chooser = page.waitForEvent("filechooser");
+    await hub.getByRole("button", { name: /Offline/ }).click();
+    await (await chooser).setFiles("e2e/receipts/vodka-39.76.jpg");
+    await page.getByRole("button", { name: /^Citește bonul$/ }).click();
+    const review = page.getByRole("dialog", { name: "Verifică bonul" });
+    await waitFor(() => review.isVisible(), "verificarea bonului citit offline", 90_000);
+    if (!/Citit pe telefon/.test(await review.innerText())) fail("rezultatul offline nu e marcat");
+    await shot(page, `offline-review-${theme}`);
+  },
 };
 
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });

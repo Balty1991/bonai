@@ -2,9 +2,9 @@ import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import "../receipt-scan.css";
 import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanAnimation";
 import { useEffect, useRef, useState } from "react";
-import { Camera, FileText, ImagePlus, Info, Loader2, PenLine } from "lucide-react";
+import { Camera, FileText, ImagePlus, Info, Loader2, PenLine, WifiOff } from "lucide-react";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
-import { FREE_SCANS_PER_MONTH } from "@/lib/bonut-plans";
+import { FREE_SCANS_PER_MONTH, readAiScans, recordAiScan, scansLeft } from "@/lib/bonut-plans";
 import { isoToday } from "@/lib/finance-data";
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
@@ -31,6 +31,11 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const [thumbs, setThumbs] = useState<string[]>([]);
   const [processed, setProcessed] = useState(0);
   const [store, setStore] = useState<string>();
+  /** „Offline”: Tesseract pe telefon, fără AI, gratuit și nelimitat. Ales de om, fără internet sau după cele 15 scanări AI. */
+  const [offline, setOffline] = useState(false);
+  const offlineRef = useRef(false);
+  const today = isoToday();
+  const aiLeft = scansLeft(currentBonutPlan(data, today), readAiScans(), today);
   useEffect(() => { const id = window.setTimeout(warmOcr, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   const thumbsRef = useRef<string[]>([]);
@@ -45,14 +50,17 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   }, [busy]);
   if (!canScanReceipt() || isOfflineOnly()) return null;
   const busyText = seconds < 12
-    ? (shots > 1 ? t("Citesc bonul din {count} capturi… {seconds} s", { count: shots, seconds }) : t("Citesc bonul… {seconds} s", { seconds }))
+    ? offline ? t("Citesc bonul pe telefon, fără internet… {seconds} s", { seconds }) : (shots > 1 ? t("Citesc bonul din {count} capturi… {seconds} s", { count: shots, seconds }) : t("Citesc bonul… {seconds} s", { seconds }))
     : seconds < 30
       ? t("Durează mai mult ca de obicei, serverul e aglomerat… {seconds} s", { seconds })
       : t("Serverul principal nu răspunde, citește rezerva (Claude)… {seconds} s", { seconds });
 
-  const pick = async (which: "camera" | "gallery") => {
+  const pick = async (which: "camera" | "gallery", local = false) => {
     if (busy) return;
-    if (!receiptScanConsented()) {
+    const noNet = typeof navigator !== "undefined" && navigator.onLine === false;
+    offlineRef.current = local || noNet || aiLeft <= 0;
+    setOffline(offlineRef.current);
+    if (!offlineRef.current && !receiptScanConsented()) {
       const ok = await askConfirm(t("Ca să citească bonul, poza pleacă la un serviciu AI (Google Gemini sau Anthropic Claude), care scoate din ea produsele și sumele. Poza nu se păstrează: nici pe telefon, nici pe serverul nostru. Restul bugetului rămâne pe telefon."), { title: t("Scanarea bonului"), confirmLabel: t("Am înțeles, scanez") });
       if (!ok) return;
       rememberReceiptScanConsent();
@@ -86,8 +94,12 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
         images.push({ data: photoData, mimeType });
         setProcessed(images.length);
       }
-      const receipt = await requestReceiptScan(images, receiptCategories(data));
-      const prefill = scanToPrefill(receipt, data, memberId);
+      const receipt = offlineRef.current
+        ? await (await import("@/lib/receipt-offline")).offlineReadReceipt(images, receiptCategories(data))
+        : await requestReceiptScan(images, receiptCategories(data));
+      if (!offlineRef.current) recordAiScan(isoToday());
+      const scanned = scanToPrefill(receipt, data, memberId);
+      const prefill = offlineRef.current ? { ...scanned, warning: [t("Citit pe telefon, fără AI: verifică produsele și totalul înainte să salvezi."), scanned.warning].filter(Boolean).join(" ") } : scanned;
       // Bonul scanat de două ori: doar avertizare, omul decide.
       const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
@@ -124,11 +136,13 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       <ReceiptScanAnimation key="scan-anim" thumbs={thumbs} processed={processed} store={store} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); onResult(done); } : undefined} />
       {busy && !reveal && <p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p>}
     </> : hub ? (() => {
-      const month = isoToday().slice(0, 7);
+      const month = today.slice(0, 7);
       const used = data.receipts.filter((receipt) => receipt.date.startsWith(month)).length;
-      const free = currentBonutPlan(data, isoToday()) === "free";
+      const free = currentBonutPlan(data, today) === "free";
+      const aiUsed = readAiScans().filter((d) => d.startsWith(month)).length;
       return <div className="bn-hub">
-        <span className="bn-hub-pill">{free ? t("{used}/{limit} luna asta", { used, limit: FREE_SCANS_PER_MONTH }) : t("{used} bonuri luna asta", { used })}</span>
+        <span className="bn-hub-pill">{free ? t("{used}/{limit} scanări AI luna asta", { used: Math.min(aiUsed, FREE_SCANS_PER_MONTH), limit: FREE_SCANS_PER_MONTH }) : t("{used} bonuri luna asta", { used })}</span>
+        {free && aiLeft <= 0 && <p className="bn-hub-note" role="note">{t("Ai folosit cele {limit} scanări AI ale lunii. Scanez în continuare gratuit pe telefon, fără AI; verifici produsele înainte de salvare.", { limit: FREE_SCANS_PER_MONTH })}</p>}
         <button type="button" className="bn-viewfinder" onClick={() => void pick("camera")}>
           <span className="bn-vf-corner is-tl" /><span className="bn-vf-corner is-tr" /><span className="bn-vf-corner is-bl" /><span className="bn-vf-corner is-br" />
           <span className="bn-vf-beam" aria-hidden="true" />
@@ -137,6 +151,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
         <div className="bn-hub-tiles">
           <button type="button" className="bn-tile" onClick={() => void pick("gallery")}><ImagePlus size={22} aria-hidden="true" /><b>{t("Galerie")}</b><small>{t("una sau mai multe")}</small></button>
           <button type="button" className="bn-tile" onClick={() => void pick("gallery")}><FileText size={22} aria-hidden="true" /><b>{t("E-bon")}</b><small>{t("captură din e-mail")}</small></button>
+          <button type="button" className="bn-tile" onClick={() => void pick("camera", true)}><WifiOff size={22} aria-hidden="true" /><b>{t("Offline")}</b><small>{t("gratuit, fără AI")}</small></button>
           {onManual && <button type="button" className="bn-tile" onClick={onManual}><PenLine size={22} aria-hidden="true" /><b>{t("Fără bon")}</b><small>{t("notez de mână")}</small></button>}
         </div>
         <button type="button" className="bn-tip" aria-expanded={tipOpen} onClick={() => setTipOpen((open) => !open)}><Info size={15} aria-hidden="true" /> {t("Bon lung? Fă mai multe poze")}</button>

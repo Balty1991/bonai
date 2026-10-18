@@ -25,7 +25,7 @@ export type ScannedReceipt = {
 
 export type ScanPrefill = {
   /** Cine a citit: „gemini” de obicei, „claude” când Gemini era aglomerat. */
-  readBy?: "gemini" | "claude";
+  readBy?: "gemini" | "claude" | "offline";
   title: string;
   amount: number;
   date?: string;
@@ -153,7 +153,7 @@ export function scanToPrefill(raw: ScannedReceipt, data: AppData, memberId?: str
     sourceId: first?.id,
     second: secondSource && secondAmount > 0 && secondAmount < total ? { sourceId: secondSource.id, amount: secondAmount } : undefined,
     warning,
-    ...(receipt.model ? { readBy: receipt.model.startsWith("claude") ? "claude" as const : "gemini" as const } : {}),
+    ...(receipt.model ? { readBy: receipt.model === "offline" ? "offline" as const : receipt.model.startsWith("claude") ? "claude" as const : "gemini" as const } : {}),
     discount: round(lines.reduce((sum, line) => sum + (line.discount || 0), 0)),
     count: lines.length,
     ...(Object.keys(storeFactsOf(receipt)).length ? { store: storeFactsOf(receipt) } : {}),

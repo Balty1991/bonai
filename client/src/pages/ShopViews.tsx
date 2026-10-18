@@ -23,7 +23,7 @@ import { weeklyMenu } from "@/lib/weekly-menu";
 import { threeMonthAverage } from "@/lib/savings-summary";
 import { savedShareTextV2, savedWithBonAI } from "@/lib/saved-with-bonai";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
-import { BONUT_PRICES, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
+import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
@@ -53,6 +53,7 @@ export function ProGate({ data, feature, title, pitch, children }: { data: AppDa
   return <Card kicker={familyOnly ? t("BONAI FAMILIE") : t("BONAI PRO")} title={<><Lock size={18} aria-hidden="true" /> {title}</>}>
     <p className="sh-muted">{pitch}</p>
     <p><b>{t("{year} lei/an", { year: money2(price.year) })}</b> <small className="sh-muted">{t("sau {month} lei/lună · anual cu {percent}% mai ieftin", { month: money2(price.month), percent: yearlySavingPercent(familyOnly ? "familie" : "pro") })}</small></p>
+    <p className="sh-muted">{t("Gratuit rămân {n} scanări AI pe lună și scanarea offline pe telefon, nelimitată.", { n: FREE_SCANS_PER_MONTH })}</p>
     <p className="sh-muted">{data.receipts.length < TRIAL_AFTER_RECEIPTS ? t("Proba gratuită de {days} zile pornește singură după al {n}-lea bon scanat.", { days: TRIAL_DAYS, n: TRIAL_AFTER_RECEIPTS }) : t("Abonamentele pornesc în curând în Google Play.")}</p>
   </Card>;
 }
@@ -301,7 +302,8 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, 
       <span className="sh-avatar" aria-hidden="true">{name.trim().charAt(0).toLocaleUpperCase("ro-RO") || "B"}</span>
       <span><b>{name}</b><small className="sh-muted">{data.settings.familyName ? `${data.settings.familyName} · ${planLabel}` : planLabel}</small></span>
     </section>
-    {plan === "free" && <div className="sh-rows sh-pro-row"><Row icon={<Sparkles size={20} />} title={t("Treci la BonAI Pro")} hint={t("scanări nelimitate, inflația ta, meniul săptămânii · {year} lei/an", { year: money2(BONUT_PRICES.pro.year) })} onClick={() => onOpenMore("settings")} /></div>}
+    {plan === "free" && <p className="sh-muted sh-plan-free">{t("Planul gratuit: {n} scanări AI pe lună, apoi scanare offline nelimitată (citită pe telefon, o verifici înainte de salvare).", { n: FREE_SCANS_PER_MONTH })}</p>}
+    {plan === "free" && <div className="sh-rows sh-pro-row"><Row icon={<Sparkles size={20} />} title={t("Treci la BonAI Pro")} hint={t("scanări AI nelimitate, inflația ta, meniul săptămânii · {year} lei/an", { year: money2(BONUT_PRICES.pro.year) })} onClick={() => onOpenMore("settings")} /></div>}
     <div className="sh-rows">
       <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => (onOpenCosts ? onOpenCosts("receipts") : onOpenMore("receipts"))} />
       <Row icon={<ShoppingBasket size={20} />} title={t("Toate costurile")} hint={t("și cele fără bon")} onClick={() => (onOpenCosts ? onOpenCosts("costs") : onOpenJournal())} />
