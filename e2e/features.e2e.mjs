@@ -1,6 +1,7 @@
 /**
  * Funcțiile BonAI pe aplicația reală, cu bonuri de test (Vite + Chromium), în ambele teme, la 360 px:
  *   1. Economisit cu BonAI pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
+ *   2. Lista cu prețuri: ultimul preț pe bucată, unde și când, totalul estimat și magazinul mai ieftin.
  * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
  * Rulare: node e2e/features.e2e.mjs (CHROMIUM_PATH, THEMES, ONLY=regex, SHOTS=dir opționale).
  */
@@ -37,7 +38,7 @@ async function seed(page) {
       R("e3", "Lidl", day(-12), [L("l1", "Ulei Spornic 1L", 8.0), L("l2", "Lapte Zuzu 1L", 6.99), L("l3", "Pâine albă", 5.2), L("l4", "Detergent Ariel 2L", 39.9, "Casă")]),
       R("e4", "Lidl", inMonth(2), [L("m1", "Ulei Spornic 1L", 7.0, "Alimente", { discount: 0.5 }), L("m2", "Lapte Zuzu 1L", 6.99), L("m3", "Ouă 10 buc", 11.9), L("m4", "Pâine albă", 5.2, "Alimente", { discount: 0.6 })]),
     ];
-    data.settings.shoppingList = [];
+    data.settings.shoppingList = ["lapte", "ulei", "ouă", "cafea"].map((text, i) => ({ id: `s${i}`, text, updatedAt: now }));
     const later = new Date(Date.now() + 3_600_000).toISOString();
     await storage.writeAppData(data, later); storage.writeLocalStorageSnapshot(JSON.stringify(data), later);
   });
@@ -72,6 +73,23 @@ const FEATURES = {
     for (const [label, value] of [["Reduceri pe bon", want.discounts], ["Magazin mai ieftin", want.store], ["Preț mai mic", want.drop]]) if (value > 0 && !text.includes(label)) fail(`lipsește „${label}”`);
     await shot(page, `saved-${theme}`, card);
     const cut = await clipped(page, ".sh-card");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+  },
+  /** 2. Lista: prețurile vin din bonuri (lapte 6,99 la Lidl), produsul necunoscut rămâne fără preț. */
+  async list(page, theme) {
+    await page.locator(".os-dock-v2 > button").nth(1).click();
+    const panel = page.locator(".bf-shopping");
+    await waitFor(() => panel.isVisible(), "lista");
+    const want = await page.evaluate(async () => { const { estimateShopping } = await import("/src/lib/shopping-price.ts"); const s = await import("/src/lib/app-storage.ts"); const { isoToday } = await import("/src/lib/finance-data.ts"); const d = await s.readAppData(); return estimateShopping(d.settings.shoppingList, d.receipts, isoToday()); });
+    if (want.known !== 3 || want.prices.s3) fail(`estimarea de test: ${JSON.stringify(want)}`);
+    const milk = panel.locator("li", { hasText: "lapte" }).first();
+    const text = await milk.innerText();
+    if (!text.includes(leiRo(want.prices.s0.price)) || !/Lidl/.test(text)) fail(`laptele nu arată ultimul preț: ${text}`);
+    if (/~/.test(await panel.locator("li", { hasText: "cafea" }).first().innerText())) fail("cafeaua n-are bon, dar are preț");
+    const estimate = await panel.locator(".bf-shop-estimate").innerText();
+    if (!estimate.includes(leiRo(want.total))) fail(`totalul estimat nu e ${leiRo(want.total)}: ${estimate}`);
+    await shot(page, `list-${theme}`, panel.locator(".bf-shop-estimate"));
+    const cut = await clipped(page, ".bf-shopping");
     if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
   },
 };

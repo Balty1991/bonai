@@ -36,3 +36,17 @@ describe("coșul estimat", () => {
     expect(est.bestVendor).toEqual({ vendor: "Lidl", total: 46, saves: 14 });
   });
 });
+
+describe("lista cu prețuri: bucata și magazinul", () => {
+  it("împarte la cantitate și unește numele magazinului", async () => {
+    const { estimateShopping } = await import("./shopping-price");
+    const receipts = [
+      { id: "1", vendor: "LIDL ROMANIA SCS", amount: 13.98, category: "Alimente", date: "2026-10-10", lines: [{ id: "a", label: "Lapte Zuzu 1L", amount: 13.98, category: "Alimente", qty: 2 }] },
+      { id: "2", vendor: "Kaufland Cluj", amount: 7.49, category: "Alimente", date: "2026-10-01", lines: [{ id: "b", label: "Lapte Zuzu 1L", amount: 7.49, category: "Alimente" }] },
+    ];
+    const est = estimateShopping([{ id: "x", text: "lapte" }], receipts, "2026-10-18");
+    expect(est.prices.x).toMatchObject({ price: 6.99, date: "2026-10-10" });
+    expect(est.prices.x.vendor).toMatch(/^Lidl/i);
+    expect(est.total).toBe(6.99);
+  });
+});

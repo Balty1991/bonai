@@ -5420,6 +5420,7 @@ export const en: Record<string, string> = {
   "De la început: {amount}": "Since the start: {amount}",
   "Doar bani reali din bonurile tale, nimic estimat.": "Only real money from your receipts, nothing estimated.",
   "{label}: {amount} mai puțin la {vendor} decât data trecută": "{label}: {amount} less at {vendor} than last time",
+  "ultima dată la {vendor}, {date}": "last time at {vendor}, {date}",
   "Arhiva veche (buget)": "Old archive (budget)",
   "plicurile, conturile și veniturile de dinainte, păstrate întregi": "your former envelopes, accounts and income, kept intact",
   "plicuri, rate, facturi: toate datele sunt aici": "envelopes, instalments, bills: all your data is here",

@@ -16,6 +16,8 @@ import { t } from "@/lib/i18n";
 import { selfMemberIdOf } from "@/lib/member-identity";
 import { SHOPPING_LIMIT, splitShoppingText, visibleShopping, type ShoppingItem } from "@/lib/shopping-list";
 
+const shortDay = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
+
 export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
   const [draft, setDraft] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -59,7 +61,7 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
 
   const row = (item: ShoppingItem) => <li key={item.id} className={item.done ? "is-done" : ""}>
     <button type="button" className="bf-shop-check" aria-pressed={Boolean(item.done)} aria-label={item.done ? t("Scoate bifa de la {item}", { item: item.text }) : t("Bifează {item}", { item: item.text })} onClick={() => touch(item.id, { done: !item.done })}>{item.done ? <Check size={16} aria-hidden="true" /> : null}</button>
-    <span><b>{item.text}</b>{nameOf(item.by) && <small>{t("adăugat de {name}", { name: nameOf(item.by)! })}</small>}{!item.done && estimate.prices[item.id]?.cheapest && <small>{t("mai ieftin la {vendor}: {price}", { vendor: estimate.prices[item.id].cheapest!.vendor, price: lei(estimate.prices[item.id].cheapest!.price) })}</small>}</span>
+    <span><b>{item.text}</b>{nameOf(item.by) && <small>{t("adăugat de {name}", { name: nameOf(item.by)! })}</small>}{!item.done && estimate.prices[item.id] && <small>{t("ultima dată la {vendor}, {date}", { vendor: estimate.prices[item.id].vendor, date: shortDay(estimate.prices[item.id].date) })}</small>}{!item.done && estimate.prices[item.id]?.cheapest && <small className="is-tip">{t("mai ieftin la {vendor}: {price}", { vendor: estimate.prices[item.id].cheapest!.vendor, price: lei(estimate.prices[item.id].cheapest!.price) })}</small>}</span>
     {!item.done && estimate.prices[item.id] && <em className="bf-shop-price" title={t("ultimul preț, {vendor}", { vendor: estimate.prices[item.id].vendor })}>~{lei(estimate.prices[item.id].price)}</em>}
     <button type="button" className="bf-shop-remove" aria-label={t("Scoate {item} din listă", { item: item.text })} onClick={() => touch(item.id, { cleared: true })}><X size={16} aria-hidden="true" /></button>
   </li>;

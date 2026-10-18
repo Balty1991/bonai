@@ -5,7 +5,7 @@
  * 120 de zile; un preț mai vechi nu mai spune mare lucru. E o estimare, nu o promisiune.
  */
 import { addIsoDays, foldRomanian, type Receipt } from "./finance-data";
-import { normalizeProductKey } from "./price-history";
+import { normalizeProductKey, receiptLineUnit, receiptVendorName } from "./price-history";
 
 export type ShopPrice = { price: number; vendor: string; date: string; cheapest?: { vendor: string; price: number } };
 export type ShopEstimate = { prices: Record<string, ShopPrice>; total: number; known: number; bestVendor?: { vendor: string; total: number; saves: number } };
@@ -26,11 +26,15 @@ export function estimateShopping(items: ReadonlyArray<{ id: string; text: string
   const lines: Array<{ words: string[]; vendor: string; date: string; amount: number }> = [];
   for (const receipt of receipts) {
     if (!receipt.date || receipt.date < since || receipt.date > today) continue;
-    const vendor = (receipt.vendor || "").trim();
+    // „Lidl Cluj” și „LIDL ROMANIA” sunt același magazin.
+    const vendor = receiptVendorName(receipt.vendor).trim();
     if (!vendor) continue;
     for (const line of receipt.lines || []) {
-      const key = line.label && line.amount > 0 ? normalizeProductKey(line.label) : undefined;
-      if (key) lines.push({ words: key.split(" "), vendor, date: receipt.date, amount: line.amount });
+      if (!line.label || !(line.amount > 0)) continue;
+      // Prețul unei bucăți: „Lapte × 2” la 13,98 înseamnă 6,99 bucata.
+      const unit = line.qty && line.qty > 0 && line.unit !== "kg" && line.unit !== "l" ? { label: line.label.replace(/\s×\s[\d.,]+(\s?kg)?$/, ""), amount: line.amount / line.qty } : receiptLineUnit(line.label, line.amount);
+      const key = normalizeProductKey(unit.label);
+      if (key) lines.push({ words: key.split(" "), vendor, date: receipt.date, amount: unit.amount });
     }
   }
   const prices: Record<string, ShopPrice> = {};
