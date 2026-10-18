@@ -51,7 +51,9 @@ async function run(browser, theme) {
   const card = page.locator(".sh-card", { hasText: "DIN PRIMUL TĂU BON" });
   await waitFor(() => card.isVisible(), "cardul primului bon");
   const text = await card.innerText();
-  for (const want of ["6 produse de la Lidl", "Detergent Ariel", "Reduceri tipărite pe bon: 7 lei", "Încă 2 bonuri"]) if (!text.replace(/\s+/g, " ").includes(want)) fail(`lipsește „${want}” din card: ${JSON.stringify(text)}`);
+  for (const want of ["6 produse de la Lidl", "Detergent Ariel", "Reduceri tipărite pe bon: 7 lei"]) if (!text.replace(/\s+/g, " ").includes(want)) fail(`lipsește „${want}” din card: ${JSON.stringify(text)}`);
+  // Cu plățile oprite toată lumea are Familie: oferta de probă Pro nu are ce căuta aici.
+  if (/zile de Pro gratuit/.test(text)) fail(`oferta Pro apare unui utilizator Familie: ${JSON.stringify(text)}`);
   const clipped = await card.evaluate((el) => Array.from(el.querySelectorAll("*")).filter((n) => n.children.length === 0 && n.scrollWidth > n.clientWidth + 1 && getComputedStyle(n).overflow !== "visible").length);
   if (clipped) fail("text tăiat în card");
   await card.scrollIntoViewIfNeeded(); await shot(page, `first-receipt-${theme}`);
