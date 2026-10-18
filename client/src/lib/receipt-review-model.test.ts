@@ -14,6 +14,19 @@ describe("ecranul de verificare a bonului", () => {
     expect(groups[0]).toMatchObject({ category: "Alimente", total: 12 });
     expect(totalGap(20, rows)).toBe(2);
     expect(totalGap(18, rows)).toBe(0);
+    // Mega Image: produse cântărite rotunjite de casă, 89,94 față de 89,91 tipărit: se potrivește.
+    expect(totalGap(17.97, rows)).toBe(0);
+    expect(totalGap(17.9, rows)).toBe(-0.1);
     expect(totalGap(0, rows)).toBe(0);
+  });
+});
+
+describe("cantitatea din nume", () => {
+  it("o scoate la afișare și o pune la loc la salvare", async () => {
+    const { stripQtySuffix, labelWithQty } = await import("./receipt-review-model");
+    expect(stripQtySuffix("Lapte × 2")).toBe("Lapte");
+    expect(stripQtySuffix("Prune × 0,65 kg")).toBe("Prune");
+    expect(labelWithQty("Prune", 0.65)).toBe("Prune × 0,65 kg");
+    expect(labelWithQty("Pâine", 1)).toBe("Pâine");
   });
 });

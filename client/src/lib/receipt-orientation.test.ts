@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickRotation, rotateMask90, type Rotation } from "./receipt-orientation";
+import { candidateRotations, chooseByText, ocrScore, pickRotation, rotateMask90, type Rotation } from "./receipt-orientation";
 
 /** Un bon sintetic drept: rânduri orizontale de „text”, pornite din stânga, cu preț la dreapta, conținut sus. */
 function receipt(width = 120, height = 220): Uint8Array {
@@ -25,12 +25,41 @@ describe("orientarea bonului", () => {
   it("lasă bonul drept cum e", () => {
     expect(pickRotation(receipt(), 120, 220)).toBe(0);
   });
-  it.each([1, 2, 3])("îndreaptă bonul rotit de %i ori cu 90°", (turns) => {
+  it("nu rotește niciodată o poză în portret, nici cu capul în jos (regresie: bon bun întors la 180°)", () => {
+    const upside = rotate(receipt(), 120, 220, 2);
+    expect(pickRotation(upside.mask, upside.width, upside.height)).toBe(0);
+    expect(pickRotation(new Uint8Array(100 * 200).fill(200), 100, 200)).toBe(0);
+  });
+  it.each([1, 3])("îndreaptă bonul culcat (rotit de %i ori cu 90°)", (turns) => {
     const turned = rotate(receipt(), 120, 220, turns);
     const expected = ((4 - turns) % 4) * 90 as Rotation;
     expect(pickRotation(turned.mask, turned.width, turned.height)).toBe(expected);
   });
   it("o poză culcată fără text clar ajunge măcar în portret", () => {
     expect(pickRotation(new Uint8Array(200 * 100).fill(200), 200, 100)).toBe(90);
+  });
+});
+
+describe("orientarea după text (OCR)", () => {
+  // Scoruri reale: Tesseract pe bonurile din e2e/receipts, rotite în cele patru feluri.
+  const cases: Array<[string, Array<[Rotation, number]>, Rotation]> = [
+    ["portret drept (nu se atinge)", [[0, 57], [180, 36]], 0],
+    ["portret drept, text slab (nu se atinge)", [[0, 58], [180, 32]], 0],
+    ["portret cu capul în jos", [[0, 34], [180, 164]], 180],
+    ["portret cu capul în jos, text slab", [[0, 42], [180, 56]], 180],
+    ["culcat spre dreapta", [[0, 30], [90, 35], [270, 168], [180, 32]], 270],
+    ["culcat spre stânga", [[0, 34], [90, 151], [270, 35], [180, 39]], 90],
+    ["culcat, text slab", [[0, 39], [90, 39], [270, 56], [180, 44]], 270],
+    ["nimic clar: rămâne cum e", [[0, 40], [180, 46]], 0],
+  ];
+  it.each(cases)("%s", (_name, scores, expected) => {
+    expect(chooseByText(scores.map(([rotation, score]) => ({ rotation, score })))).toBe(expected);
+  });
+  it("cuvintele de bon și prețurile cântăresc", () => {
+    expect(ocrScore("BON FISCAL\nTOTAL 12,50 LEI\nTVA B 1,20\nCIF RO123", 60)).toBeGreaterThan(ocrScore("~~ ;:. ql", 60) + 30);
+  });
+  it("portretul încearcă 0/180, poza culcată și 90/270", () => {
+    expect(candidateRotations(100, 200)).toEqual([0, 180]);
+    expect(candidateRotations(200, 100)).toEqual([0, 90, 270, 180]);
   });
 });

@@ -34,11 +34,14 @@ export function groupRows(rows: ReviewRow[]): CategoryGroup[] {
   return Array.from(map.entries()).map(([category, list]) => ({ category, rows: list, total: rowsTotal(list), share: rowsTotal(list) / total })).sort((a, b) => b.total - a.total);
 }
 
-/** Totalul tipărit față de suma rândurilor: 0 = se potrivește (sub 1 ban). Pozitiv = lipsesc bani din rânduri. */
+/** Până la 5 bani diferență vin din rotunjirea produselor cântărite: bonul se potrivește, contează totalul tipărit. */
+export const ROUNDING_SLACK = 0.05;
+
+/** Totalul tipărit față de suma rândurilor: 0 = se potrivește (rotunjiri de cel mult 5 bani). Pozitiv = lipsesc bani din rânduri. */
 export function totalGap(printed: number, rows: ReviewRow[]): number {
   if (!(printed > 0)) return 0;
   const gap = round2(printed - rowsTotal(rows));
-  return Math.abs(gap) < 0.01 ? 0 : gap;
+  return Math.abs(gap) <= ROUNDING_SLACK + 0.0001 ? 0 : gap;
 }
 
 const ICONS: Record<string, string> = { Alimente: "🥖", "Consumabile copil": "🍼", Abonamente: "📱", Băuturi: "🥤", Apă: "💧", Dulciuri: "🍫", Transport: "⛽", "Casă & facturi": "🏠", Sănătate: "💊", Educație: "📚", "Timp liber": "🎟️", Haine: "👕", SGR: "♻️", Sacoșe: "🛍️", Altele: "🧾" };

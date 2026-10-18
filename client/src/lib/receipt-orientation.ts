@@ -4,7 +4,7 @@
  * 2) Direcția rândurilor de text: pe un bon drept, rândurile sunt orizontale, deci profilul pe
  *    rânduri (cerneală pe fiecare linie de pixeli) alternează puternic text/spațiu, iar cel pe
  *    coloane e mult mai neted. Comparăm cele două profiluri; dacă textul curge vertical, rotim 90°.
- * 3) Între 90° și 270° (și 0° vs 180°) decide asimetria: rândurile de bon încep la marginea din
+ * 3) Între 90° și 270° decide asimetria: rândurile de bon încep la marginea din
  *    stânga (nume de produs) și sunt aliniate la dreapta doar pentru preț; în plus, antetul
  *    centrat și blocul de articole stau sus, iar spațiul gol (după TOTAL) stă jos. Când semnalul e
  *    slab rămâne alegerea implicită (90° în sensul acelor de ceasornic pentru poze culcate),
@@ -66,18 +66,43 @@ export function uprightScore(mask: Uint8Array, width: number, height: number): n
   return lines * 2 + leftAligned * 0.6 + topHeavy * 0.2;
 }
 
-/** Rotația (în sensul acelor de ceasornic) care pune bonul drept. */
-export function pickRotation(gray: ArrayLike<number>, width: number, height: number): Rotation {
-  let current = { mask: inkMask(gray, width, height), width, height };
-  const scores: Array<[Rotation, number]> = [];
-  for (const rotation of [0, 90, 180, 270] as Rotation[]) {
-    scores.push([rotation, uprightScore(current.mask, current.width, current.height)]);
-    current = rotateMask90(current.mask, current.width, current.height);
-  }
-  const [best] = [...scores].sort((a, b) => b[1] - a[1]);
-  const base = scores[0][1];
-  // Rotim doar la un semnal clar, altfel o poză deja dreaptă ar putea fi stricată.
-  if (best[0] !== 0 && best[1] - base > 0.08) return best[0];
-  // Poză culcată fără semnal clar: implicit 90°, ca bonul să fie măcar în portret.
-  return width > height * 1.15 ? 90 : 0;
+const RECEIPT_WORDS = /\b(TOTAL|SUBTOTAL|LEI|RON|CIF|CUI|C\.I\.F|TVA|BON|FISCAL|CARD|NUMERAR|REST|BUC|KG|DISCOUNT|REDUCERE|ART)\b/gi;
+
+/** Cât de „bon citit drept” arată textul OCR: încrederea medie, cuvinte de bon românesc și prețuri. */
+export function ocrScore(text: string, confidence: number): number {
+  const words = (text.toUpperCase().match(RECEIPT_WORDS) || []).length;
+  const prices = (text.match(/\b\d{1,4}[.,]\d{2}\b/g) || []).length;
+  return Math.max(0, confidence) + Math.min(words, 12) * 6 + Math.min(prices, 20) * 2;
 }
+
+/**
+ * Alege orientarea după text. `scores[0]` e poza așa cum e (după EXIF). Se rotește doar dacă
+ * altă orientare câștigă clar; la egalitate sau text slab, poza rămâne neatinsă.
+ */
+export function chooseByText(scores: Array<{ rotation: Rotation; score: number }>, margin = 14): Rotation {
+  if (!scores.length) return 0;
+  const asIs = scores.find((item) => item.rotation === 0)?.score ?? 0;
+  const best = [...scores].sort((a, b) => b.score - a.score)[0];
+  if (best.rotation === 0) return 0;
+  return best.score >= asIs + margin && best.score >= asIs * 1.3 ? best.rotation : 0;
+}
+
+/** Orientările de încercat: portret 0/180, poză culcată 90/270 (plus 0/180, pentru bonurile foarte late). */
+export function candidateRotations(width: number, height: number): Rotation[] {
+  return width > height ? [0, 90, 270, 180] : [0, 180];
+}
+
+/**
+ * Rezerva fără OCR (offline, motorul n-a pornit): portretul rămâne cum e; poza culcată se pune în
+ * portret după profilul rândurilor de text, implicit 90°.
+ */
+export function pickRotation(gray: ArrayLike<number>, width: number, height: number): Rotation {
+  if (width <= height) return 0;
+  const once = rotateMask90(inkMask(gray, width, height), width, height);
+  const thrice = rotateMask90(...spread(rotateMask90(...spread(once))));
+  const cw = uprightScore(once.mask, once.width, once.height);
+  const ccw = uprightScore(thrice.mask, thrice.width, thrice.height);
+  return ccw - cw > 0.08 ? 270 : 90;
+}
+
+function spread(m: { mask: Uint8Array; width: number; height: number }): [Uint8Array, number, number] { return [m.mask, m.width, m.height]; }

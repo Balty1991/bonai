@@ -6,6 +6,7 @@
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
 import { pickRotation, type Rotation } from "./receipt-orientation";
+import { detectRotationByText } from "./receipt-orientation-ocr";
 import { productFactsOf, storeFactsOf, type ProductFacts, type StoreFacts } from "./receipt-products";
 
 const ENDPOINT = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/readReceipt";
@@ -238,7 +239,9 @@ function detectRotation(source: CanvasImageSource, width: number, height: number
 export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
   const image = await decodeReceiptPhoto(file);
   try {
-    const rotation = detectRotation(image.source, image.width, image.height);
+    // Orientarea se decide după text (OCR pe 0/180°, plus 90/270° la poze culcate); fără OCR, portretul rămâne neatins.
+    const byText = await detectRotationByText(image.source, image.width, image.height);
+    const rotation = byText ?? (image.width > image.height ? detectRotation(image.source, image.width, image.height) : 0);
     const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
     const w = Math.max(1, Math.round(image.width * scale));
     const h = Math.max(1, Math.round(image.height * scale));

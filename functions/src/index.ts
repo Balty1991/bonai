@@ -1275,6 +1275,7 @@ Pe fiecare articol, când se poate citi sau deduce sigur de pe bon (altfel lași
 - brand: marca produsului, așa cum se scrie ea („Zuzu”, „Napolact”, „Pilos”, „Dorna”, „Milka”, „Pampers”); șir gol pentru produse fără marcă (legume, carne la kg, pâine la bucată).
 - size și sizeUnit: gramajul sau volumul unei bucăți (g, kg, ml, l), sau numărul de bucăți dintr-un pachet (buc). „1L” → 1 și l; „1.5L” → 1,5 și l; „500G” → 500 și g; „0,4KG” → 0,4 și kg; „6X1.5L” → size 9 și l (tot baxul); „ROLE 10BUC” → 10 și buc.
 - unit: cum se vinde rândul: „buc” la bucată, „kg” la cântar (când quantity e 0,456 și prețul e pe kg), „l” la litru vrac.
+- amount: mereu valoarea tipărită pe rândul produsului, nu o recalcula din cantitate × preț pe unitate (la produsele cântărite casa rotunjește altfel: „0,650 KG X 4,97 = 3,23”, păstrează 3,23 chiar dacă 0,650 × 4,97 dă altceva).
 - unitPrice: prețul pe o bucată sau pe un kilogram, așa cum e tipărit („2 BUC X 4,55” → 4,55; „0,456 KG X 12,90” → 12,90).
 - vatRate: cota TVA a rândului în procente (21, 11, 9, 5, 19), din litera de lângă sumă (A, B, C, D) și legenda TVA de la finalul bonului; lași afară dacă legenda nu se vede.
 Exemple de rânduri românești:
