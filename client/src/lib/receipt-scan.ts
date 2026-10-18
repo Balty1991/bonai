@@ -3,6 +3,7 @@
  * întoarce articolele pe categorii. Nimic nu se salvează singur: rezultatul umple
  * formularul „Adaugă mișcare”, iar omul verifică și apasă Salvează.
  */
+import { storeBrand } from "./store-brand";
 import { syncAiQuota, type ServerAiQuota } from "./bonut-plans";
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
@@ -144,7 +145,8 @@ export function scanToPrefill(raw: ScannedReceipt, data: AppData, memberId?: str
     warning = t("Poza a fost greu de citit. Verifică sumele cu bonul în mână.");
   }
 
-  const store = receipt.store.trim();
+  // Marca (Familiaro, Lidl) în locul firmei operatoare (Sales Consulting, Lidl Discount).
+  const store = storeBrand(receipt.store.trim(), { cui: receipt.storeCui, items: receipt.items.map((item) => item.rawName || item.name || "") }).trim();
   return {
     title: store ? t("Cumpărături {store}", { store }) : t("Cumpărături"),
     amount: total,
