@@ -91,8 +91,9 @@ export function buildDemoData(today: string): AppData {
   const bon = (title: string, offset: number, lines: Array<[string, number]>) => {
     const move = data.transactions.find((item) => item.title === title && item.date === day(offset))!;
     const known = lines.reduce((sum, [, amount]) => sum + amount, 0);
-    const all: Array<[string, number]> = [...lines, [t("Alte produse"), Math.round((move.amount - known) * 100) / 100]];
-    data.receipts.push({ id: `demo-bon-${move.id}`, vendor: title, amount: move.amount, category: "Alimente", date: move.date, linkedTransactionId: move.id, sourceId: move.sourceId, memberId: move.memberId, updatedAt: move.updatedAt, lines: all.map(([label, amount], index) => ({ id: `${move.id}-l${index}`, label, amount, category: "Alimente", allocationId: "a-mancare" })) });
+    // Restul bonului, fără nume: altfel „Alte produse” ar fi comparat ca un produs între magazine.
+    const all: Array<[string, number]> = [...lines, ["", Math.round((move.amount - known) * 100) / 100]];
+    data.receipts.push({ id: `demo-bon-${move.id}`, vendor: title, amount: move.amount, category: "Alimente", date: move.date, linkedTransactionId: move.id, sourceId: move.sourceId, memberId: move.memberId, updatedAt: move.updatedAt, lines: all.map(([label, amount], index) => ({ id: `${move.id}-l${index}`, ...(index < lines.length ? { label } : {}), amount, category: "Alimente", allocationId: "a-mancare" })) });
   };
   bon("Kaufland", -12, [[`${milk} Zuzu 1,5% 1L`, 8.49], [`${bread} feliata`, 6.99], [`${eggs} M 10 buc`, 13.9], ["Detergent Ariel 2,2L", 52.9], [`${bananas} kg`, 6.49]]);
   bon("Lidl", -9, [[`${milk} PILOS 1,5% 1L`.toUpperCase(), 6.29], [`${bread} 500g`.toUpperCase(), 4.99], [`${eggs} 10BUC`.toUpperCase(), 11.99], ["DETERGENT ARIEL 2,2L", 47.5], [bananas.toUpperCase(), 5.99]]);

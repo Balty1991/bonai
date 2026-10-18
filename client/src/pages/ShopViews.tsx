@@ -26,6 +26,8 @@ import { currentBonutPlan } from "@/lib/bonut-plan-current";
 import { BILLING_LIVE } from "@/lib/entitlements";
 import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
+import { firstReceiptsInsight } from "@/lib/first-receipts";
+import { isDemoMode } from "@/lib/demo-data";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const BarcodeCheck = lazy(() => import("@/components/BarcodeCheck").then((module) => ({ default: module.BarcodeCheck })));
@@ -118,6 +120,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   const diff = month.spent - month.lastMonthSoFar;
   const savedNow = useMemo(() => savedWithBonAI(data, today), [data, today]);
   const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
+  const first = useMemo(() => isDemoMode() ? undefined : firstReceiptsInsight(data), [data]);
   const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
   const hour = new Date().getHours();
@@ -132,6 +135,18 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
       {onManual && <button type="button" className="sh-link sh-manual" onClick={onManual}><PenLine size={16} aria-hidden="true" /> {t("Fără bon? Notează suma")}</button>}
     </header>
+
+    {first && <Card tone="accent" kicker={first.receipts === 1 ? t("DIN PRIMUL TĂU BON") : t("DIN PRIMELE TALE BONURI")} title={first.products ? t("{count} produse de la {vendor}, {total}", { count: first.products, vendor: first.vendor || t("magazin"), total: lei(first.total) }) : t("{total} de la {vendor}", { total: lei(first.total), vendor: first.vendor || t("magazin") })}>
+      {first.categories.length > 0 && <div className="sh-bars">{first.categories.map((item) => <div key={item.category} className="sh-bar"><span>{t(item.category)}</span><i style={{ width: `${Math.max(4, item.percent)}%` }} /><b>{item.percent}%</b></div>)}</div>}
+      {first.priciest.length > 1 && <><p className="sh-muted">{t("Cele mai scumpe produse:")}</p><ul className="sh-list">{first.priciest.map((item) => <li key={item.label}><span><b>{item.label}</b></span><b>{lei(item.amount)}</b></li>)}</ul></>}
+      {first.discounts > 0 && <p className="sh-alert"><Sparkles size={15} aria-hidden="true" /> {t("Reduceri tipărite pe bon: {amount}", { amount: lei(first.discounts) })}</p>}
+      <p className="sh-kicker sh-next-kicker">{t("CE URMEAZĂ")}</p>
+      <ul className="sh-list sh-next-steps">
+        <li><span><b>{first.repeated > 0 ? t("{count} produse se repetă: vezi-le prețul în Prețuri", { count: first.repeated }) : t("La următorul bon îți arăt ce s-a scumpit")}</b><small>{t("compar aceleași produse, între bonuri și magazine")}</small></span></li>
+        <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>
+      </ul>
+      <button type="button" className="sh-link" onClick={first.repeated > 0 ? onOpenProducts : onScan}>{first.repeated > 0 ? t("Vezi prețurile") : t("Scanează următorul bon")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>}
 
     {(savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
       <Card tone="accent" kicker={t("ECONOMISIT CU BONAI · {month}", { month: monthName(savedNow.month).toLocaleUpperCase("ro-RO") })} title={<span className="sh-saved-big">{lei(savedNow.total)}</span>}>
@@ -339,7 +354,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, 
 }
 
 /** Prima pornire: lista gratuită, scanarea bonului și verificarea cu codul de bare; fără salariu și plicuri. */
-export function ShopWelcome({ onScan, onList, onJoin, onSkip }: { onScan: () => void; onList: () => void; onJoin: () => void; onSkip: () => void }) {
+export function ShopWelcome({ onScan, onList, onJoin, onSkip, onDemo }: { onScan: () => void; onList: () => void; onJoin: () => void; onSkip: () => void; onDemo?: () => void }) {
   const steps: Array<[ReactNode, string, string]> = [
     [<ListChecks size={22} key="list" />, t("Lista familiei, gratuit"), t("Comună pe toate telefoanele, cu prețul estimat din bonurile voastre. O trimiți pe WhatsApp și se bifează și fără aplicație.")],
     [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
@@ -355,6 +370,7 @@ export function ShopWelcome({ onScan, onList, onJoin, onSkip }: { onScan: () => 
     </header>
     <div className="sh-rows">{steps.map(([icon, title, hint]) => <div key={title} className="sh-row" role="presentation"><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b><small>{hint}</small></span><span /></div>)}</div>
     <div className="sh-rows">
+      {onDemo && <Row icon={<ReceiptText size={20} />} title={t("Văd întâi un exemplu")} hint={t("bonuri și prețuri inventate, le ștergi dintr-o atingere")} onClick={onDemo} />}
       <Row icon={<Users size={20} />} title={t("Am deja familia în aplicație")} hint={t("intru cu invitația partenerului")} onClick={onJoin} />
     </div>
     <button type="button" className="sh-link" onClick={onSkip}>{t("Mă uit întâi prin aplicație")} <ChevronRight size={16} aria-hidden="true" /></button>

@@ -22,6 +22,7 @@
     "test:barcode": "node e2e/barcode.e2e.mjs",
     "test:receipt-edit": "node e2e/receipt-edit.e2e.mjs",
     "test:features": "node e2e/features.e2e.mjs",
+    "test:first-session": "node e2e/first-session.e2e.mjs",
     "test:offline-accuracy": "node e2e/offline-accuracy.mjs",
     "test:sync": "firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\"",
     "test:sync:current": "E2E_RULES=auth firebase emulators:exec --config firebase.e2e.auth.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\""
