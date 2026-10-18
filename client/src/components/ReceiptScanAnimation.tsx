@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { textBandsFromImage, type TextBand } from "@/lib/scan-lines";
 
 export type RevealItem = { name: string; amount: number };
 
 const reducedMotion = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const lei = (value: number) => value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const SHOWN = 9;
+const SKELETON = [72, 54, 66, 48, 60, 40];
 
 function CountUp({ value }: { value: number }) {
   const [shown, setShown] = useState(0);
   useEffect(() => {
+    if (reducedMotion()) { setShown(value); return; }
     let frame = 0; const start = performance.now();
     const step = (now: number) => { const k = Math.min(1, (now - start) / 380); setShown(value * (1 - Math.pow(1 - k, 3))); if (k < 1) frame = requestAnimationFrame(step); };
     frame = requestAnimationFrame(step);
@@ -19,61 +22,48 @@ function CountUp({ value }: { value: number }) {
 }
 
 /**
- * Doar vizual: cât timp serverul citește bonul arătăm poza cu raza de scanare și etapele;
- * când vine răspunsul, produsele reale apar unul câte unul (sub o secundă și jumătate), apoi formularul.
- * Nimic inventat: înainte de răspuns nu afișăm niciun produs sau preț. Atingerea sare peste.
+ * Bonul virtual: o hârtie digitală care se construiește singură. Cât timp serverul citește,
+ * arătăm doar rânduri-schelet (nimic inventat); când vine răspunsul, magazinul, produsele reale,
+ * reducerile și totalul apar unul câte unul, apoi verificăm totalul. Miniaturile pozelor stau
+ * deasupra, fiecare cu bifa ei. Atingerea sare peste.
  */
-export function ReceiptScanAnimation({ photo, textLines, seconds, items, total, onDone }: { photo?: string; textLines?: string[]; seconds: number; items?: RevealItem[]; total?: number; onDone?: () => void }) {
+export function ReceiptScanAnimation({ thumbs = [], processed = 0, store, seconds, items, total, onDone }: { thumbs?: string[]; processed?: number; store?: string; seconds: number; items?: RevealItem[]; total?: number; onDone?: () => void }) {
   const [count, setCount] = useState(0);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
+  const shown = items ? Math.min(items.length, SHOWN) : 0;
   useEffect(() => {
     if (!items) return;
-    if (reducedMotion() || !items.length) { doneRef.current?.(); return; }
-    const shown = Math.min(items.length, 8);
+    if (reducedMotion() || !items.length) { setCount(shown + 1); const id = window.setTimeout(() => doneRef.current?.(), reducedMotion() ? 900 : 0); return () => window.clearTimeout(id); }
     let i = 0;
-    const timer = window.setInterval(() => { i += 1; setCount(i); if (i > shown) { window.clearInterval(timer); window.setTimeout(() => doneRef.current?.(), 450); } }, 110);
+    const timer = window.setInterval(() => { i += 1; setCount(i); if (i > shown) { window.clearInterval(timer); window.setTimeout(() => doneRef.current?.(), 900); } }, 130);
     return () => window.clearInterval(timer);
-  }, [items]);
-  // Două straturi: poza nouă (pusă drept) apare peste cea veche, raza nu se oprește.
-  const [layers, setLayers] = useState<string[]>([]);
-  const [paper, setPaper] = useState<{ ratio: number; bands: TextBand[] }>({ ratio: 0.5, bands: [] });
-  useEffect(() => {
-    if (!photo) { setLayers([]); return; }
-    setLayers((old) => (old[old.length - 1] === photo ? old : [...old.slice(-1), photo]));
-    let live = true;
-    textBandsFromImage(photo).then((result) => { if (live) setPaper(result); }).catch(() => undefined);
-    return () => { live = false; };
-  }, [photo]);
-  const [readCount, setReadCount] = useState(0);
-  useEffect(() => {
-    setReadCount(0);
-    if (!textLines?.length) return;
-    const timer = window.setInterval(() => setReadCount((n) => (n >= textLines.length ? n : n + 1)), 380);
-    return () => window.clearInterval(timer);
-  }, [textLines]);
-  const stage = items ? 2 : seconds < 2 ? 0 : 1;
+  }, [items, shown]);
+  const stage = items ? 2 : processed < Math.max(1, thumbs.length) ? 0 : 1;
   const stages = [t("Detectez bonul"), t("Citesc produsele"), t("Verific totalul")];
+  const sum = items ? Math.round(items.reduce((acc, item) => acc + item.amount, 0) * 100) / 100 : 0;
+  const totalShown = items && count > shown;
+  const verified = totalShown && total !== undefined && Math.abs(sum - total) < 0.05 && items.length <= SHOWN * 10;
   const log = items
-    ? items.slice(0, Math.min(count, 8)).map((item, index) => <li key={index}><span>{item.name}</span><CountUp value={item.amount} /></li>)
-    : textLines?.length ? textLines.slice(Math.max(0, readCount - 5), readCount).map((line, index) => <li key={`${readCount}-${index}`} className="is-read"><span>› {line}</span></li>)
+    ? [<li key="store" className="is-muted"><span>› {store ? t("magazin: {store}", { store }) : t("magazin necunoscut")}</span></li>, <li key="n" className="is-muted"><span>› {t("{count} rânduri citite", { count: items.length })}</span></li>, ...(totalShown && total !== undefined ? [<li key="t"><span>{verified ? t("› suma rândurilor = totalul") : t("› total luat de pe bon")}</span><CountUp value={total} /></li>] : [])]
     : [t("› caut marginile bonului"), t("› îndrept și clarific poza"), t("› recunosc rândurile de text"), t("› potrivesc produsele cu prețurile")].slice(0, Math.min(4, 1 + Math.floor(seconds / 1.5))).map((line) => <li key={line} className="is-muted"><span>{line}</span></li>);
   return <div className="bn-scan" role="status" aria-live="polite" onClick={() => items && doneRef.current?.()}>
-    <p className="bn-scan-title">{items ? <><em>{t("Am citit {count} produse", { count: items.length })}</em></> : <>{t("Analizez bonul cu")} <em>AI</em></>}</p>
+    <p className="bn-scan-title">{items ? <em>{t("Am citit {count} produse", { count: items.length })}</em> : <>{t("Analizez bonul cu")} <em>AI</em></>}</p>
+    {thumbs.length > 0 && <ul className="bn-scan-thumbs" aria-label={t("{count} poze", { count: thumbs.length })}>{thumbs.map((src, index) => <li key={src} className={index < processed ? "is-done" : index === processed ? "is-on" : ""}><img src={src} alt="" /><span>{index < processed ? <Check size={11} strokeWidth={3} aria-hidden="true" /> : index + 1}</span></li>)}</ul>}
     <div className="bn-scan-stage" aria-hidden="true">
-      {layers.length > 0 && <div className="bn-scan-paper" style={{ aspectRatio: String(paper.ratio), width: `min(100%, ${Math.round(360 * paper.ratio)}px)` }}>
-        {layers.map((src, index) => <img key={src} src={src} alt="" className={index === layers.length - 1 ? "is-front" : "is-back"} />)}
-        {paper.bands.map((band, index) => <span key={index} className="bn-scan-line" style={{ top: `${band.top * 100}%`, height: `${Math.max(band.height * 100, 1.2)}%`, left: `${band.left * 100}%`, width: `${band.width * 100}%`, animationDelay: `${(band.top * 2.2).toFixed(2)}s, ${(band.top * 2.2).toFixed(2)}s` }} />)}
+      <div className="bn-vr">
+        <header className="bn-vr-head">{store ? <b className="bn-vr-store">{store}</b> : <i className="bn-vr-sk" style={{ width: "46%", height: 12 }} />}<i className="bn-vr-sk" style={{ width: "30%" }} /></header>
+        <ul className="bn-vr-lines">
+          {items
+            ? items.slice(0, shown).map((item, index) => <li key={index} className={`${index < count ? "is-in" : ""}${item.amount < 0 ? " is-discount" : ""}`}><span>{item.name}</span><b>{item.amount < 0 ? "−" : ""}{lei(Math.abs(item.amount))}</b></li>)
+            : SKELETON.map((width, index) => <li key={index} className="is-sk" style={{ animationDelay: `${index * 0.12}s` }}><i className="bn-vr-sk" style={{ width: `${width}%` }} /><i className="bn-vr-sk" style={{ width: "16%" }} /></li>)}
+          {items && items.length > SHOWN && count > shown && <li className="is-in is-more"><span>{t("+ încă {count} rânduri", { count: items.length - SHOWN })}</span></li>}
+        </ul>
+        <footer className={`bn-vr-total${totalShown ? " is-in" : ""}`}><span>{t("TOTAL")}</span>{totalShown && total !== undefined ? <b>{lei(total)} lei</b> : <i className="bn-vr-sk" style={{ width: "26%", height: 12 }} />}{verified && <em className="bn-vr-check"><Check size={14} strokeWidth={3} aria-hidden="true" /></em>}</footer>
         <span className="bn-scan-sweep"><span className="bn-scan-beam" /></span>
-      </div>}
-      {!layers.length && <div className="bn-scan-grid" />}
-      <span className="bn-scan-corner" style={{ left: 10, top: 10, borderRight: 0, borderBottom: 0 }} />
-      <span className="bn-scan-corner" style={{ right: 10, top: 10, borderLeft: 0, borderBottom: 0 }} />
-      <span className="bn-scan-corner" style={{ left: 10, bottom: 10, borderRight: 0, borderTop: 0 }} />
-      <span className="bn-scan-corner" style={{ right: 10, bottom: 10, borderLeft: 0, borderTop: 0 }} />
-      {!layers.length && <span className="bn-scan-sweep"><span className="bn-scan-beam" /></span>}
+      </div>
     </div>
     <ol className="bn-scan-stages">{stages.map((label, index) => <li key={label} className={index < stage ? "is-done" : index === stage ? "is-on" : ""}>{label}</li>)}</ol>
-    <ul className="bn-scan-term">{log}{items && count > Math.min(items.length, 8) && total !== undefined && <li><span>{t("Total")}</span><CountUp value={total} /></li>}</ul>
+    <ul className="bn-scan-term">{log}</ul>
   </div>;
 }

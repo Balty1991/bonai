@@ -28,11 +28,14 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const [shots, setShots] = useState(1);
   /** Pozele făcute cu camera până acum: un bon de hârtie lung se fotografiază pe bucăți, apoi se citesc împreună. */
   const [pending, setPending] = useState<File[]>([]);
-  const [photo, setPhoto] = useState<string>();
-  const [textLines, setTextLines] = useState<string[]>();
+  const [thumbs, setThumbs] = useState<string[]>([]);
+  const [processed, setProcessed] = useState(0);
+  const [store, setStore] = useState<string>();
   useEffect(() => { const id = window.setTimeout(warmOcr, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
-  useEffect(() => () => { if (photo?.startsWith("blob:")) URL.revokeObjectURL(photo); }, [photo]);
+  const thumbsRef = useRef<string[]>([]);
+  thumbsRef.current = thumbs;
+  useEffect(() => () => thumbsRef.current.forEach((url) => URL.revokeObjectURL(url)), []);
   // Cronometrul citirii: omul vede că se lucrează și, când durează, de ce.
   useEffect(() => {
     if (!busy) { setSeconds(0); return; }
@@ -70,17 +73,18 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     }
     setShots(files.length);
     // Poza apare imediat (EXIF aplicat de browser), apoi se înlocuiește lin cu cea pusă drept.
-    const raw = URL.createObjectURL(files[0]);
-    setPhoto(raw);
-    setTextLines(undefined);
+    // Miniaturile apar imediat (EXIF aplicat de browser); bonul virtual se construiește lângă ele.
+    setThumbs((old) => { old.forEach((url) => URL.revokeObjectURL(url)); return files.map((file) => URL.createObjectURL(file)); });
+    setProcessed(0);
+    setStore(undefined);
     setBusy(true);
     setError("");
     try {
       const images = [];
       for (const file of files) {
-        const { preview, data: photoData, mimeType, textLines: lines } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
-        if (!images.length && preview) { setPhoto(preview); window.setTimeout(() => URL.revokeObjectURL(raw), 1000); if (lines?.length) setTextLines(lines); }
+        const { data: photoData, mimeType } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
         images.push({ data: photoData, mimeType });
+        setProcessed(images.length);
       }
       const receipt = await requestReceiptScan(images, receiptCategories(data));
       const prefill = scanToPrefill(receipt, data, memberId);
@@ -88,9 +92,9 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
       const final = dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill;
-      setReveal({ items: signDiscountLines(receipt.items).filter((item) => item.amount > 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
+      setStore(receipt.store || undefined);
+      setReveal({ items: signDiscountLines(receipt.items).filter((item) => item.amount !== 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
     } catch (reason) {
-      setPhoto(undefined);
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
     } finally {
@@ -117,7 +121,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       </div>
     </div> : (busy || reveal) ? <>
       {/* O singură animație montată de la poză până la rezultat: raza nu repornește la fiecare secundă. */}
-      <ReceiptScanAnimation key="scan-anim" photo={photo} textLines={textLines} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); } : undefined} />
+      <ReceiptScanAnimation key="scan-anim" thumbs={thumbs} processed={processed} store={store} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); onResult(done); } : undefined} />
       {busy && !reveal && <p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p>}
     </> : hub ? (() => {
       const month = isoToday().slice(0, 7);

@@ -186,12 +186,7 @@ html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .bf-kicker { co
 /* Animația de citire a bonului */
 .bn-scan { display: grid; gap: 14px; padding: 18px; border-radius: 26px; color: #eef0ff; background: radial-gradient(90% 60% at 20% 0%, rgba(139, 92, 246, .35), transparent 60%), radial-gradient(80% 60% at 100% 100%, rgba(34, 211, 238, .2), transparent 60%), #0b1026; border: 1px solid rgba(167, 139, 250, .3); box-shadow: 0 24px 60px -30px rgba(124, 58, 237, .8); font-family: "Inter", system-ui, sans-serif; }
 .bn-scan-stage { position: relative; height: auto; border-radius: 18px; overflow: hidden; background: #070a1a; }
-.bn-scan-stage img { width: 100%; height: 100%; object-fit: cover; opacity: .8; filter: saturate(.7) contrast(1.1); }
-.bn-scan-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(103, 232, 249, .12) 1px, transparent 1px), linear-gradient(90deg, rgba(103, 232, 249, .12) 1px, transparent 1px); background-size: 22px 22px; mask-image: radial-gradient(circle at 50% 50%, #000 40%, transparent 85%); }
 .bn-scan-beam { position: absolute; left: -5%; right: -5%; height: 3px; top: 4%; will-change: transform; transform: translate3d(0, 0, 0); border-radius: 3px; background: linear-gradient(90deg, transparent, #a855f7 20%, #22d3ee 80%, #fff); box-shadow: 0 0 18px 4px rgba(139, 92, 246, .7), 0 0 40px 8px rgba(34, 211, 238, .35); animation: bn-sweep 2.2s cubic-bezier(.45, 0, .55, 1) infinite alternate; }
-.bn-scan-box { position: absolute; left: 12%; height: 9%; border: 1px solid rgba(103, 232, 249, .9); border-radius: 4px; background: rgba(34, 211, 238, .1); box-shadow: 0 0 10px rgba(34, 211, 238, .5); opacity: 0; animation: bn-box 2.8s ease-in-out infinite; }
-.bn-scan-dot { position: absolute; will-change: transform, opacity; width: 3px; height: 3px; border-radius: 50%; background: #c4b5fd; box-shadow: 0 0 6px #a78bfa; animation: bn-float 3s ease-in-out infinite; }
-.bn-scan-corner { position: absolute; width: 22px; height: 22px; border: 3px solid #fff; border-radius: 4px; }
 .bn-scan-stages { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .bn-scan-stages li { flex: 1; display: grid; gap: 6px; font: 600 12px/1.2 "Space Grotesk", sans-serif; color: #a9b0d6; }
 .bn-scan-stages li::before { content: ""; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .12); }
@@ -206,16 +201,13 @@ html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .bf-kicker { co
 .bn-scan-title { margin: 0; font: 700 18px/1.2 "Space Grotesk", sans-serif; }
 .bn-scan-title em { font-style: normal; background: linear-gradient(90deg, #c4b5fd, #67e8f9); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes bn-sweep { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 198px, 0); } }
-@keyframes bn-box { 0%, 15% { opacity: 0; transform: scaleX(.6); } 30%, 70% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; } }
-@keyframes bn-float { 0%, 100% { transform: translateY(0); opacity: .2; } 50% { transform: translateY(-14px); opacity: 1; } }
 @keyframes bn-load { from { opacity: .35; } to { opacity: 1; } }
 @keyframes bn-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-app="shop"] .sh-scan { transition: none; }
-  .bn-scan-beam, .bn-scan-box, .bn-scan-dot, .bn-scan-term li, .bn-scan-stages li.is-on::before { animation: none; }
+  .bn-scan-beam, .bn-scan-term li, .bn-scan-stages li.is-on::before { animation: none; }
   .bn-scan-beam { transform: translate3d(0, 100px, 0); }
-  .bn-scan-box { opacity: .8; }
 }
 
 /* Verificarea bonului: ecran întreg, sticlă, bară de total fixă. */
@@ -373,24 +365,42 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 html[data-app="shop"] .bf-danger-zone { padding: 4px 0 24px; background: none; border: 0; box-shadow: none; }
 html[data-app="shop"] .bf-danger-zone .bf-danger { width: 100%; min-height: 48px; border-radius: 16px; border: 1px solid rgb(239 68 68 / .45); background: rgb(239 68 68 / .1); color: #ef4444; font-weight: 700; }
 html[data-app="shop"] .bf-shopping > header { display: none; }
-/* Scanare: bonul întreg (contain, pe raportul lui), rânduri reale luminate când trece raza. */
-.bn-scan-stage { min-height: 200px; max-height: 380px; display: grid; place-items: center; padding: 10px; }
-.bn-scan-paper { position: relative; height: auto; max-height: 360px; border-radius: 6px; overflow: hidden; box-shadow: 0 8px 30px rgb(0 0 0 / .35); }
-.bn-scan-paper img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 1; filter: none; transition: opacity .45s ease; }
-.bn-scan-paper img.is-front { animation: bn-fade-in .45s ease both; }
+/* Scanare: bon virtual care se construiește (schelet → magazin → rânduri → total verificat). */
+.bn-scan-stage { min-height: 0; display: grid; place-items: center; padding: 14px 10px; }
+.bn-scan-thumbs { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
+.bn-scan-thumbs li { position: relative; flex: 0 0 44px; height: 58px; border-radius: 10px; overflow: hidden; border: 1px solid rgb(167 139 250 / .35); opacity: .55; transition: opacity .3s ease, border-color .3s ease; }
+.bn-scan-thumbs li.is-on, .bn-scan-thumbs li.is-done { opacity: 1; } .bn-scan-thumbs li.is-done { border-color: #22d3ee; }
+.bn-scan-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.bn-scan-thumbs span { position: absolute; right: 3px; bottom: 3px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; font: 700 10px/1 var(--bn-head, sans-serif); color: #fff; background: rgb(15 23 42 / .7); }
+.bn-scan-thumbs li.is-done span { background: linear-gradient(135deg, #8b5cf6, #06b6d4); }
+.bn-vr { position: relative; width: min(100%, 300px); padding: 16px 16px 14px; border-radius: 6px 6px 14px 14px; overflow: hidden; color: #e8eaff; background: linear-gradient(180deg, rgb(255 255 255 / .1), rgb(255 255 255 / .04)); border: 1px solid rgb(167 139 250 / .28); box-shadow: 0 18px 40px rgb(0 0 0 / .35), inset 0 1px 0 rgb(255 255 255 / .12); -webkit-mask: radial-gradient(6px at 50% 100%, transparent 98%, #000) 0 0 / 14px 100% repeat-x, linear-gradient(#000, #000) 0 0 / 100% calc(100% - 6px) no-repeat; font: 500 13px/1.3 ui-monospace, "SF Mono", monospace; }
+.bn-vr-head { display: grid; justify-items: center; gap: 6px; padding-bottom: 10px; margin-bottom: 8px; border-bottom: 1px dashed rgb(167 139 250 / .35); }
+.bn-vr-store { font: 700 15px/1.2 var(--bn-head, sans-serif); letter-spacing: .04em; text-transform: uppercase; animation: bn-vr-in .4s ease-out both; }
+.bn-vr-sk { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, rgb(167 139 250 / .16) 0%, rgb(103 232 249 / .32) 50%, rgb(167 139 250 / .16) 100%) 0 0 / 200% 100%; animation: bn-vr-shimmer 1.4s linear infinite; }
+.bn-vr-lines { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; min-height: 132px; align-content: start; }
+.bn-vr-lines li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.bn-vr-lines li:not(.is-sk) { opacity: 0; transform: translate3d(0, 6px, 0); transition: opacity .28s ease-out, transform .28s ease-out; }
+.bn-vr-lines li.is-in { opacity: 1; transform: none; }
+.bn-vr-lines li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bn-vr-lines li b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bn-vr-lines li.is-discount { color: #f0abfc; } .bn-vr-lines li.is-more span { opacity: .7; font-style: italic; }
+.bn-vr-total { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgb(167 139 250 / .35); font-weight: 700; }
+.bn-vr-total span { flex: 1; letter-spacing: .08em; } .bn-vr-total b { font: 700 16px/1 var(--bn-head, sans-serif); font-variant-numeric: tabular-nums; }
+.bn-vr-total.is-in b { animation: bn-vr-in .35s ease-out both; }
+.bn-vr-check { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #22c55e, #06b6d4); animation: bn-vr-pop .4s cubic-bezier(.2, 1.6, .4, 1) both; }
 .bn-scan-sweep { position: absolute; inset: 0; pointer-events: none; will-change: transform; animation: bn-sweep-full 2.2s cubic-bezier(.45, 0, .55, 1) infinite alternate; }
 .bn-scan-sweep .bn-scan-beam { top: 0; animation: none; transform: none; }
-.bn-scan-line { position: absolute; border-radius: 3px; border: 1px solid rgb(34 211 238 / .85); background: rgb(34 211 238 / .14); opacity: 0; will-change: opacity; animation: bn-line-read .3s ease-out forwards, bn-line-flash 4.4s ease-out infinite; }
-.bn-scan-term li.is-read span { color: inherit; font-family: ui-monospace, monospace; font-size: 12px; }
 @keyframes bn-sweep-full { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 100%, 0); } }
-@keyframes bn-line-read { to { opacity: .5; } }
-@keyframes bn-line-flash { 0% { opacity: 1; box-shadow: 0 0 12px rgb(34 211 238 / .8); } 18% { opacity: .5; box-shadow: none; } 100% { opacity: .5; } }
-@keyframes bn-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .bn-scan-sweep, .bn-scan-line { animation: none; } .bn-scan-line { opacity: .5; } }
+@keyframes bn-vr-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes bn-vr-in { from { opacity: 0; transform: translate3d(0, 4px, 0); } to { opacity: 1; transform: none; } }
+@keyframes bn-vr-pop { from { transform: scale(0); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .bn-scan-sweep, .bn-vr-sk, .bn-vr-store, .bn-vr-check, .bn-vr-total.is-in b { animation: none; } .bn-vr-lines li:not(.is-sk) { transition: none; } .bn-scan-sweep { display: none; } }
+html:not(.dark) .bn-vr { color: #1e1b4b; background: linear-gradient(180deg, #fff, #faf8ff); border-color: rgb(139 92 246 / .22); box-shadow: 0 16px 34px rgb(91 33 182 / .14); }
+html:not(.dark) .bn-vr-lines li.is-discount { color: #a21caf; }
+html:not(.dark) .bn-vr-sk { background-image: linear-gradient(90deg, rgb(124 58 237 / .1) 0%, rgb(6 182 212 / .22) 50%, rgb(124 58 237 / .1) 100%); }
 /* Tema luminoasă: card și jurnal deschise, text închis; noaptea rămâne închisă. */
 html:not(.dark) .bn-scan { color: #1e1b4b; background: linear-gradient(160deg, rgb(255 255 255 / .92), rgb(237 233 254 / .9)); border: 1px solid rgb(139 92 246 / .2); box-shadow: 0 10px 30px rgb(91 33 182 / .12); }
 html:not(.dark) .bn-scan-stage { background: linear-gradient(180deg, #ede9fe, #e0f2fe); }
-html:not(.dark) .bn-scan-corner { border-color: #7c3aed; }
 html:not(.dark) .bn-scan-title em { background: linear-gradient(90deg, #7c3aed, #0891b2); -webkit-background-clip: text; background-clip: text; }
 html:not(.dark) .bn-scan-stages li { color: #6b6a8f; }
 html:not(.dark) .bn-scan-stages li.is-done, html:not(.dark) .bn-scan-stages li.is-on { color: #1e1b4b; }
@@ -398,7 +408,6 @@ html:not(.dark) .bn-scan-stages li::before { background: rgb(124 58 237 / .14); 
 html:not(.dark) .bn-scan-term { background: rgb(255 255 255 / .75); border-color: rgb(139 92 246 / .22); color: #1e1b4b; }
 html:not(.dark) .bn-scan-term li span, html:not(.dark) .bn-scan-term li.is-muted span { color: #3f3d63; }
 html:not(.dark) .bn-scan-term li b { color: #0e7490; }
-html:not(.dark) .bn-scan-grid { background-image: linear-gradient(rgb(124 58 237 / .1) 1px, transparent 1px), linear-gradient(90deg, rgb(124 58 237 / .1) 1px, transparent 1px); }
 /* Bara de jos: fiecare pastilă cât eticheta ei (360–412 px). */
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 { display: flex; gap: 2px; }
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button { flex: 1 1 auto; min-width: max-content; width: auto; padding-inline: 7px; }
