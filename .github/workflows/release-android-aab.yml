@@ -83,8 +83,8 @@ jobs:
       - name: Publică AAB-ul ca artefact GitHub
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: buget-familie-release-aab
-          # archivesBaseName = "Buget-Familie", deci fișierul e Buget-Familie-release.aab, nu app-release.aab.
+          name: bonai-release-aab
+          # archivesBaseName = "BonAI", deci fișierul e BonAI-release.aab, nu app-release.aab.
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
           retention-days: 14
