@@ -317,6 +317,22 @@ export function warmReceiptScan() {
 /** O poză sau capturile aceluiași bon, în ordinea în care le-a ales omul. */
 export class AiQuotaError extends Error { readonly code = "ai_quota"; }
 
+/** Eroarea scanării, cu codul serverului (ex. „quota”, „app_check”), ca ecranul să ofere drumul potrivit. */
+export class ReceiptScanError extends Error {
+  constructor(message: string, readonly code: string) { super(message); this.name = "ReceiptScanError"; }
+}
+
+/** Mesajul pentru om, mereu în română: unele răspunsuri tehnice ale serverului sunt în engleză. */
+export function receiptErrorText(error: string | undefined, code: string | undefined, status: number): string {
+  if (code === "app_check") return t("Telefonul nu a putut fi verificat de server. Închide aplicația, deschide-o din nou și mai încearcă.");
+  if (code === "quota" && error) return error;
+  if (status === 403) return t("Serverul a refuzat cererea de la această adresă. Deschide aplicația din nou și mai încearcă.");
+  if (status === 405) return t("Cerere greșită către server. Actualizează aplicația și mai încearcă.");
+  if (error && /[ăâîșțşţĂÂÎȘȚ]/.test(error)) return error;
+  if (status === 429) return t("Ai scanat multe bonuri azi. Mâine poți scana din nou; până atunci folosește „Offline”.");
+  return t("Nu am putut citi bonul acum. Mai încearcă o dată.");
+}
+
 export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[], context: { receiptCount?: number; roomId?: string } = {}): Promise<ScannedReceipt> {
   // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
   const { appCheckHeader, authHeader, freshAuthHeader } = await import("./realtime-sync");
@@ -368,7 +384,7 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   if (!response.ok || !payload.receipt) {
     // Codul tehnic, scurt, ca omul să-l poată trimite când citirea nu merge.
     const code = payload.reason ? ` (${payload.reason})` : !response.ok ? ` (HTTP ${response.status})` : "";
-    throw new Error(`${payload.error || t("Nu am putut citi bonul acum. Mai încearcă o dată.")}${code}`);
+    throw new ReceiptScanError(`${receiptErrorText(payload.error, payload.code, response.status)}${code}`, payload.code || `http_${response.status}`);
   }
   return payload.receipt;
 }

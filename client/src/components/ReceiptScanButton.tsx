@@ -13,7 +13,7 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
 import { warmOcr } from "@/lib/receipt-orientation-ocr";
-import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
+import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, ReceiptScanError, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
@@ -25,6 +25,10 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const galleryRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+  const errorRef = useRef<HTMLDivElement>(null);
+  // Eroarea nu are voie să rămână sub marginea ecranului: altfel scanarea pare că s-a închis singură.
+  useEffect(() => { if (error) errorRef.current?.scrollIntoView?.({ block: "center", behavior: "smooth" }); }, [error]);
   /** Pozele ultimei încercări eșuate: „Încearcă din nou” le retrimite, fără altă poză. */
   const lastFiles = useRef<File[]>([]);
   const [seconds, setSeconds] = useState(0);
@@ -75,7 +79,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       if (!ok) return;
       rememberReceiptScanConsent();
     }
-    setError("");
+    setError(""); setErrorCode("");
     (which === "camera" ? cameraRef : galleryRef).current?.click();
   };
 
@@ -121,7 +125,9 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       setReveal({ items: final.lines.map((line) => ({ name: line.label, amount: line.amount })), total: prefill.amount, prefill: final });
     } catch (reason) {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
-      setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
+      console.warn("[BonAI] scanare eșuată", reason);
+      setErrorCode(reason instanceof ReceiptScanError ? reason.code : "");
+      setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error && reason.message ? (/[ăâîșțşţĂÂÎȘȚ]/.test(reason.message) ? reason.message : t("Nu am putut citi bonul: {reason}. Mai încearcă o dată.", { reason: reason.message.slice(0, 120) })) : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
     } finally {
       setBusy(false);
       if (cameraRef.current) cameraRef.current.value = "";
@@ -136,7 +142,12 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     if (file) setPending((current) => [...current, file].slice(0, RECEIPT_SHOTS_MAX));
   };
 
+  const errorBox = error && !busy ? <div ref={errorRef} className="bf-form-error bf-scan-error" role="alert" data-testid="scan-error"><p><b>{t("Scanarea nu a reușit.")}</b> {error}</p><div className="bf-scan-check-actions">
+    {lastFiles.current.length > 0 && <button type="button" className="bf-secondary" onClick={() => void read(lastFiles.current)}>{t("Încearcă din nou")}</button>}
+    {lastFiles.current.length > 0 && !offlineRef.current && <button type="button" className="bf-secondary" onClick={() => { offlineRef.current = true; setOffline(true); warmOcr(); void read(lastFiles.current); }}><WifiOff size={16} aria-hidden="true" /> {errorCode === "quota" ? t("Scanează offline") : t("Citește pe telefon")}</button>}
+  </div></div> : null;
   return <section className="bf-scan-receipt" aria-busy={busy}>
+    {errorBox}
     {!busy && pending.length > 0 ? <div className="bf-scan-note" role="status">
       <p>{pending.length === 1 ? t("Poza e gata. Bonul e lung? Fă și o poză cu partea următoare, apoi citește-le împreună.") : t("{count} poze ale aceluiași bon. Se citesc împreună, ca un singur bon.", { count: pending.length })}</p>
       <div className="bf-scan-check-actions">
@@ -175,7 +186,6 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       <button type="button" className="bf-scan-receipt-gallery" aria-label={t("Alege din galerie poza bonului sau mai multe capturi ale lui")} title={t("Din galerie: o poză sau mai multe capturi ale aceluiași bon")} onClick={() => void pick("gallery")}><ImagePlus size={18} aria-hidden="true" /></button>
     </div>}
     {!busy && !reveal && !hub && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
-    {error && <div className="bf-form-error bf-scan-error" role="alert"><p>{error}</p>{lastFiles.current.length > 0 && !busy && <button type="button" className="bf-secondary" onClick={() => void read(lastFiles.current)}>{t("Încearcă din nou")}</button>}</div>}
     <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(event) => addShot(event.target.files)} />
     <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={(event) => void read(event.target.files)} />
   </section>;
