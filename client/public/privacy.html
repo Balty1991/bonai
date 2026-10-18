@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Politică de confidențialitate — Buget Familie</title>
-  <meta name="description" content="Cum prelucrează Buget Familie datele financiare: registru local, sincronizare criptată opțională, ghid AI opțional, fără cont și fără login bancar." />
+  <title>Politică de confidențialitate — BonAI</title>
+  <meta name="description" content="Cum prelucrează BonAI bonurile, lista de cumpărături și cheltuielile familiei: date pe telefon, sincronizare criptată opțională, scanare AI doar la cerere, fără cont și fără login bancar." />
   <style>
     body { margin: 0; color: #143c36; background: #f5f2ea; font: 16px/1.55 "IBM Plex Sans", "Segoe UI", sans-serif; }
     main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
@@ -17,36 +17,30 @@
 </head>
 <body>
   <main>
-    <p class="meta">Buget Familie · versiunea 1.1.113 · actualizat 29 septembrie 2026</p>
+    <p class="meta">BonAI · versiunea 2.1.0 · actualizat 18 octombrie 2026</p>
     <h1>Politică de confidențialitate</h1>
-    <p>Buget Familie este o aplicație de evidență financiară personală sau de familie, publicată de dezvoltatorul Balty1991. Contact: <a href="mailto:contact.vanzo@gmail.com">contact.vanzo@gmail.com</a>. Pachet Android: <code>ro.balty1991.bugetfamilie</code>.</p>
+    <p>BonAI (fostă Buget Familie) este o aplicație pentru bonuri, cumpărături și cheltuielile casei, publicată de dezvoltatorul Balty1991. Contact: <a href="mailto:contact.vanzo@gmail.com">contact.vanzo@gmail.com</a>. Pachet Android: <code>ro.balty1991.bugetfamilie</code>.</p>
     <p>Nu creăm conturi de utilizator, nu cerem date bancare și nu vindem informații. Tu ești operatorul datelor din registrul tău.</p>
 
     <h2>1. Ce rămâne pe telefon</h2>
     <p>Registrul stă pe dispozitiv (IndexedDB și stocarea locală a WebView-ului sau a browserului):</p>
     <ul>
-      <li>mișcări (sume, categorii, date, membru, sursă de plată, note);</li>
-      <li>plicuri, datorii, economii, scadențe, venituri așteptate, numele membrilor familiei;</li>
-      <li>bonurile scrise de mână (magazin, total, articole);</li>
+      <li>bonurile salvate (magazin, dată, produse, prețuri, reduceri) și cheltuielile fără bon (sumă, categorie, notă);</li>
+      <li>lista de cumpărături, stocul casei, meniul, istoricul prețurilor, garanții, abonamente, facturi, datorii și numele membrilor familiei;</li>
+      <li>legăturile dintre codurile de bare și produsele tale;</li>
       <li>preferințe: temă, alerte, codul de blocare (păstrat doar ca hash PBKDF2).</li>
     </ul>
-    <p>Bonurile se pot scrie de mână sau scana. Scanarea pornește doar când apeși „Scanează bonul” și confirmi: poza bonului, micșorată pe telefon, pleacă o singură dată la funcția noastră din Google Cloud, care o trimite la Google Gemini sau, ca rezervă, la Anthropic Claude, ca să scoată din ea produsele, sumele, data, magazinul și felul plății. Rezultatul se întoarce în formular, unde îl verifici înainte să salvezi. Poza nu se salvează: nici pe telefon, nici pe serverul nostru, nici în jurnale. Pe bon pot apărea numele magazinului, ora și, uneori, ultimele cifre ale cardului; dacă nu vrei să trimiți asta, notează bonul de mână.</p>
+    <p>Bonurile se pot scrie de mână sau scana. Scanarea offline citește bonul direct pe telefon, fără să trimită poza. Scanarea AI pornește doar când apeși „Scanează bonul”: poza bonului, micșorată pe telefon, pleacă o singură dată la funcția noastră din Google Cloud, care o trimite la Google Gemini sau, ca rezervă, la Anthropic Claude, ca să scoată din ea produsele, sumele, data, magazinul și felul plății. Rezultatul se întoarce în formular, unde îl verifici înainte să salvezi. Poza nu se salvează: nici pe telefon, nici pe serverul nostru, nici în jurnale. Pe bon pot apărea numele magazinului, ora și, uneori, ultimele cifre ale cardului; dacă nu vrei să trimiți asta, notează bonul de mână.</p>
 
     <h2>2. Sincronizarea de familie (opțională)</h2>
     <p>Dacă o pornești, registrul este comprimat și criptat AES-GCM pe telefon, apoi salvat în Google Firebase Firestore, într-o cameră cu ID aleator. Cheia camerei stă doar pe telefoanele familiei și ajunge la partener prin invitație (link sau cod QR); camerele vechi, create cu parolă de familie, au ca ID hash-ul SHA-256 al parolei. Cheia și parola nu ajung pe server în clar. Singura excepție e codul de recuperare, dacă îl folosești: cheia camerei (sau parola) este salvată pe server criptată cu acest cod, pe care serverul nu îl are, ca să poți reveni în familie de pe un telefon nou. Serverul nu poate citi sume, nume sau note.</p>
     <p>Nu se sincronizează: șabloanele rapide, filtrele, tema, codul de blocare și jurnalul de sincronizare al telefonului.</p>
 
     <h2>3. Identitate anonimă și protecție la abuz</h2>
-    <p>Pentru sincronizare, ghidul online și formularul de feedback, telefonul primește de la Google Firebase Authentication un identificator anonim aleator (fără nume, e-mail, telefon sau cont). Pe web, Firebase App Check folosește Google reCAPTCHA Enterprise ca să verifice că cererea vine din aplicație; reCAPTCHA poate prelucra date tehnice despre browser și dispozitiv, conform <a href="https://policies.google.com/privacy">politicii Google</a>. Pe server numărăm cererile la ghid, la consultant, la scanarea bonurilor și la feedback pe identificatorul anonim și pe adresa IP, ca să punem limite. Contoarele țin o oră sau o zi și nu conțin conținutul cererii.</p>
+    <p>Pentru scanarea AI, sincronizare, asistent și feedback, telefonul primește de la Google Firebase Authentication un identificator anonim aleator (fără nume, e-mail, telefon sau cont). Pe web, Firebase App Check folosește Google reCAPTCHA Enterprise ca să verifice că cererea vine din aplicație; reCAPTCHA poate prelucra date tehnice despre browser și dispozitiv, conform <a href="https://policies.google.com/privacy">politicii Google</a>. Pe server numărăm cererile la asistent, la scanarea bonurilor (inclusiv cota lunară de scanări AI) și la feedback pe identificatorul anonim și pe adresa IP, ca să punem limite. Contoarele țin o oră sau o zi și nu conțin conținutul cererii.</p>
 
-    <h2>4. Ghidul AI online (opțional)</h2>
-    <p>Ghidul răspunde întâi de pe telefon. Doar dacă nu înțelege și tu ai trimis mesajul, pleacă prin serverul nostru (Google Cloud Functions, UE) către <b>Google Gemini</b> și, dacă Gemini nu răspunde, către <b>Groq</b> (SUA), ca rezervă:</p>
-    <ul>
-      <li>întrebarea ta și ultimele 8 mesaje din conversație;</li>
-      <li>un rezumat al bugetului: plicurile (nume, sumă, cât a rămas), sursele de plată cu soldul lor, categoriile, scadențele, datoriile, obiectivele de economii, evenimentele planificate, veniturile așteptate cu ziua lor, numele membrilor familiei, totalurile lunii și data salariului.</li>
-    </ul>
-    <p>Nu pleacă jurnalul de mișcări, cheia sau parola camerei. Nu păstrăm conversațiile pe server. Google și Groq prelucrează cererea ca furnizori de servicii, conform termenilor lor pentru API. Nu scrie în ghid date pe care nu vrei să le trimiți (de exemplu numere de card).</p>
-    <p><b>Consultantul financiar</b> (Analiză → Asistent, abonamentul Familia) pornește doar când apeși „Cere raportul lunii” și confirmi. Pleacă, pe aceeași cale (Google Gemini, iar ca rezervă Groq), doar un rezumat cu cifre: veniturile și cheltuielile pe ultimele patru luni, totalurile pe categorii, plicurile (categorie, sumă, rest), totalul scadențelor lunare, datoriile (fel, sold, rată, dobândă), obiectivele (țintă, strâns), fondul de urgență și evenimentele următoare (fel, cost, strâns). Nu pleacă mișcările, titlurile, magazinele, notițele sau numele membrilor. Raportul primit rămâne doar pe telefon.</p>
+    <h2>4. Asistentul AI (opțional)</h2>
+    <p>Dacă folosești asistentul, întrebarea ta, ultimele mesaje din conversație și un rezumat cu cifre al cumpărăturilor (totaluri pe categorii, magazine, produse și prețuri din bonurile tale, cheltuieli fără bon, facturi, abonamente, datorii) pleacă prin serverul nostru (Google Cloud Functions, UE) către <b>Google Gemini</b> și, dacă Gemini nu răspunde, către <b>Groq</b> (SUA), ca rezervă. Nu pleacă pozele bonurilor, cheia sau parola camerei. Nu păstrăm conversațiile pe server. Google și Groq prelucrează cererea ca furnizori de servicii, conform termenilor lor pentru API. Nu scrie în asistent date pe care nu vrei să le trimiți (de exemplu numere de card).</p>
 
     <h2>5. Feedback (opțional)</h2>
     <p>Formularul „Spune-ne ce nu merge” trimite textul scris de tine, contactul doar dacă îl completezi și, dacă lași bifa, detalii tehnice (versiunea aplicației, ecranul, tipul telefonului, limba, tema, mărimea ecranului), împreună cu identificatorul anonim. Nimic din registru. Mesajele le citește doar dezvoltatorul.</p>
@@ -55,16 +49,17 @@
     <p>Când aplicația dă o eroare, pleacă la Sentry (Functional Software, Inc., date găzduite în UE, la Frankfurt) doar tipul erorii, locul din cod unde a apărut, versiunea aplicației și dacă e aplicația Android sau browserul. Din mesajul erorii se scot cifrele și textul dintre ghilimele, iar pașii dinaintea erorii (atingeri, ce s-a scris) nu se trimit. Fără sume, nume, magazine, bonuri, registru sau adresa IP. Le oprești din Setări → Mementouri și siguranță → „Trimite rapoarte de erori”.</p>
 
     <h2>6. Temei și scop</h2>
-    <p>Prelucrarea are loc la cererea ta, pentru a ține un registru financiar (executarea serviciului cerut) și, pentru limitele anti-abuz, pe baza interesului legitim de a ține serviciul funcțional. Nu folosim datele pentru publicitate, profilare de marketing sau scoring de credit. Aplicația nu conține SDK-uri de analytics sau de reclame; singurul SDK de diagnosticare e cel pentru rapoartele de erori (5b), fără date personale.</p>
+    <p>Prelucrarea are loc la cererea ta, pentru a ține evidența bonurilor și a cumpărăturilor (executarea serviciului cerut) și, pentru limitele anti-abuz, pe baza interesului legitim de a ține serviciul funcțional. Nu folosim datele pentru publicitate, profilare de marketing sau scoring de credit. Aplicația nu conține SDK-uri de analytics sau de reclame; singurul SDK de diagnosticare e cel pentru rapoartele de erori (5b), fără date personale.</p>
 
     <h2>7. Permisiuni Android</h2>
     <ul>
-      <li><b>INTERNET</b>: sincronizare, ghid online, feedback.</li>
-      <li><b>POST_NOTIFICATIONS</b>: reamintiri locale de scadențe și plicuri, numai dacă le activezi.</li>
+      <li><b>CAMERA</b>: fotografierea bonului și scanarea codurilor de bare, doar când deschizi aceste ecrane.</li>
+      <li><b>INTERNET</b>: scanarea AI, căutarea codurilor de bare, sincronizare, feedback.</li>
+      <li><b>POST_NOTIFICATIONS</b>: reamintiri locale (facturi, abonamente, termene de retur, „Ce urmează”), numai dacă le activezi.</li>
       <li><b>RECEIVE_BOOT_COMPLETED</b>: reprogramarea reamintirilor după repornirea telefonului.</li>
       <li><b>Stocare</b> (doar Android 9 și mai vechi): scrierea copiei de siguranță în Descărcări.</li>
     </ul>
-    <p>Nu cerem locație, contacte, microfon sau acces la conturi Google și nici permisiunea pentru cameră: poza bonului se face cu aplicația de cameră a telefonului sau se alege din galerie, doar când apeși „Scanează bonul”. Extrasele de cont (CSV sau Excel) se aleg prin selectorul de sistem. Widgetul de pe ecranul principal arată cât poți cheltui azi: oricine vede ecranul telefonului vede și suma. Dacă nu vrei asta, nu adăuga widgetul.</p>
+    <p>Nu cerem locație, contacte, microfon sau acces la conturi Google. Camera se folosește doar în ecranele de scanare; poți alege și o poză din galerie prin selectorul de sistem. Widgetul de pe ecranul principal arată lista de cumpărături: oricine vede ecranul telefonului o vede. Dacă nu vrei asta, nu adăuga widgetul.</p>
 
     <h2>8. Copii de siguranță</h2>
     <p>Backup-ul Google și transferul automat la un telefon nou sunt dezactivate (<code>allowBackup=false</code> și reguli de extragere care exclud tot), ca registrul să nu părăsească telefonul pe această cale. Poți exporta oricând un fișier JSON din Setări. Dacă pornești copia automată săptămânală, fișierul se scrie în Descărcări, necriptat: îl pot citi alte aplicații cu acces la fișiere și rămâne acolo și după dezinstalare, până îl ștergi. Aplicația păstrează doar ultimele 4 copii automate și le șterge singură pe cele mai vechi.</p>
@@ -73,19 +68,19 @@
     <p>Datele locale rămân până le ștergi (Setări → Resetare) sau dezinstalezi aplicația. Nu există cont de șters; identificatorul anonim nu e legat de numele tău, iar la cerere îl ștergem, împreună cu mesajele de feedback. Contoarele de limită se suprascriu singure. Pachetul criptat al camerei rămâne pe server fără cheie, deci nu poate fi citit; dacă vrei să dispară, scrie-ne și îl ștergem. Instrucțiuni: <a href="./delete-data.html">Cum ștergi datele</a>.</p>
 
     <h2>10. Destinatari și transferuri</h2>
-    <p>Google (Firebase Authentication, Firestore, Cloud Functions, App Check/reCAPTCHA, Gemini) primește identificatorul anonim, pachetul criptat dacă sincronizezi, cererile către ghid, pozele bonurilor pe care alegi să le scanezi (doar cât durează citirea) și mesajele de feedback. Groq, Inc. (SUA) primește cererile către ghid și consultant doar când Gemini nu răspunde. Anthropic, PBC (SUA) primește poza unui bon pe care alegi să-l scanezi doar când citirea cu Gemini nu merge, ca furnizor de servicii, fără s-o păstreze pentru antrenarea modelelor. Transferurile în afara UE se fac în baza clauzelor contractuale standard ale acestor furnizori. Sentry (UE) primește rapoartele de erori descrise la 5b. GitHub Pages servește interfața web, nu registrul tău. Dacă folosești căutarea de produse din catalog, cuvântul căutat (fără alte date) pleacă la Open Food Facts și Open Products Facts, baze de date publice și gratuite. Nu folosim procesatori de plăți în această versiune.</p>
+    <p>Google (Firebase Authentication, Firestore, Cloud Functions, App Check/reCAPTCHA, Gemini) primește identificatorul anonim, pachetul criptat dacă sincronizezi, cererile către asistent, pozele bonurilor pe care alegi să le scanezi (doar cât durează citirea) și mesajele de feedback. Groq, Inc. (SUA) primește cererile către asistent doar când Gemini nu răspunde. Anthropic, PBC (SUA) primește poza unui bon pe care alegi să-l scanezi doar când citirea cu Gemini nu merge, ca furnizor de servicii, fără s-o păstreze pentru antrenarea modelelor. Transferurile în afara UE se fac în baza clauzelor contractuale standard ale acestor furnizori. Sentry (UE) primește rapoartele de erori descrise la 5b. GitHub Pages servește interfața web, nu registrul tău. Când scanezi un cod de bare necunoscut, doar cifrele codului (fără alte date) pleacă la bazele publice și gratuite Open Food Facts, Open Pet Food Facts, Open Products Facts, Open Beauty Facts și Wikidata. Plățile pentru abonamente, când vor fi pornite, trec exclusiv prin Google Play; nu primim datele cardului.</p>
 
     <h2>11. Drepturile tale</h2>
     <p>Poți accesa, exporta și șterge datele din aplicație. Ai dreptul la acces, rectificare, ștergere, restricționare, portabilitate și opoziție, și poți depune plângere la ANSPDCP (<a href="https://www.dataprotection.ro">dataprotection.ro</a>). Pentru întrebări: <a href="mailto:contact.vanzo@gmail.com">contact.vanzo@gmail.com</a>. Răspundem în maximum 30 de zile.</p>
 
     <h2>12. Copii</h2>
-    <p>Aplicația este pentru adulți care țin bugetul casei. Modul „Telefonul lui X” îl pornește un adult, pe un telefon al familiei, ca un copil sau un bunic să vadă doar cât are din plicul lui și să noteze ce cheltuie. Datele acestea le introduce și le administrează adultul, ca parte din registrul familiei. Copilul nu își creează cont și nu trimite nimic separat. Ghidul AI, setările și restul bugetului nu sunt disponibile în acest mod; dacă telefonul e în camera familiei, ce notează ajunge la adulți prin sincronizarea criptată. Nu colectăm conștient date direct de la copii sub 16 ani.</p>
+    <p>Aplicația este pentru adulți care țin bugetul casei. Modul „Telefonul lui X” îl pornește un adult, pe un telefon al familiei, ca un copil sau un bunic să vadă doar partea lui și să noteze ce cheltuie. Datele acestea le introduce și le administrează adultul, ca parte din registrul familiei. Copilul nu își creează cont și nu trimite nimic separat. Asistentul AI, setările și restul datelor nu sunt disponibile în acest mod; dacă telefonul e în camera familiei, ce notează ajunge la adulți prin sincronizarea criptată. Nu colectăm conștient date direct de la copii sub 16 ani.</p>
 
     <h2>13. Nu este sfat financiar</h2>
-    <p>Buget Familie este un registru de familie. Nu este sfat financiar, credit, investiție sau plată. Nu înlocuiește un consultant. Sumele afișate vin din ce ai introdus tu.</p>
+    <p>BonAI este un registru al cumpărăturilor familiei. Nu este sfat financiar, credit, investiție sau plată. Nu înlocuiește un consultant. Sumele afișate vin din ce ai introdus tu.</p>
 
     <h2>14. Abonamente și plăți</h2>
-    <p>Versiunea curentă nu activează plăți în aplicație și nu deblochează funcții contra cost. Când Play Billing va fi activat, cumpărăturile (planul Familia pentru gospodărie) vor trece exclusiv prin Google Play; Casa rămâne gratuită. Până atunci nu există unlock-uri plătite. Anularea unui abonament viitor din Google Play nu șterge registrul de pe telefon. Termenii și această secțiune vor fi actualizate înainte de prima taxare.</p>
+    <p>BonAI are un plan gratuit și abonamentele Pro și Familie, cumpărate exclusiv prin Google Play. În această versiune plățile nu sunt încă pornite. După pornire: proba de 14 zile începe în aplicație după al 3-lea bon, abonamentul se reînnoiește automat și se anulează oricând din Google Play → Abonamente. Anularea nu șterge datele de pe telefon. Termenii și această secțiune vor fi actualizate înainte de prima taxare.</p>
 
     <p class="meta"><a href="./terms.html">Termeni de utilizare</a> · <a href="./">Înapoi la aplicație</a></p>
   </main>

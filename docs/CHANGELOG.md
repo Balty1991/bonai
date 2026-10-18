@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (226) — BonAI pentru Google Play
+
+- Scanare AI mai rapidă (3–5 s pe server), scanare offline gratuită și nelimitată, bon digital animat la citire.
+- Cod de bare în magazin (Open Food/Pet Food/Products/Beauty Facts + Wikidata), fișă de produs cu ultimul preț.
+- Editare și ștergere bonuri, cheltuieli fără bon, „Economisit cu BonAI”, lista cu prețuri, „Ți se termină”, verificarea reducerilor, „Ce urmează”, modul exemplu.
+- Temă de noapte mai clară. Politica de confidențialitate, termenii și pagina de ștergere rebrănduite BonAI.
+- Plățile rămân oprite (`BILLING_LIVE = false`, `AI_QUOTA_ENFORCED = false`).
+
 ## 2.0.3 — BonAI, design nou
 
 - Icon nou (vizor de sticlă, bon, rază neon), sigla BonAI în antet, splash și iconuri Android/web refăcute din SVG.
