@@ -629,7 +629,7 @@ export default function Home() {
   const rawView = view;
   const current = () => {
     const view = (["shop", "list", "products", "stores", "house", "utilities"] as MainView[]).includes(rawView) ? rawView : "shop";
-    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onManual={() => openTx()} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onManual={() => openTx()} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenCosts={setCostsKind} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
     if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;

@@ -160,6 +160,35 @@ const FEATURES = {
     const cut = await clipped(page, ".bn-flags");
     if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
   },
+  /** 5. Ce urmează: factură, abonament, rată și retur, în ordinea datelor; rata deschide Datoriile. */
+  async next(page, theme) {
+    const want = await page.evaluate(async () => {
+      const s = await import("/src/lib/app-storage.ts"); const { isoToday } = await import("/src/lib/finance-data.ts"); const { upcoming } = await import("/src/lib/upcoming.ts");
+      const d = await s.readAppData(); const now = new Date().toISOString(); const today = isoToday();
+      const day = (o) => { const x = new Date(`${today}T12:00:00Z`); x.setUTCDate(x.getUTCDate() + o); return x.toISOString().slice(0, 10); };
+      const dom = (o) => Number(day(o).slice(8, 10));
+      const R = (id, name, category, amount, o, extra = {}) => ({ id, name, amount, category, sourceId: "", memberId: "", dueDay: dom(o), active: true, updatedAt: now, ...extra });
+      d.recurring = [R("n1", "Netflix", "Abonamente", 49.99, 3), R("n2", "Curent Hidroelectrica", "Casă & facturi", 180, 9, { variable: true })];
+      d.debts = [{ id: "dd", name: "Rată mașină", remaining: 12000, monthly: 950, due: "", tone: "forest", dueDay: dom(6), updatedAt: now }];
+      d.settings.warranties = [{ id: "ww", name: "Aspirator Dyson", price: 1999, purchaseDate: day(-10), months: 24, returnDays: 14, updatedAt: now }];
+      const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(d, later); s.writeLocalStorageSnapshot(JSON.stringify(d), later);
+      return upcoming(d, today).map((i) => i.name);
+    });
+    if (want.length < 4) fail(`datele de test: ${want.join(", ")}`);
+    await page.reload(); await page.waitForTimeout(2000);
+    const card = page.locator(".sh-card", { hasText: "CE URMEAZĂ" }).first();
+    await waitFor(() => card.isVisible(), "cardul Ce urmează");
+    const names = await card.locator(".sh-next-main b").allInnerTexts();
+    if (names.join("|") !== want.slice(0, 4).join("|")) fail(`ordinea: ${names.join(", ")} ≠ ${want.join(", ")}`);
+    await shot(page, `next-${theme}`, card);
+    const text = await card.textContent();
+    if (!/~180/.test(text) || !/ultima zi de retur/.test(text)) fail(`detalii lipsă: ${text}`);
+    await shot(page, `next-${theme}`, card);
+    const cut = await clipped(page, ".sh-next");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+    await card.getByRole("button", { name: /Rată mașină/ }).click();
+    await waitFor(async () => /Rată mașină/.test(await page.locator("[role=dialog]").last().innerText().catch(() => "")), "rata deschide Datoriile");
+  },
 };
 
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });

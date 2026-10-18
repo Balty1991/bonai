@@ -543,3 +543,13 @@ html[data-app="shop"] .sh-runout-skip { grid-area: skip; justify-self: start; mi
 html.dark .bn-flags-head{color:#fbbf24}
 .bn-bc-keep{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:.9rem}
 .bn-bc-keep label{display:flex;align-items:center;gap:6px}
+.sh-next{list-style:none;margin:4px 0 6px;padding:0;display:grid;gap:2px}
+.sh-next-row{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;padding:9px 2px;cursor:pointer;border-radius:12px}
+.sh-next-row:focus-visible{outline:2px solid var(--sh-accent,#7c3aed);outline-offset:2px}
+.sh-next-icon{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,currentColor 9%,transparent)}
+.sh-next-row.is-bill .sh-next-icon{color:#d97706}.sh-next-row.is-sub .sh-next-icon{color:#7c3aed}.sh-next-row.is-debt .sh-next-icon{color:#2563eb}.sh-next-row.is-return .sh-next-icon,.sh-next-row.is-warranty .sh-next-icon{color:#059669}
+html.dark .sh-next-row.is-sub .sh-next-icon{color:#a78bfa}html.dark .sh-next-row.is-debt .sh-next-icon{color:#60a5fa}html.dark .sh-next-row.is-return .sh-next-icon,html.dark .sh-next-row.is-warranty .sh-next-icon{color:#34d399}html.dark .sh-next-row.is-bill .sh-next-icon{color:#fbbf24}
+.sh-next-main{flex:1;min-width:0;display:grid}.sh-next-main b{overflow-wrap:anywhere}
+.sh-next-main small,.sh-next-side small{font-size:.8rem;opacity:.7}
+.sh-next-side{flex:none;display:grid;justify-items:end;font-variant-numeric:tabular-nums}
+.sh-next-row.is-soon .sh-next-main small{color:#dc2626;opacity:1;font-weight:600}html.dark .sh-next-row.is-soon .sh-next-main small{color:#f87171}
