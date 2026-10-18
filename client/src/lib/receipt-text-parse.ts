@@ -16,7 +16,7 @@ const CHAINS: Array<[RegExp, string]> = [
 ];
 const MONTHS: Record<string, number> = { ian: 1, jan: 1, feb: 2, mar: 3, apr: 4, mai: 5, may: 5, iun: 6, jun: 6, iul: 7, jul: 7, aug: 8, sep: 9, oct: 10, noi: 11, nov: 11, dec: 12 };
 /** Rânduri care nu sunt produse: totaluri, TVA, plăți, antet. */
-const NOT_ITEM = /\b(sub\s*total|total|t[vu][au]|tva|numerar|cash|card|rest|tichet|voucher|bon\b|fiscal|cif|c\.?i\.?f|cod fiscal|nr\.?\s*(poz|bon|tranz)|tranzac|plata|plată|achitat|schimb|casier|operator|pos\b|id unic|data|ora|str\.?|strada|jud|telefon|tel\b|www|mulțumim|multumim|rotunj)/i;
+const NOT_ITEM = /\b(sub\s*total|total|t[vu][au]|tva|numerar|cash|card|rest|tichete?|voucher|bon|fiscal|cif|cod fiscal|nr|tranzac\w*|plata|plată|achitat|schimb|casier|operator|pos|id unic|data|ora|strada|jud|judetul|telefon|tel|www|mulțumim|multumim|rotunjire)\b|\bstr\.|\bc\.?i\.?f\b/i;
 const DISCOUNT = /\b(reducere|discount|disc\.?|cupon|promo|lidl\s*plus|rabat|storno)\b/i;
 const SGR = /\bgaran[tț]ie\b|\bsgr\b/i;
 
@@ -64,7 +64,7 @@ function findTotal(lines: string[]): number {
 }
 
 const nameOf = (s: string) => s
-  .replace(/^(?:[a-z]{1,4}\s+|[^A-Za-z0-9ĂÂÎȘȚ]+\s*|\d\s+)+(?=[A-ZĂÂÎȘȚ])/, "")
+  .replace(/^[^A-ZĂÂÎȘȚ]*?(?=[A-ZĂÂÎȘȚ]{2})/, "")
   .replace(/\b\d+(?:[.,]\d+)?\s*(buc|bu|kg|pet|x|@)\b.*$/i, "")
   .replace(/\b(buc|bu|uc|kg|pet)\b\.?\s*[xX×¥@].*$/i, "")
   .replace(AMOUNT, "")
@@ -78,6 +78,8 @@ export function parseReceiptText(text: string, categories?: string[]): ScannedRe
   const date = findDate(text);
   const items: ScannedReceipt["items"] = [];
   let pendingName = "";
+  /** A doua citire posibilă a fiecărui rând (suma tipărită vs. cantitate × preț), pentru împăcarea cu totalul. */
+  const alternatives = new Map<number, number>();
   // Totalul e ultimul lucru de pe bon care ne interesează: după el vin TVA și plățile.
   const stop = lines.findIndex((l) => /\b(sub\s*total|tota\s*l\s*e?\s*(lei|le[!1\]]|ron)?)\b/i.test(l) && !/t[vu][au]|tva/i.test(l) && amounts(l).length > 0);
   for (const line of stop > 0 ? lines.slice(0, stop) : lines) {
@@ -104,8 +106,29 @@ export function parseReceiptText(text: string, categories?: string[]): ScannedRe
     const quantity = qtyMatch ? Number(qtyMatch[1].replace(",", ".")) || 1 : 1;
     const isSgr = SGR.test(name);
     // Numele vine din rândul de dinainte când rândul curent e doar „1 BUC X 3,50 = 3,50”.
+    if (product > 0 && Math.abs(product - read) > 0.01) alternatives.set(items.length, read);
     items.push({ name: name.slice(0, 80), quantity: quantity > 0 && quantity < 1000 ? quantity : 1, amount: round2(amount), category: isSgr ? "SGR" : /saco[sș]|pung/i.test(name) ? "Sacoșe" : guessCategoryFromText(name, categories) || "Altele" });
     pendingName = "";
   }
+  reconcile(items, alternatives, total);
   return { store, date, total, items, payments: [], confidence: "low", model: "offline" };
+}
+
+/**
+ * Când rândurile nu dau totalul, o cifră e citită greșit. Încearcă cealaltă citire a unui rând sau a două
+ * (suma tipărită în locul înmulțirii, ori invers); se schimbă doar dacă așa totalul iese exact.
+ */
+function reconcile(items: ScannedReceipt["items"], alternatives: Map<number, number>, total: number) {
+  if (!(total > 0)) return;
+  const sum = () => round2(items.reduce((s, i) => s + i.amount, 0));
+  const gap = round2(total - sum());
+  if (Math.abs(gap) < 0.011) return;
+  const options = Array.from(alternatives.entries()).filter(([, alt]) => alt > 0).map(([index, alt]) => ({ index, alt }));
+  const discounted = (index: number) => items[index].discount || 0;
+  const apply = (o: { index: number; alt: number }) => { items[o.index].amount = round2(o.alt - discounted(o.index)); };
+  for (const o of options) if (Math.abs(round2(o.alt - discounted(o.index) - items[o.index].amount) - gap) < 0.011) { apply(o); return; }
+  for (let a = 0; a < options.length; a++) for (let b = a + 1; b < options.length; b++) {
+    const d = round2(options[a].alt - discounted(options[a].index) - items[options[a].index].amount + options[b].alt - discounted(options[b].index) - items[options[b].index].amount);
+    if (Math.abs(d - gap) < 0.011) { apply(options[a]); apply(options[b]); return; }
+  }
 }

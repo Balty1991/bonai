@@ -66,3 +66,6 @@ jobs:
       - name: Verifică funcțiile BonAI (economisit, listă, ți se termină, reduceri, ce urmează, scanare offline)
         timeout-minutes: 8
         run: pnpm test:features
+      - name: Scanare offline — acuratețe pe bonuri reale și sintetice
+        timeout-minutes: 15
+        run: pnpm test:offline-accuracy

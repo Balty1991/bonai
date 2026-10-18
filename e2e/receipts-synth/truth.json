@@ -1,0 +1,530 @@
+[
+ {
+  "id": "00-lidl-clean",
+  "kind": "clean",
+  "files": [
+   "00-lidl-clean.jpg"
+  ],
+  "store": "Lidl",
+  "date": "2026-10-11",
+  "total": 92.37,
+  "items": 7,
+  "discount": 26.71,
+  "text": "           LIDL DISCOUNT S.C.S.           \n             CIF: RO22891860              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPIEPT PUI CAROLI 1KG\n3 BUC X 26,90                      80,70 B\nREDUCERE LIDL PLUS                -24,21 B\nULEI SPORNIC 1L\n1 BUC X 9,49                        9,49 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nREDUCERE LIDL PLUS                 -1,50 B\nPAINE ALBA FELIATA 500G\n2 BUC X 4,99                        9,98 B\nREDUCERE LIDL PLUS                 -1,00 B\nCARTOFI ALBI\n1,871 KG X 2,79                     5,22 B\nBANANE\n0,535 KG X 5,99                     3,20 B\nGARANTIE SGR\n6 BUC X 0,50                        3,00 D\n------------------------------------------\nSUBTOTAL                             92,37\nTOTAL LEI                            92,37\nCARD                                 92,37\nTOTAL TVA A - 21%                     9,24\nTOTAL TVA BON                        11,08\n11.10.2026 17:03\nNR. BON: 1000\n                BON FISCAL                "
+ },
+ {
+  "id": "01-kaufland-faded",
+  "kind": "faded",
+  "files": [
+   "01-kaufland-faded.jpg"
+  ],
+  "store": "Kaufland",
+  "date": "2026-10-13",
+  "total": 56.33,
+  "items": 6,
+  "discount": 0.0,
+  "text": "           KAUFLAND ROMANIA SCS           \n             CIF: RO15991149              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nPASTE BARILLA 500G\n3 BUC X 6,49                       19,47 B\nMERE GOLDEN\n1,405 KG X 4,49                     6,31 B\nBANANE\n1,514 KG X 5,99                     9,07 B\nGARANTIE SGR\n5 BUC X 0,50                        2,50 D\n------------------------------------------\nSUBTOTAL                             56,33\nTOTAL LEI                            56,33\nCARD                                 56,33\nTOTAL TVA A - 21%                     5,63\nTOTAL TVA BON                         6,76\n13.10.2026 19:04\nNR. BON: 1001\n                BON FISCAL                "
+ },
+ {
+  "id": "02-carrefour-crooked",
+  "kind": "crooked",
+  "files": [
+   "02-carrefour-crooked.jpg"
+  ],
+  "store": "Carrefour",
+  "date": "2026-10-02",
+  "total": 160.83,
+  "items": 8,
+  "discount": 1.3,
+  "text": "           CARREFOUR ROMANIA SA           \n             CIF: RO11588780              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nUNT PRESIDENT 200G\n3 BUC X 11,49                      34,47 B\nMAZARE BONDUELLE 400G\n1 BUC X 6,79                        6,79 B\nULEI SPORNIC 1L\n1 BUC X 9,49                        9,49 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nREDUCERE                           -1,30 B\nPIEPT PUI CAROLI 1KG\n3 BUC X 26,90                      80,70 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                            160,83\nTOTAL LEI                           160,83\nCARD                                160,83\nTOTAL TVA A - 21%                    16,08\nTOTAL TVA BON                        19,30\n02.10.2026 10:48\nNR. BON: 1002\n                BON FISCAL                "
+ },
+ {
+  "id": "03-auchan-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "03-auchan-crumpled.jpg"
+  ],
+  "store": "Auchan",
+  "date": "2026-10-05",
+  "total": 103.86,
+  "items": 7,
+  "discount": 6.57,
+  "text": "            AUCHAN ROMANIA SA             \n             CIF: RO17233051              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nULEI SPORNIC 1L\n3 BUC X 9,49                       28,47 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nREDUCERE                           -6,57 B\nPORTOCALE\n2,187 KG X 6,49                    14,19 B\n------------------------------------------\nSUBTOTAL                            103,86\nTOTAL LEI                           103,86\nCARD                                103,86\nTOTAL TVA A - 21%                    10,39\nTOTAL TVA BON                        12,46\n05.10.2026 12:45\nNR. BON: 1003\n                BON FISCAL                "
+ },
+ {
+  "id": "04-profi-multi",
+  "kind": "multi",
+  "files": [
+   "04-profi-multi-1.jpg",
+   "04-profi-multi-2.jpg"
+  ],
+  "store": "Profi",
+  "date": "2026-10-14",
+  "total": 93.41,
+  "items": 8,
+  "discount": 0.0,
+  "text": "            PROFI ROM FOOD SRL            \n             CIF: RO11871240              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nOUA M 10 BUC\n2 BUC X 13,90                      27,80 B\nLAPTE ZUZU 1,5% 1L\n2 BUC X 7,49                       14,98 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nIAURT DANONE 140G\n2 BUC X 2,39                        4,78 B\nMERE GOLDEN\n0,372 KG X 4,49                     1,67 B\nGARANTIE SGR\n3 BUC X 0,50                        1,50 D\n------------------------------------------\nSUBTOTAL                             93,41\nTOTAL LEI                            93,41\nCARD                                 93,41\nTOTAL TVA A - 21%                     9,34\nTOTAL TVA BON                        11,21\n14.10.2026 12:46\nNR. BON: 1004\n                BON FISCAL                "
+ },
+ {
+  "id": "05-penny-clean",
+  "kind": "clean",
+  "files": [
+   "05-penny-clean.jpg"
+  ],
+  "store": "Penny",
+  "date": "2026-10-13",
+  "total": 61.14,
+  "items": 6,
+  "discount": 6.74,
+  "text": "         REWE (ROMANIA) SRL PENNY         \n             CIF: RO13348610              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nLAPTE ZUZU 1,5% 1L\n3 BUC X 7,49                       22,47 B\nREDUCERE                           -6,74 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nPORTOCALE\n1,384 KG X 6,49                     8,98 B\nMERE GOLDEN\n0,344 KG X 4,49                     1,54 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                             61,14\nTOTAL LEI                            61,14\nCARD                                 61,14\nTOTAL TVA A - 21%                     6,11\nTOTAL TVA BON                         7,34\n13.10.2026 14:34\nNR. BON: 1005\n                BON FISCAL                "
+ },
+ {
+  "id": "06-megaimage-faded",
+  "kind": "faded",
+  "files": [
+   "06-megaimage-faded.jpg"
+  ],
+  "store": "Mega Image",
+  "date": "2026-10-08",
+  "total": 123.84,
+  "items": 8,
+  "discount": 0.0,
+  "text": "              MEGA IMAGE SRL              \n              CIF: RO6719278              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nZAHAR MARGARITAR 1KG\n3 BUC X 4,59                       13,77 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nUNT PRESIDENT 200G\n3 BUC X 11,49                      34,47 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nROSII CIORCHINE\n1,407 KG X 9,99                    14,06 B\nBANANE\n1,628 KG X 5,99                     9,75 B\nGARANTIE SGR\n1 BUC X 0,50                        0,50 D\n------------------------------------------\nSUBTOTAL                            123,84\nTOTAL LEI                           123,84\nCARD                                123,84\nTOTAL TVA A - 21%                    12,38\nTOTAL TVA BON                        14,86\n08.10.2026 09:22\nNR. BON: 1006\n                BON FISCAL                "
+ },
+ {
+  "id": "07-catena-crooked",
+  "kind": "crooked",
+  "files": [
+   "07-catena-crooked.jpg"
+  ],
+  "store": "Catena",
+  "date": "2026-10-11",
+  "total": 128.7,
+  "items": 4,
+  "discount": 0.0,
+  "text": "           FARMACIA CATENA SRL            \n              CIF: RO1590120              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\nNUROFEN 200MG 12CPR\n3 BUC X 19,90                      59,70 B\nSER FIZIOLOGIC 5ML\n3 BUC X 12,00                      36,00 B\nPARACETAMOL 500MG 20CPR\n1 BUC X 8,50                        8,50 B\n------------------------------------------\nSUBTOTAL                            128,70\nTOTAL LEI                           128,70\nCARD                                128,70\nTOTAL TVA A - 21%                    12,87\nTOTAL TVA BON                        15,44\n11.10.2026 21:53\nNR. BON: 1007\n                BON FISCAL                "
+ },
+ {
+  "id": "08-drmax-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "08-drmax-crumpled.jpg"
+  ],
+  "store": "Dr. Max",
+  "date": "2026-10-05",
+  "total": 109.55,
+  "items": 5,
+  "discount": 2.55,
+  "text": "           DR. MAX SRL FARMACIE           \n              CIF: RO7837340              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPARACETAMOL 500MG 20CPR\n1 BUC X 8,50                        8,50 B\nREDUCERE                           -2,55 B\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\nSTREPSILS MIERE 24\n1 BUC X 27,30                      27,30 B\nSER FIZIOLOGIC 5ML\n1 BUC X 12,00                      12,00 B\nNUROFEN 200MG 12CPR\n2 BUC X 19,90                      39,80 B\n------------------------------------------\nSUBTOTAL                            109,55\nTOTAL LEI                           109,55\nCARD                                109,55\nTOTAL TVA A - 21%                    10,96\nTOTAL TVA BON                        13,15\n05.10.2026 16:44\nNR. BON: 1008\n                BON FISCAL                "
+ },
+ {
+  "id": "09-omv-multi",
+  "kind": "multi",
+  "files": [
+   "09-omv-multi-1.jpg",
+   "09-omv-multi-2.jpg"
+  ],
+  "store": "OMV",
+  "date": "2026-10-14",
+  "total": 299.6,
+  "items": 2,
+  "discount": 0.0,
+  "text": "         OMV PETROM MARKETING SRL         \n             CIF: RO11201891              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n39,74 L X 7,29                    289,70 A\nCAFEA ESPRESSO MARE\n1 BUC X 9,90                        9,90 B\n------------------------------------------\nSUBTOTAL                            299,60\nTOTAL LEI                           299,60\nCARD                                299,60\nTOTAL TVA A - 21%                    29,96\nTOTAL TVA BON                        35,95\n14.10.2026 21:36\nNR. BON: 1009\n                BON FISCAL                "
+ },
+ {
+  "id": "10-petrom-clean",
+  "kind": "clean",
+  "files": [
+   "10-petrom-clean.jpg"
+  ],
+  "store": "Petrom",
+  "date": "2026-10-13",
+  "total": 318.35,
+  "items": 1,
+  "discount": 0.0,
+  "text": "            PETROM STATIE PECO            \n              CIF: RO1590082              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n43,67 L X 7,29                    318,35 A\n------------------------------------------\nSUBTOTAL                            318,35\nTOTAL LEI                           318,35\nCARD                                318,35\nTOTAL TVA A - 21%                    31,84\nTOTAL TVA BON                        38,20\n13.10.2026 21:33\nNR. BON: 1010\n                BON FISCAL                "
+ },
+ {
+  "id": "11-lidl-faded",
+  "kind": "faded",
+  "files": [
+   "11-lidl-faded.jpg"
+  ],
+  "store": "Lidl",
+  "date": "2026-10-05",
+  "total": 141.82,
+  "items": 11,
+  "discount": 11.01,
+  "text": "           LIDL DISCOUNT S.C.S.           \n             CIF: RO22891860              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nLAPTE ZUZU 1,5% 1L\n3 BUC X 7,49                       22,47 B\nUNT PRESIDENT 200G\n3 BUC X 11,49                      34,47 B\nMAZARE BONDUELLE 400G\n2 BUC X 6,79                       13,58 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nREDUCERE LIDL PLUS                 -3,58 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nREDUCERE LIDL PLUS                 -0,86 B\nIAURT DANONE 140G\n2 BUC X 2,39                        4,78 B\nULEI SPORNIC 1L\n1 BUC X 9,49                        9,49 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nREDUCERE LIDL PLUS                 -6,57 B\nPORTOCALE\n1,351 KG X 6,49                     8,77 B\nROSII CIORCHINE\n1,419 KG X 9,99                    14,18 B\nGARANTIE SGR\n2 BUC X 0,50                        1,00 D\n------------------------------------------\nSUBTOTAL                            141,82\nTOTAL LEI                           141,82\nCARD                                141,82\nTOTAL TVA A - 21%                    14,18\nTOTAL TVA BON                        17,02\n05.10.2026 11:54\nNR. BON: 1011\n                BON FISCAL                "
+ },
+ {
+  "id": "12-kaufland-crooked",
+  "kind": "crooked",
+  "files": [
+   "12-kaufland-crooked.jpg"
+  ],
+  "store": "Kaufland",
+  "date": "2026-10-14",
+  "total": 114.87,
+  "items": 11,
+  "discount": 4.55,
+  "text": "           KAUFLAND ROMANIA SCS           \n             CIF: RO15991149              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nREDUCERE                           -0,48 B\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nMAZARE BONDUELLE 400G\n3 BUC X 6,79                       20,37 B\nREDUCERE                           -4,07 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nROSII CIORCHINE\n2,012 KG X 9,99                    20,10 B\nGARANTIE SGR\n5 BUC X 0,50                        2,50 D\n------------------------------------------\nSUBTOTAL                            114,87\nTOTAL LEI                           114,87\nCARD                                114,87\nTOTAL TVA A - 21%                    11,49\nTOTAL TVA BON                        13,78\n14.10.2026 17:57\nNR. BON: 1012\n                BON FISCAL                "
+ },
+ {
+  "id": "13-carrefour-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "13-carrefour-crumpled.jpg"
+  ],
+  "store": "Carrefour",
+  "date": "2026-10-12",
+  "total": 87.99,
+  "items": 8,
+  "discount": 11.79,
+  "text": "           CARREFOUR ROMANIA SA           \n             CIF: RO11588780              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nULEI SPORNIC 1L\n3 BUC X 9,49                       28,47 B\nREDUCERE                           -8,54 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nREDUCERE                           -2,25 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nPAINE ALBA FELIATA 500G\n2 BUC X 4,99                        9,98 B\nREDUCERE                           -1,00 B\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nPORTOCALE\n1,399 KG X 6,49                     9,08 B\nMERE GOLDEN\n1,688 KG X 4,49                     7,58 B\n------------------------------------------\nSUBTOTAL                             87,99\nTOTAL LEI                            87,99\nCARD                                 87,99\nTOTAL TVA A - 21%                     8,80\nTOTAL TVA BON                        10,56\n12.10.2026 11:39\nNR. BON: 1013\n                BON FISCAL                "
+ },
+ {
+  "id": "14-auchan-multi",
+  "kind": "multi",
+  "files": [
+   "14-auchan-multi-1.jpg",
+   "14-auchan-multi-2.jpg"
+  ],
+  "store": "Auchan",
+  "date": "2026-10-03",
+  "total": 96.24,
+  "items": 6,
+  "discount": 7.18,
+  "text": "            AUCHAN ROMANIA SA             \n             CIF: RO17233051              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPIEPT PUI CAROLI 1KG\n2 BUC X 26,90                      53,80 B\nREDUCERE                           -5,38 B\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nULEI SPORNIC 1L\n3 BUC X 9,49                       28,47 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nREDUCERE                           -1,80 B\nCARTOFI ALBI\n1,068 KG X 2,79                     2,98 B\nROSII CIORCHINE\n0,84 KG X 9,99                      8,39 B\n------------------------------------------\nSUBTOTAL                             96,24\nTOTAL LEI                            96,24\nCARD                                 96,24\nTOTAL TVA A - 21%                     9,62\nTOTAL TVA BON                        11,55\n03.10.2026 11:50\nNR. BON: 1014\n                BON FISCAL                "
+ },
+ {
+  "id": "15-profi-clean",
+  "kind": "clean",
+  "files": [
+   "15-profi-clean.jpg"
+  ],
+  "store": "Profi",
+  "date": "2026-10-10",
+  "total": 96.14,
+  "items": 8,
+  "discount": 0.0,
+  "text": "            PROFI ROM FOOD SRL            \n             CIF: RO11871240              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nLAPTE ZUZU 1,5% 1L\n2 BUC X 7,49                       14,98 B\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nCIOCOLATA MILKA 100G\n3 BUC X 5,99                       17,97 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nROSII CIORCHINE\n1,06 KG X 9,99                     10,59 B\nCARTOFI ALBI\n1,222 KG X 2,79                     3,41 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                             96,14\nTOTAL LEI                            96,14\nCARD                                 96,14\nTOTAL TVA A - 21%                     9,61\nTOTAL TVA BON                        11,54\n10.10.2026 11:10\nNR. BON: 1015\n                BON FISCAL                "
+ },
+ {
+  "id": "16-penny-faded",
+  "kind": "faded",
+  "files": [
+   "16-penny-faded.jpg"
+  ],
+  "store": "Penny",
+  "date": "2026-10-14",
+  "total": 148.48,
+  "items": 8,
+  "discount": 26.05,
+  "text": "         REWE (ROMANIA) SRL PENNY         \n             CIF: RO13348610              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nULEI SPORNIC 1L\n1 BUC X 9,49                        9,49 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nREDUCERE                           -1,29 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nREDUCERE                           -5,38 B\nPASTE BARILLA 500G\n3 BUC X 6,49                       19,47 B\nCASCAVAL HOCHLAND 300G\n3 BUC X 17,90                      53,70 B\nREDUCERE                           -5,37 B\nOUA M 10 BUC\n3 BUC X 13,90                      41,70 B\nREDUCERE                          -12,51 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nREDUCERE                           -1,50 B\n------------------------------------------\nSUBTOTAL                            148,48\nTOTAL LEI                           148,48\nCARD                                148,48\nTOTAL TVA A - 21%                    14,85\nTOTAL TVA BON                        17,82\n14.10.2026 20:48\nNR. BON: 1016\n                BON FISCAL                "
+ },
+ {
+  "id": "17-megaimage-crooked",
+  "kind": "crooked",
+  "files": [
+   "17-megaimage-crooked.jpg"
+  ],
+  "store": "Mega Image",
+  "date": "2026-10-02",
+  "total": 125.61,
+  "items": 10,
+  "discount": 4.51,
+  "text": "              MEGA IMAGE SRL              \n              CIF: RO6719278              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nLAPTE ZUZU 1,5% 1L\n2 BUC X 7,49                       14,98 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nZAHAR MARGARITAR 1KG\n3 BUC X 4,59                       13,77 B\nREDUCERE                           -4,13 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nUNT PRESIDENT 200G\n3 BUC X 11,49                      34,47 B\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nREDUCERE                           -0,38 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nPORTOCALE\n0,531 KG X 6,49                     3,45 B\nCARTOFI ALBI\n1,461 KG X 2,79                     4,08 B\n------------------------------------------\nSUBTOTAL                            125,61\nTOTAL LEI                           125,61\nCARD                                125,61\nTOTAL TVA A - 21%                    12,56\nTOTAL TVA BON                        15,07\n02.10.2026 11:04\nNR. BON: 1017\n                BON FISCAL                "
+ },
+ {
+  "id": "18-catena-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "18-catena-crumpled.jpg"
+  ],
+  "store": "Catena",
+  "date": "2026-10-08",
+  "total": 80.95,
+  "items": 3,
+  "discount": 7.35,
+  "text": "           FARMACIA CATENA SRL            \n              CIF: RO1590120              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\nREDUCERE                           -7,35 B\nNUROFEN 200MG 12CPR\n2 BUC X 19,90                      39,80 B\nSER FIZIOLOGIC 5ML\n2 BUC X 12,00                      24,00 B\n------------------------------------------\nSUBTOTAL                             80,95\nTOTAL LEI                            80,95\nCARD                                 80,95\nTOTAL TVA A - 21%                     8,10\nTOTAL TVA BON                         9,71\n08.10.2026 15:46\nNR. BON: 1018\n                BON FISCAL                "
+ },
+ {
+  "id": "19-drmax-multi",
+  "kind": "multi",
+  "files": [
+   "19-drmax-multi-1.jpg",
+   "19-drmax-multi-2.jpg"
+  ],
+  "store": "Dr. Max",
+  "date": "2026-10-08",
+  "total": 85.31,
+  "items": 5,
+  "discount": 6.89,
+  "text": "           DR. MAX SRL FARMACIE           \n              CIF: RO7837340              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nNUROFEN 200MG 12CPR\n1 BUC X 19,90                      19,90 B\nREDUCERE                           -1,99 B\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\nREDUCERE                           -4,90 B\nSTREPSILS MIERE 24\n1 BUC X 27,30                      27,30 B\nPARACETAMOL 500MG 20CPR\n1 BUC X 8,50                        8,50 B\nSER FIZIOLOGIC 5ML\n1 BUC X 12,00                      12,00 B\n------------------------------------------\nSUBTOTAL                             85,31\nTOTAL LEI                            85,31\nCARD                                 85,31\nTOTAL TVA A - 21%                     8,53\nTOTAL TVA BON                        10,24\n08.10.2026 18:22\nNR. BON: 1019\n                BON FISCAL                "
+ },
+ {
+  "id": "20-omv-clean",
+  "kind": "clean",
+  "files": [
+   "20-omv-clean.jpg"
+  ],
+  "store": "OMV",
+  "date": "2026-10-14",
+  "total": 312.45,
+  "items": 1,
+  "discount": 0.0,
+  "text": "         OMV PETROM MARKETING SRL         \n             CIF: RO11201891              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n42,86 L X 7,29                    312,45 A\n------------------------------------------\nSUBTOTAL                            312,45\nTOTAL LEI                           312,45\nCARD                                312,45\nTOTAL TVA A - 21%                    31,25\nTOTAL TVA BON                        37,49\n14.10.2026 10:24\nNR. BON: 1020\n                BON FISCAL                "
+ },
+ {
+  "id": "21-petrom-faded",
+  "kind": "faded",
+  "files": [
+   "21-petrom-faded.jpg"
+  ],
+  "store": "Petrom",
+  "date": "2026-10-17",
+  "total": 177.51,
+  "items": 1,
+  "discount": 0.0,
+  "text": "            PETROM STATIE PECO            \n              CIF: RO1590082              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n24,35 L X 7,29                    177,51 A\n------------------------------------------\nSUBTOTAL                            177,51\nTOTAL LEI                           177,51\nCARD                                177,51\nTOTAL TVA A - 21%                    17,75\nTOTAL TVA BON                        21,30\n17.10.2026 08:31\nNR. BON: 1021\n                BON FISCAL                "
+ },
+ {
+  "id": "22-lidl-crooked",
+  "kind": "crooked",
+  "files": [
+   "22-lidl-crooked.jpg"
+  ],
+  "store": "Lidl",
+  "date": "2026-10-13",
+  "total": 63.53,
+  "items": 6,
+  "discount": 12.51,
+  "text": "           LIDL DISCOUNT S.C.S.           \n             CIF: RO22891860              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nOUA M 10 BUC\n3 BUC X 13,90                      41,70 B\nREDUCERE LIDL PLUS                -12,51 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nPASTE BARILLA 500G\n3 BUC X 6,49                       19,47 B\nBANANE\n0,32 KG X 5,99                      1,92 B\nCARTOFI ALBI\n0,311 KG X 2,79                     0,87 B\n------------------------------------------\nSUBTOTAL                             63,53\nTOTAL LEI                            63,53\nCARD                                 63,53\nTOTAL TVA A - 21%                     6,35\nTOTAL TVA BON                         7,62\n13.10.2026 10:39\nNR. BON: 1022\n                BON FISCAL                "
+ },
+ {
+  "id": "23-kaufland-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "23-kaufland-crumpled.jpg"
+  ],
+  "store": "Kaufland",
+  "date": "2026-10-07",
+  "total": 80.5,
+  "items": 6,
+  "discount": 5.37,
+  "text": "           KAUFLAND ROMANIA SCS           \n             CIF: RO15991149              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nCASCAVAL HOCHLAND 300G\n3 BUC X 17,90                      53,70 B\nREDUCERE                           -5,37 B\nBERE URSUS 0,5L\n1 BUC X 4,29                        4,29 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nGARANTIE SGR\n6 BUC X 0,50                        3,00 D\n------------------------------------------\nSUBTOTAL                             80,50\nTOTAL LEI                            80,50\nCARD                                 80,50\nTOTAL TVA A - 21%                     8,05\nTOTAL TVA BON                         9,66\n07.10.2026 14:07\nNR. BON: 1023\n                BON FISCAL                "
+ },
+ {
+  "id": "24-carrefour-multi",
+  "kind": "multi",
+  "files": [
+   "24-carrefour-multi-1.jpg",
+   "24-carrefour-multi-2.jpg"
+  ],
+  "store": "Carrefour",
+  "date": "2026-10-17",
+  "total": 124.58,
+  "items": 9,
+  "discount": 17.92,
+  "text": "           CARREFOUR ROMANIA SA           \n             CIF: RO11588780              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nCASCAVAL HOCHLAND 300G\n2 BUC X 17,90                      35,80 B\nREDUCERE                          -10,74 B\nPASTE BARILLA 500G\n1 BUC X 6,49                        6,49 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nREDUCERE                           -2,69 B\nUNT PRESIDENT 200G\n3 BUC X 11,49                      34,47 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nLAPTE ZUZU 1,5% 1L\n3 BUC X 7,49                       22,47 B\nREDUCERE                           -4,49 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                            124,58\nTOTAL LEI                           124,58\nCARD                                124,58\nTOTAL TVA A - 21%                    12,46\nTOTAL TVA BON                        14,95\n17.10.2026 12:57\nNR. BON: 1024\n                BON FISCAL                "
+ },
+ {
+  "id": "25-auchan-clean",
+  "kind": "clean",
+  "files": [
+   "25-auchan-clean.jpg"
+  ],
+  "store": "Auchan",
+  "date": "2026-10-08",
+  "total": 117.5,
+  "items": 10,
+  "discount": 8.05,
+  "text": "            AUCHAN ROMANIA SA             \n             CIF: RO17233051              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMAZARE BONDUELLE 400G\n3 BUC X 6,79                       20,37 B\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nREDUCERE                           -6,57 B\nCIOCOLATA MILKA 100G\n2 BUC X 5,99                       11,98 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nREDUCERE                           -1,00 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nREDUCERE                           -0,48 B\nOUA M 10 BUC\n3 BUC X 13,90                      41,70 B\nBANANE\n1,493 KG X 5,99                     8,94 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                            117,50\nTOTAL LEI                           117,50\nCARD                                117,50\nTOTAL TVA A - 21%                    11,75\nTOTAL TVA BON                        14,10\n08.10.2026 17:13\nNR. BON: 1025\n                BON FISCAL                "
+ },
+ {
+  "id": "26-profi-faded",
+  "kind": "faded",
+  "files": [
+   "26-profi-faded.jpg"
+  ],
+  "store": "Profi",
+  "date": "2026-10-17",
+  "total": 35.14,
+  "items": 6,
+  "discount": 0.0,
+  "text": "            PROFI ROM FOOD SRL            \n             CIF: RO11871240              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nPORTOCALE\n0,326 KG X 6,49                     2,12 B\nMERE GOLDEN\n1,367 KG X 4,49                     6,14 B\nGARANTIE SGR\n4 BUC X 0,50                        2,00 D\n------------------------------------------\nSUBTOTAL                             35,14\nTOTAL LEI                            35,14\nCARD                                 35,14\nTOTAL TVA A - 21%                     3,51\nTOTAL TVA BON                         4,22\n17.10.2026 14:15\nNR. BON: 1026\n                BON FISCAL                "
+ },
+ {
+  "id": "27-penny-crooked",
+  "kind": "crooked",
+  "files": [
+   "27-penny-crooked.jpg"
+  ],
+  "store": "Penny",
+  "date": "2026-10-13",
+  "total": 105.15,
+  "items": 6,
+  "discount": 0.0,
+  "text": "         REWE (ROMANIA) SRL PENNY         \n             CIF: RO13348610              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMAZARE BONDUELLE 400G\n1 BUC X 6,79                        6,79 B\nIAURT DANONE 140G\n3 BUC X 2,39                        7,17 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nPIEPT PUI CAROLI 1KG\n3 BUC X 26,90                      80,70 B\nCARTOFI ALBI\n0,601 KG X 2,79                     1,68 B\nPORTOCALE\n0,651 KG X 6,49                     4,22 B\n------------------------------------------\nSUBTOTAL                            105,15\nTOTAL LEI                           105,15\nCARD                                105,15\nTOTAL TVA A - 21%                    10,52\nTOTAL TVA BON                        12,62\n13.10.2026 16:09\nNR. BON: 1027\n                BON FISCAL                "
+ },
+ {
+  "id": "28-megaimage-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "28-megaimage-crumpled.jpg"
+  ],
+  "store": "Mega Image",
+  "date": "2026-10-14",
+  "total": 127.1,
+  "items": 9,
+  "discount": 0.0,
+  "text": "              MEGA IMAGE SRL              \n              CIF: RO6719278              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nBERE URSUS 0,5L\n2 BUC X 4,29                        8,58 B\nMAZARE BONDUELLE 400G\n1 BUC X 6,79                        6,79 B\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nPIEPT PUI CAROLI 1KG\n3 BUC X 26,90                      80,70 B\nMERE GOLDEN\n0,627 KG X 4,49                     2,82 B\nCARTOFI ALBI\n1,407 KG X 2,79                     3,93 B\nGARANTIE SGR\n6 BUC X 0,50                        3,00 D\n------------------------------------------\nSUBTOTAL                            127,10\nTOTAL LEI                           127,10\nCARD                                127,10\nTOTAL TVA A - 21%                    12,71\nTOTAL TVA BON                        15,25\n14.10.2026 08:07\nNR. BON: 1028\n                BON FISCAL                "
+ },
+ {
+  "id": "29-catena-multi",
+  "kind": "multi",
+  "files": [
+   "29-catena-multi-1.jpg",
+   "29-catena-multi-2.jpg"
+  ],
+  "store": "Catena",
+  "date": "2026-10-09",
+  "total": 105.53,
+  "items": 3,
+  "discount": 5.97,
+  "text": "           FARMACIA CATENA SRL            \n              CIF: RO1590120              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nSTREPSILS MIERE 24\n1 BUC X 27,30                      27,30 B\nNUROFEN 200MG 12CPR\n3 BUC X 19,90                      59,70 B\nREDUCERE                           -5,97 B\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\n------------------------------------------\nSUBTOTAL                            105,53\nTOTAL LEI                           105,53\nCARD                                105,53\nTOTAL TVA A - 21%                    10,55\nTOTAL TVA BON                        12,66\n09.10.2026 17:56\nNR. BON: 1029\n                BON FISCAL                "
+ },
+ {
+  "id": "30-drmax-clean",
+  "kind": "clean",
+  "files": [
+   "30-drmax-clean.jpg"
+  ],
+  "store": "Dr. Max",
+  "date": "2026-10-08",
+  "total": 105.6,
+  "items": 5,
+  "discount": 3.6,
+  "text": "           DR. MAX SRL FARMACIE           \n              CIF: RO7837340              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nVITAMINA C 1000MG\n1 BUC X 24,50                      24,50 B\nPARACETAMOL 500MG 20CPR\n3 BUC X 8,50                       25,50 B\nSER FIZIOLOGIC 5ML\n1 BUC X 12,00                      12,00 B\nREDUCERE                           -3,60 B\nSTREPSILS MIERE 24\n1 BUC X 27,30                      27,30 B\nNUROFEN 200MG 12CPR\n1 BUC X 19,90                      19,90 B\n------------------------------------------\nSUBTOTAL                            105,60\nTOTAL LEI                           105,60\nCARD                                105,60\nTOTAL TVA A - 21%                    10,56\nTOTAL TVA BON                        12,67\n08.10.2026 18:21\nNR. BON: 1030\n                BON FISCAL                "
+ },
+ {
+  "id": "31-omv-faded",
+  "kind": "faded",
+  "files": [
+   "31-omv-faded.jpg"
+  ],
+  "store": "OMV",
+  "date": "2026-10-11",
+  "total": 252.25,
+  "items": 2,
+  "discount": 0.0,
+  "text": "         OMV PETROM MARKETING SRL         \n             CIF: RO11201891              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n31,68 L X 7,65                    242,35 A\nCAFEA ESPRESSO MARE\n1 BUC X 9,90                        9,90 B\n------------------------------------------\nSUBTOTAL                            252,25\nTOTAL LEI                           252,25\nCARD                                252,25\nTOTAL TVA A - 21%                    25,23\nTOTAL TVA BON                        30,27\n11.10.2026 17:30\nNR. BON: 1031\n                BON FISCAL                "
+ },
+ {
+  "id": "32-petrom-crooked",
+  "kind": "crooked",
+  "files": [
+   "32-petrom-crooked.jpg"
+  ],
+  "store": "Petrom",
+  "date": "2026-10-02",
+  "total": 267.77,
+  "items": 1,
+  "discount": 0.0,
+  "text": "            PETROM STATIE PECO            \n              CIF: RO1590082              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nMOTORINA EVO DIESEL\n35,75 L X 7,49                    267,77 A\n------------------------------------------\nSUBTOTAL                            267,77\nTOTAL LEI                           267,77\nCARD                                267,77\nTOTAL TVA A - 21%                    26,78\nTOTAL TVA BON                        32,13\n02.10.2026 14:38\nNR. BON: 1032\n                BON FISCAL                "
+ },
+ {
+  "id": "33-lidl-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "33-lidl-crumpled.jpg"
+  ],
+  "store": "Lidl",
+  "date": "2026-10-06",
+  "total": 149.09,
+  "items": 8,
+  "discount": 13.38,
+  "text": "           LIDL DISCOUNT S.C.S.           \n             CIF: RO22891860              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nIAURT DANONE 140G\n3 BUC X 2,39                        7,17 B\nREDUCERE LIDL PLUS                 -1,43 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nCASCAVAL HOCHLAND 300G\n2 BUC X 17,90                      35,80 B\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nPIEPT PUI CAROLI 1KG\n2 BUC X 26,90                      53,80 B\nREDUCERE LIDL PLUS                 -5,38 B\nMAZARE BONDUELLE 400G\n1 BUC X 6,79                        6,79 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nREDUCERE LIDL PLUS                 -6,57 B\nROSII CIORCHINE\n1,714 KG X 9,99                    17,12 B\n------------------------------------------\nSUBTOTAL                            149,09\nTOTAL LEI                           149,09\nCARD                                149,09\nTOTAL TVA A - 21%                    14,91\nTOTAL TVA BON                        17,89\n06.10.2026 16:13\nNR. BON: 1033\n                BON FISCAL                "
+ },
+ {
+  "id": "34-kaufland-multi",
+  "kind": "multi",
+  "files": [
+   "34-kaufland-multi-1.jpg",
+   "34-kaufland-multi-2.jpg"
+  ],
+  "store": "Kaufland",
+  "date": "2026-10-15",
+  "total": 73.65,
+  "items": 5,
+  "discount": 19.71,
+  "text": "           KAUFLAND ROMANIA SCS           \n             CIF: RO15991149              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nCAFEA JACOBS 250G\n3 BUC X 21,90                      65,70 B\nREDUCERE                          -19,71 B\nIAURT DANONE 140G\n1 BUC X 2,39                        2,39 B\nMERE GOLDEN\n1,531 KG X 4,49                     6,87 B\nGARANTIE SGR\n1 BUC X 0,50                        0,50 D\n------------------------------------------\nSUBTOTAL                             73,65\nTOTAL LEI                            73,65\nCARD                                 73,65\nTOTAL TVA A - 21%                     7,37\nTOTAL TVA BON                         8,84\n15.10.2026 12:37\nNR. BON: 1034\n                BON FISCAL                "
+ },
+ {
+  "id": "35-carrefour-clean",
+  "kind": "clean",
+  "files": [
+   "35-carrefour-clean.jpg"
+  ],
+  "store": "Carrefour",
+  "date": "2026-10-12",
+  "total": 66.03,
+  "items": 6,
+  "discount": 0.72,
+  "text": "           CARREFOUR ROMANIA SA           \n             CIF: RO11588780              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nMAZARE BONDUELLE 400G\n2 BUC X 6,79                       13,58 B\nULEI SPORNIC 1L\n2 BUC X 9,49                       18,98 B\nIAURT DANONE 140G\n3 BUC X 2,39                        7,17 B\nREDUCERE                           -0,72 B\nPORTOCALE\n1,583 KG X 6,49                    10,27 B\nBANANE\n0,476 KG X 5,99                     2,85 B\n------------------------------------------\nSUBTOTAL                             66,03\nTOTAL LEI                            66,03\nCARD                                 66,03\nTOTAL TVA A - 21%                     6,60\nTOTAL TVA BON                         7,92\n12.10.2026 15:39\nNR. BON: 1035\n                BON FISCAL                "
+ },
+ {
+  "id": "36-auchan-faded",
+  "kind": "faded",
+  "files": [
+   "36-auchan-faded.jpg"
+  ],
+  "store": "Auchan",
+  "date": "2026-10-02",
+  "total": 106.58,
+  "items": 9,
+  "discount": 6.41,
+  "text": "            AUCHAN ROMANIA SA             \n             CIF: RO17233051              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nULEI SPORNIC 1L\n3 BUC X 9,49                       28,47 B\nREDUCERE                           -5,69 B\nAPA BORSEC 2L\n3 BUC X 3,79                       11,37 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nLAPTE ZUZU 1,5% 1L\n2 BUC X 7,49                       14,98 B\nOUA M 10 BUC\n1 BUC X 13,90                      13,90 B\nIAURT DANONE 140G\n3 BUC X 2,39                        7,17 B\nREDUCERE                           -0,72 B\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nCARTOFI ALBI\n1,448 KG X 2,79                     4,04 B\nBANANE\n0,612 KG X 5,99                     3,67 B\n------------------------------------------\nSUBTOTAL                            106,58\nTOTAL LEI                           106,58\nCARD                                106,58\nTOTAL TVA A - 21%                    10,66\nTOTAL TVA BON                        12,79\n02.10.2026 10:11\nNR. BON: 1036\n                BON FISCAL                "
+ },
+ {
+  "id": "37-profi-crooked",
+  "kind": "crooked",
+  "files": [
+   "37-profi-crooked.jpg"
+  ],
+  "store": "Profi",
+  "date": "2026-10-12",
+  "total": 79.1,
+  "items": 8,
+  "discount": 7.18,
+  "text": "            PROFI ROM FOOD SRL            \n             CIF: RO11871240              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nCIOCOLATA MILKA 100G\n3 BUC X 5,99                       17,97 B\nREDUCERE                           -1,80 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nMAZARE BONDUELLE 400G\n2 BUC X 6,79                       13,58 B\nIAURT DANONE 140G\n3 BUC X 2,39                        7,17 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nREDUCERE                           -5,38 B\nBERE URSUS 0,5L\n2 BUC X 4,29                        8,58 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nGARANTIE SGR\n5 BUC X 0,50                        2,50 D\n------------------------------------------\nSUBTOTAL                             79,10\nTOTAL LEI                            79,10\nCARD                                 79,10\nTOTAL TVA A - 21%                     7,91\nTOTAL TVA BON                         9,49\n12.10.2026 11:00\nNR. BON: 1037\n                BON FISCAL                "
+ },
+ {
+  "id": "38-penny-crumpled",
+  "kind": "crumpled",
+  "files": [
+   "38-penny-crumpled.jpg"
+  ],
+  "store": "Penny",
+  "date": "2026-10-08",
+  "total": 63.37,
+  "items": 7,
+  "discount": 5.37,
+  "text": "         REWE (ROMANIA) SRL PENNY         \n             CIF: RO13348610              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nPAINE ALBA FELIATA 500G\n2 BUC X 4,99                        9,98 B\nREDUCERE                           -2,00 B\nZAHAR MARGARITAR 1KG\n1 BUC X 4,59                        4,59 B\nLAPTE ZUZU 1,5% 1L\n1 BUC X 7,49                        7,49 B\nMAZARE BONDUELLE 400G\n1 BUC X 6,79                        6,79 B\nREDUCERE                           -0,68 B\nUNT PRESIDENT 200G\n1 BUC X 11,49                      11,49 B\nPIEPT PUI CAROLI 1KG\n1 BUC X 26,90                      26,90 B\nREDUCERE                           -2,69 B\nGARANTIE SGR\n3 BUC X 0,50                        1,50 D\n------------------------------------------\nSUBTOTAL                             63,37\nTOTAL LEI                            63,37\nCARD                                 63,37\nTOTAL TVA A - 21%                     6,34\nTOTAL TVA BON                         7,60\n08.10.2026 17:14\nNR. BON: 1038\n                BON FISCAL                "
+ },
+ {
+  "id": "39-megaimage-multi",
+  "kind": "multi",
+  "files": [
+   "39-megaimage-multi-1.jpg",
+   "39-megaimage-multi-2.jpg"
+  ],
+  "store": "Mega Image",
+  "date": "2026-10-04",
+  "total": 61.6,
+  "items": 7,
+  "discount": 4.86,
+  "text": "              MEGA IMAGE SRL              \n              CIF: RO6719278              \n      STR. EXEMPLU NR. 1, BUCURESTI       \n------------------------------------------\nIAURT DANONE 140G\n2 BUC X 2,39                        4,78 B\nREDUCERE                           -0,48 B\nPAINE ALBA FELIATA 500G\n1 BUC X 4,99                        4,99 B\nCAFEA JACOBS 250G\n1 BUC X 21,90                      21,90 B\nREDUCERE                           -4,38 B\nCIOCOLATA MILKA 100G\n1 BUC X 5,99                        5,99 B\nAPA BORSEC 2L\n1 BUC X 3,79                        3,79 B\nCASCAVAL HOCHLAND 300G\n1 BUC X 17,90                      17,90 B\nMERE GOLDEN\n1,583 KG X 4,49                     7,11 B\n------------------------------------------\nSUBTOTAL                             61,60\nTOTAL LEI                            61,60\nCARD                                 61,60\nTOTAL TVA A - 21%                     6,16\nTOTAL TVA BON                         7,39\n04.10.2026 17:17\nNR. BON: 1039\n                BON FISCAL                "
+ }
+]

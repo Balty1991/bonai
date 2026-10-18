@@ -89,4 +89,15 @@ export const corpusRo: CorpusCase[] = [
   rc("lidl-pret-vechi-nou", "Lidl", "2026-10-12", [["Unt 200g (Pret vechi 12,99 / Pret nou 9,99)", 1, 9.99, "Alimente", 3]], 9.99, "card", { count: 1, discount: 3 }),
   // v5: Mega Image fotografiat culcat; modelul a dat „Reducere prăjitură Alka” cu plus, ca un produs.
   rc("mega-reducere-pozitiva", "Mega Image", "2026-10-18", [["Biscuiți sărați Chio 80 g", 1, 4.85, "Dulciuri"], ["Prăjitură zmeură și ciocolată 55 g", 1, 6.64, "Dulciuri"], ["Reducere prăjitură Alka", 1, 2.57, "Dulciuri"], ["Iaurt grecesc 10% Olympus", 2, 7.78, "Alimente"], ["Prune vrac", 0.65, 3.23, "Alimente"]], 19.93, "card", { count: 4, discount: 2.57 }),
+  // Benzinării: carburant la litru, cafea, plată card; Petrom cu reducere de card fidelitate
+  rc("omv-motorina-cafea", "OMV", "2026-10-15", [["Motorină MaxxMotion 32,41 L", 32.41, 245.67, "Transport"], ["Cafea espresso mare", 1, 9.9, "Băuturi"]], 255.57, "card", { count: 2, discount: 0 }),
+  rc("petrom-benzina-reducere", "Petrom", "2026-10-14", [["Benzină Efix 95 25,00 L", 25, 179.25, "Transport", 5], ["Apă plată 0,5L", 2, 7.98, "Apă"]], 182.23, "card", { count: 2, discount: 5 }),
+  rc("mol-doar-carburant-numerar", "MOL", "2026-10-13", [["Motorină 40,12 L", 40.12, 292.48, "Transport"]], 292.48, "cash", { count: 1, discount: 0 }),
+  rc("rompetrol-tichete-mixt", "Rompetrol", "2026-10-12", [["Motorină Efix 20 L", 20, 146, "Transport"], ["Sandviș pui", 1, 14.9, "Alimente"]], 160.9, [["card", 100], ["cash", 60.9]], { count: 2, discount: 0 }),
+  // Farmacii: compensat (pacientul plătește doar partea lui), reducere card, produse fără TVA
+  rc("dr-max-compensat", "Dr. Max", "2026-10-11", [["Atorvastatină 20mg 30cp", 1, 6.4, "Sănătate"], ["Vitamina D3 2000UI", 1, 34.9, "Sănătate", 7]], 34.3, "card", { count: 2, discount: 7 }),
+  rc("catena-doua-reduceri", "Catena", "2026-10-10", [["Nurofen Forte 12cp", 2, 39.8, "Sănătate", 4], ["Ser fiziologic 20 fiole", 1, 12, "Sănătate", 1.2]], 51.8, "card", { count: 2, discount: 5.2 }),
+  // Cântărite cu mai multe reduceri pe același bon, plus SGR și sacoșă
+  rc("kaufland-cantarite-doua-reduceri", "Kaufland", "2026-10-16", [["Mere roșii 1,542 kg", 1.542, 6.92, "Alimente", 0.69], ["Pulpe pui 1,208 kg", 1.208, 22.94, "Alimente", 4.59], ["Apă Borsec 2L", 6, 22.74, "Apă"], ["Garanție SGR", 6, 3, "SGR"], ["Sacoșă", 1, 0.5, "Sacoșe"]], 56.1, "card", { count: 5, discount: 5.28 }),
+  rc("penny-cantarite-reducere-tot-bonul", "Penny", "2026-10-15", [["Banane 1,1 kg", 1.1, 6.59, "Alimente"], ["Roșii 0,8 kg", 0.8, 7.99, "Alimente"], ["Brânză vaci 500g", 1, 12.49, "Alimente"]], 24.36, "card", { count: 3, discount: 2.71 }),
 ];
