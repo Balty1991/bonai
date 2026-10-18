@@ -108,7 +108,7 @@ async function addExpense(page, amount) {
   // BonAI: „Fără bon” → foaia rapidă: suma, categoria, Salvează (o cheltuială simplă, sincronizată la fel).
   await page.keyboard.press("Escape").catch(() => undefined);
   await page.locator(".os-dock-add").click();
-  await page.getByRole("button", { name: /Fără bon/ }).click();
+  await page.getByRole("dialog", { name: "Scanează bonul" }).getByRole("button", { name: /Fără bon/ }).click();
   const sheet = page.getByRole("dialog", { name: "Cheltuială fără bon" });
   await sheet.waitFor();
   await sheet.getByLabel("Suma").fill(String(amount).replace(".", ","));

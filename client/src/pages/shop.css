@@ -527,3 +527,10 @@ html.dark .bn-qx-more, html.dark .bn-qx-itemize { color: #c4b5fd; }
 .bn-qx-bar { padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 14px); border-top: 1px solid rgba(124, 58, 237, .15); }
 .bn-qx-bar .bn-btn { width: 100%; min-height: 54px; font-size: 17px; }
 html[data-app="shop"] .sh-manual { margin-top: 8px; justify-self: center; }
+html[data-app="shop"] .sh-runout-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+html[data-app="shop"] .sh-runout-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "copy add" "skip add"; align-items: center; gap: 0 12px; padding: 10px 0; border-top: 1px solid var(--bn-edge); }
+html[data-app="shop"] .sh-runout-list li > span { grid-area: copy; display: grid; gap: 2px; min-width: 0; }
+html[data-app="shop"] .sh-runout-list li > span b { overflow-wrap: anywhere; }
+html[data-app="shop"] .sh-runout-list li > span small { font-size: 13px; opacity: .9; }
+html[data-app="shop"] .sh-runout-add { grid-area: add; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; background-color: #5b21b6; background-image: var(--bn-grad); color: #fff; cursor: pointer; }
+html[data-app="shop"] .sh-runout-skip { grid-area: skip; justify-self: start; min-height: 36px; padding: 0; font-size: 14px; }
