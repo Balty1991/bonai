@@ -302,7 +302,8 @@ let warmed = 0;
 export function warmReceiptScan() {
   if (Date.now() - warmed < 5 * 60_000 || (typeof navigator !== "undefined" && navigator.onLine === false)) return;
   warmed = Date.now();
-  void fetch(ENDPOINT, { method: "OPTIONS" }).catch(() => undefined);
+  // GET fără CORS: trezește instanța fără preflight (OPTIONS cerut din fetch dădea eroare CORS în consolă).
+  void fetch(ENDPOINT, { method: "GET", mode: "no-cors" }).catch(() => undefined);
   void import("./realtime-sync").then(({ appCheckHeader, authHeader }) => Promise.all([appCheckHeader(), authHeader()])).catch(() => undefined);
 }
 
