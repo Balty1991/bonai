@@ -114,6 +114,9 @@ async function addExpense(page, amount) {
   await page.locator(".bn-review input[inputmode=\"decimal\"]").nth(1).fill(String(amount).replace(".", ","));
   await page.getByRole("button", { name: "Gata" }).click();
   await page.getByRole("button", { name: /Salvează bonul/ }).click();
+  const saved = page.getByRole("dialog", { name: "Bon salvat" });
+  await saved.waitFor();
+  await saved.getByRole("button", { name: "Gata" }).click();
   await page.locator(".bn-review").waitFor({ state: "detached" });
 }
 
