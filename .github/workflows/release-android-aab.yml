@@ -76,6 +76,14 @@ jobs:
       - name: Construiește AAB-ul semnat
         working-directory: android
         run: gradle_cu_reincercari bundleRelease
+      - name: Pune versiunea în numele AAB-ului
+        id: versiune
+        run: |
+          VN=$(grep -oP 'versionName "\K[^"]+' android/app/build.gradle)
+          VC=$(grep -oP 'versionCode \K[0-9]+' android/app/build.gradle)
+          cd android/app/build/outputs/bundle/release
+          mv BonAI-release.aab "BonAI-$VN-$VC.aab"
+          echo "value=$VN-$VC" >> "$GITHUB_OUTPUT"
       - name: Șterge keystore-ul de pe runner
         if: always()
         working-directory: android/app
@@ -83,7 +91,7 @@ jobs:
       - name: Publică AAB-ul ca artefact GitHub
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: bonai-release-aab
+          name: BonAI-${{ steps.versiune.outputs.value }}
           # archivesBaseName = "BonAI", deci fișierul e BonAI-release.aab, nu app-release.aab.
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
