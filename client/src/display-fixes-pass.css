@@ -244,6 +244,8 @@ html:not(.dark) .bf-os-day.is-over b {
 .bf-app.os-shell > .bf-skip-link:focus {
   color: var(--cf-on-primary, #04140e) !important;
   background: var(--cf-primary, #7cffc4) !important;
+  /* Ținta de 44 px cerută de testul de accesibilitate (era 17 px înălțime). */
+  min-height: 44px; display: inline-flex !important; align-items: center; padding: 0 16px !important;
 }
 /* Mesajul verde din repartizarea lunară folosea verdele „strong”, prea închis pe fundalul
    de noapte (3,86). Varianta deschisă a aceleiași culori trece pragul. */

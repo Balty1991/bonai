@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
 import { isoToday, newId, parseRomanianAmount, type AppData, type Debt, type DebtType } from "@/lib/finance-data";
@@ -35,7 +36,9 @@ export function DebtsPanel({ data, onChange, onClose }: { data: AppData; onChang
   };
   const remove = (id: string) => { onChange({ ...data, debts: data.debts.filter((x) => x.id !== id), deleted: [...data.deleted, { entity: "debts", id, deletedAt: new Date().toISOString() }] }); setDraft(undefined); };
   const edit = (x: Debt) => setDraft({ id: x.id, debtType: x.debtType || (x.kind === "card" ? "dobanda-card" : x.kind === "persoane" ? "imprumut" : "rata-banca"), creditor: x.creditor || x.name, initial: str(x.initial), remaining: str(x.remaining) || "0", monthly: str(x.monthly), rate: str(x.annualRate), dueDay: String(debtDueDay(x)), endDate: x.endDate || "", note: x.note || "" });
-  return createPortal(<div className="bn-costs" role="dialog" aria-modal="true" aria-label={t("Datorii")}>
+  // Esc și butonul Înapoi de pe Android fac ce face săgeata din colț.
+  const trapRef = useFocusTrap<HTMLDivElement>(draft ? () => setDraft(undefined) : onClose);
+  return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs" role="dialog" aria-modal="true" aria-label={t("Datorii")}>
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={draft ? () => setDraft(undefined) : onClose}><ArrowLeft size={20} /></button><b>{draft ? (draft.id ? t("Modifică datoria") : t("Datorie nouă")) : t("Datorii")}</b><span /></header>
     {!draft ? <div className="bn-costs-body">
       <section className="bn-costs-hero bn-debt-hero"><small>{t("MAI AI DE DAT")}</small><strong>{lei(sum.remaining)}</strong><span>{sum.count ? t("Rate pe lună: {monthly} · {n} datorii", { monthly: lei(sum.monthly), n: sum.count }) : t("Adaugă rate, împrumuturi sau carduri ca să vezi tot ce ai de dat, într-un loc.")}</span></section>

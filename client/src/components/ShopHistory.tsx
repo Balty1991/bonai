@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Pencil, Trash2, X } from "lucide-react";
 import type { AppData, Receipt } from "@/lib/finance-data";
@@ -32,7 +33,9 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
     return [...data.receipts, ...loose];
   }, [data.receipts, data.transactions, tab]);
   const months = useMemo(() => receiptsByMonth(items), [items]);
-  return createPortal(<div className="bn-costs bn-history" role="dialog" aria-modal="true" aria-label={t("Istoric")}>
+  // Esc și butonul Înapoi de pe Android fac ce face săgeata din colț.
+  const trapRef = useFocusTrap<HTMLDivElement>(open ? () => setOpen(undefined) : onClose);
+  return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs bn-history" role="dialog" aria-modal="true" aria-label={t("Istoric")}>
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={open ? () => setOpen(undefined) : onClose}><ArrowLeft size={20} /></button><b>{open ? open.vendor : tab === "receipts" ? t("Bonuri") : t("Toate costurile")}</b><span /></header>
     {open ? <div className="bn-costs-body">
       <section className="bn-costs-hero"><small>{dayRo(open.date)}{open.time ? ` · ${open.time}` : ""}{open.city ? ` · ${open.city}` : ""}</small><strong>{lei(open.amount)}</strong><span>{open.lines?.length ? t("{n} produse", { n: open.lines.length }) : t("fără produse detaliate")}</span></section>

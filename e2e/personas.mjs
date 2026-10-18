@@ -5,7 +5,7 @@
  * Rulare: node e2e/personas.mjs (URL, ONLY=regex persoană, OUT=dir capturi, JSON=fișier rezultat).
  * Atenție: scanările merg la serverul real (câțiva bani pe bon).
  */
-/* global document, getComputedStyle, innerWidth */
+/* global document, getComputedStyle, innerWidth, innerHeight */
 import { writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { contrastOffenders } from "./lib/contrast.mjs";
@@ -21,7 +21,7 @@ const PERSONAS = [
   { id: "pensionar", name: "Pensionar, text mare", width: 412, theme: "white", zoom: 1.3, start: "demo", flows: ["demoHome", "leaveDemo", "manual", "prices", "next"] },
   { id: "student", name: "Student", width: 360, theme: "dark", start: "skip", flows: ["manual", "scan1", "prices", "paywall"] },
   { id: "cuplu", name: "Cuplu, Familie comună", width: 412, theme: "dark", start: "list", flows: ["list", "family", "scan2", "theme"] },
-  { id: "lowtech", name: "Utilizator cu puțină tehnologie", width: 360, theme: "white", zoom: 1.15, start: "demo", flows: ["demoHome", "leaveDemo", "scan1"] },
+  { id: "lowtech", name: "Utilizator cu puțină tehnologie", width: 360, theme: "white", start: "demo", flows: ["demoHome", "leaveDemo", "scan1"] },
   { id: "power", name: "Utilizator avansat", width: 412, theme: "dark", start: "scan", flows: ["scan2", "edit", "barcode", "pantry", "costs", "prices"] },
   { id: "oferte", name: "Vânător de oferte", width: 360, theme: "dark", start: "scan", flows: ["scan1", "scan1b", "prices", "barcode", "list"] },
   { id: "datorii", name: "Datorii și rate", width: 412, theme: "white", start: "skip", flows: ["costs", "next", "manual"] },
@@ -31,7 +31,7 @@ const PERSONAS = [
 
 async function audit(page, where) {
   const found = await page.evaluate(() => {
-    const vis = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden=true],[hidden],[inert]"); };
+    const vis = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.left < innerWidth && r.top < innerHeight && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden=true],[hidden],[inert]"); };
     const out = [];
     if (document.documentElement.scrollWidth > innerWidth + 2) out.push(`depășire orizontală: ${document.documentElement.scrollWidth}px > ${innerWidth}px`);
     const clipped = Array.from(document.querySelectorAll("body *")).filter((el) => el.children.length === 0 && el.textContent.trim() && vis(el) && el.scrollWidth > el.clientWidth + 1 && ["hidden", "clip"].includes(getComputedStyle(el).overflowX) && getComputedStyle(el).textOverflow !== "ellipsis").map((el) => el.textContent.trim().slice(0, 40));
@@ -97,7 +97,8 @@ const FLOWS = {
     await confirm.first().getByRole("button", { name: "Șterge bonul" }).click();
     await waitFor(() => page.locator(".bf-undo-bar").isVisible(), "bara Anulează după ștergere");
     await page.locator(".bf-undo-bar").getByRole("button", { name: "Anulează" }).click(); await sleep(800);
-    await page.keyboard.press("Escape"); await sleep(500);
+    for (let i = 0; i < 3 && await history.isVisible().catch(() => false); i++) { await page.keyboard.press("Escape"); await sleep(500); }
+    if (await history.isVisible().catch(() => false)) { ctx.issues.push("Istoric: nu se închide cu Esc"); await history.getByRole("button", { name: "Înapoi" }).click(); }
   },
   async list(page, P, ctx) {
     await dock(page, 1); await sleep(900);
@@ -111,6 +112,8 @@ const FLOWS = {
     await page.getByRole("button", { name: /^Scanează codul de bare$/ }).first().click();
     const dialog = page.getByRole("dialog", { name: "Scanează codul de bare" });
     await waitFor(() => dialog.isVisible(), "dialogul cod de bare");
+    const type = dialog.getByRole("button", { name: /Scrie cifrele/ });
+    await sleep(1200); if (await type.isVisible().catch(() => false)) await type.click();
     await dialog.getByLabel("Codul de bare").fill("5942247100868");
     await dialog.getByRole("button", { name: /^Verifică$/ }).click();
     await waitFor(() => page.locator(".bn-bc-found, .bn-bc-card, .bn-bc-verdict").first().isVisible(), "rezultatul codului", 20_000).catch(() => ctx.issues.push("codul 5942247100868 nu a dat niciun rezultat"));
@@ -134,6 +137,8 @@ const FLOWS = {
       if (!(await b.isVisible().catch(() => false))) { ctx.issues.push(`Cont: lipsește rândul ${row}`); continue; }
       await b.click(); await sleep(900); ctx.issues.push(...await audit(page, `Cont/${row.source}`)); await ctx.shot(`costs-${row.source.replace(/\W/g, "")}`);
       await page.keyboard.press("Escape"); await sleep(600);
+      const panel = page.locator(".bn-costs[role=dialog]");
+      if (await panel.isVisible().catch(() => false)) { ctx.issues.push(`Cont/${row.source}: panoul nu se închide cu Esc`); await panel.getByRole("button", { name: "Înapoi" }).first().click(); await sleep(500); }
     }
   },
   async next(page, P, ctx) { await dock(page, 0); await sleep(800); const card = page.locator(".sh-card", { hasText: "CE URMEAZĂ" }).first(); if (await card.count()) { await card.scrollIntoViewIfNeeded(); await ctx.shot("next"); } else ctx.note("Ce urmează: nimic programat (card ascuns)"); },

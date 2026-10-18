@@ -717,5 +717,5 @@ export default function Home() {
 /** Ecranul Scanează: dialog cu focusul ținut înăuntru și închidere cu Esc (cerut de tastatură și cititoare de ecran). */
 function ScanHubFrame({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   const ref = useFocusTrap<HTMLDivElement>(onClose);
-  return <div ref={ref} className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={onClose}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll">{children}</div></div>;
+  return <div ref={ref} tabIndex={-1} className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={onClose}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll">{children}</div></div>;
 }

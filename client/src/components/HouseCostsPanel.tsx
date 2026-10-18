@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Bell, Paperclip, Plus, Trash2 } from "lucide-react";
 import { isoToday, newId, parseRomanianAmount, type AppData, type RecurringPayment } from "@/lib/finance-data";
@@ -39,7 +40,9 @@ export function HouseCostsPanel({ data, kind, onChange, onClose }: { data: AppDa
   const remove = (id: string) => { void deleteWarrantyPhoto(`cost-${id}`); onChange({ ...data, recurring: data.recurring.filter((x) => x.id !== id), deleted: [...data.deleted, { entity: "recurring", id, deletedAt: new Date().toISOString() }] }); setDraft(undefined); };
   const edit = (item: RecurringPayment) => setDraft({ id: item.id, name: item.name, amount: item.amount ? String(item.amount).replace(".", ",") : "", variable: item.variable === true, dueDay: String(item.dueDay), frequency: item.frequency || "monthly", month: String(item.month || 1), memberId: item.memberId || "", remindDays: String(item.remindDays || 0), attachment: item.attachment });
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d));
-  return createPortal(<div className="bn-costs" role="dialog" aria-modal="true" aria-label={title}>
+  // Esc și butonul Înapoi de pe Android fac ce face săgeata din colț.
+  const trapRef = useFocusTrap<HTMLDivElement>(draft ? () => setDraft(undefined) : onClose);
+  return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs" role="dialog" aria-modal="true" aria-label={title}>
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={draft ? () => setDraft(undefined) : onClose}><ArrowLeft size={20} /></button><b>{draft ? (draft.id ? t("Modifică") : kind === "sub" ? t("Abonament nou") : t("Factură nouă")) : title}</b><span /></header>
     {!draft ? <div className="bn-costs-body">
       <section className="bn-costs-hero"><small>{t("PE LUNĂ, ÎN MEDIE")}</small><strong>{lei(total)}</strong><span>{items.length ? t("{n} în listă · următoarea: {name}, {date}", { n: items.length, name: items[0].item.name, date: dateRo(items[0].due) }) : kind === "sub" ? t("Adaugă Netflix, telefonul sau sala ca să vezi cât te costă pe lună.") : t("Adaugă curentul, gazul sau internetul ca să nu uiți nicio scadență.")}</span></section>
