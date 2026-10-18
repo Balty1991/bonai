@@ -46,7 +46,7 @@ export const categoryIcon = (category: string) => ICONS[category] || "🧾";
 export const CATEGORY_COLORS = ["#8b5cf6", "#22d3ee", "#f472b6", "#34d399", "#fbbf24", "#60a5fa", "#fb7185", "#a3e635"];
 
 /** „Lapte × 2” → „Lapte”: cantitatea are coloana ei în ecranul de verificare. */
-export function stripQtySuffix(label: string) { return label.replace(/\s×\s[\d.,]+(\s?kg)?$/u, "").trim(); }
+export function stripQtySuffix(label: string) { return label.replace(/\s×\s[\d.,]+(\s?kg)?$/, "").trim(); }
 /** Pune la loc „× cantitate” la salvare, ca istoricul de prețuri să compare pe bucată sau pe kg. */
 export function labelWithQty(label: string, qty: number) {
   const base = stripQtySuffix(label);
