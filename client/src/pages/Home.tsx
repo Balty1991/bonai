@@ -670,7 +670,7 @@ export default function Home() {
     })}</nav>}
     {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} onEdit={setEditReceipt} onDelete={deleteReceipt} /></Suspense>}
-    {shopMode && editReceipt && <Suspense fallback={null}><ReceiptReview key={editReceipt.id} mode="edit" data={data} prefill={prefillFromReceipt(editReceipt)} onCancel={() => setEditReceipt(undefined)} onSave={(review) => update((current) => applyReceiptEdit(current, editReceipt.id, review))} /></Suspense>}
+    {shopMode && editReceipt && <Suspense fallback={null}><ReceiptReview key={editReceipt.id} mode="edit" receiptId={editReceipt.id} data={data} prefill={prefillFromReceipt(editReceipt)} onCancel={() => setEditReceipt(undefined)} onSave={(review) => update((current) => applyReceiptEdit(current, editReceipt.id, review))} /></Suspense>}
     {shopMode && (costsKind === "sub" || costsKind === "bill") && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && guideOn && <Suspense fallback={null}><BonAIAssistant data={data} onChange={applyData} onClose={() => setGuideOn(false)} onGo={(screen) => { setGuideOn(false); if (screen === "scan") { openScan(); return; } if (screen === "prices") { go("products"); return; } go("list"); if (screen !== "list") window.setTimeout(() => window.dispatchEvent(new CustomEvent("bonai:list-tab", { detail: screen })), 0); }} /></Suspense>}
     

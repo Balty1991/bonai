@@ -7,6 +7,9 @@ import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X } from "lucide
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
+import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
+import { productObservations } from "@/lib/personal-inflation";
+import { DiscountFlags } from "@/components/DiscountFlags";
 import { CATEGORY_COLORS, categoryIcon, groupRows, round2, rowsFromPrefill, rowsTotal, totalGap, type ReviewRow } from "@/lib/receipt-review-model";
 
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
@@ -22,7 +25,7 @@ export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date
  */
 
 
-export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode = "new" }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; mode?: "new" | "edit" }) {
+export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode = "new", receiptId }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; mode?: "new" | "edit"; receiptId?: string }) {
   const editMode = mode === "edit";
   const [rows, setRows] = useState<ReviewRow[]>(() => rowsFromPrefill(prefill));
   const [store, setStore] = useState(() => prefill.title.replace(/^Bon\s*[—-]\s*/, ""));
@@ -37,6 +40,8 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   const [printed, setPrinted] = useState(prefill.amount);
   const gap = totalGap(printed, rows);
   const discount = round2(rows.reduce((sum, row) => sum + row.discount, 0));
+  const history = useMemo(() => productObservations(data).filter((o) => o.receiptId !== receiptId), [data, receiptId]);
+  const flags = useMemo(() => checkReceiptLines(rows.map((row) => ({ label: row.label, amount: row.amount, qty: row.qty, discount: row.discount })), store, date, history, readShelfSeen()), [rows, store, date, history]);
   const members = data.settings.members.filter((member) => member.kind !== "child");
   const previous = useMemo(() => data.receipts.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [data.receipts, store, date]);
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
@@ -84,6 +89,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
         </div>}
         {prefill.warning && <p className="sh-muted sh-note">{prefill.warning}</p>}
       </section>
+      <DiscountFlags flags={flags} />
       {groups.map((group, index) => <section key={group.category} className="bn-group">
         <header className="bn-group-head"><span className="bn-cat-icon" style={{ boxShadow: `inset 0 0 0 1px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}` }} aria-hidden="true">{categoryIcon(group.category)}</span><b>{group.category}</b><small>{Math.round(group.share * 100)}%</small><span className="bn-group-sum">{lei(group.total)}</span></header>
         <ul className="bn-items">{group.rows.map((row) => <li key={row.key} className={editing === row.key ? "is-editing" : ""}>

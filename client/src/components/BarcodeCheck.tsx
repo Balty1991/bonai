@@ -9,6 +9,7 @@ import { withBarcodeLink } from "@/lib/barcode-links";
 import { OFFICIAL_ATTRIBUTION, OFFICIAL_PRICES_ENABLED, lookupOfficialPrice, type OfficialResult } from "@/lib/official-prices";
 import { t } from "@/lib/i18n";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { rememberShelf } from "@/lib/discount-check";
 
 const perText = (per: string) => (per === "buc" ? t("bucata") : per);
 const pctText = (value: number) => Math.abs(value).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
@@ -24,6 +25,8 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const [picking, setPicking] = useState(false);
   const [query, setQuery] = useState("");
   const [shelf, setShelf] = useState("");
+  const [promo, setPromo] = useState(false);
+  const [kept, setKept] = useState(false);
   const [busy, setBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [tried, setTried] = useState(false);
@@ -44,7 +47,7 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
   const lastObs = useMemo(() => (verdict ? observations.find((o) => o.key === linked && o.label === verdict.label && o.date === verdict.last.date) : undefined), [verdict, linked, observations]);
   const diff = lastObs ? shelfDiff(shelfPrice, lastObs.piecePrice) : undefined;
 
-  const reset = () => { setAdded(false); setOffName(undefined); setLinked(undefined); setLinkedLabel(undefined); setGuessed(false); setPicking(false); setQuery(""); setShelf(""); setTried(true); };
+  const reset = () => { setKept(false); setPromo(false); setAdded(false); setOffName(undefined); setLinked(undefined); setLinkedLabel(undefined); setGuessed(false); setPicking(false); setQuery(""); setShelf(""); setTried(true); };
   const check = async (value: string) => {
     const clean = value.replace(/\D/g, "");
     reset();
@@ -97,8 +100,12 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
       <p className="bn-bc-last"><span>{t("Ultima dată")}</span><b>{lei(lastObs?.piecePrice ?? verdict.last.price)}</b><small>{t("la {vendor} ({date})", { vendor: verdict.last.vendor, date: dayText(verdict.last.date) })}{verdict.last.per !== "buc" ? ` · ${lei(verdict.last.price)}/${verdict.last.per}` : ""}</small></p>
       {Trend && verdict.previous && <p className={`bn-bc-trend ${verdict.trend! > 0.5 ? "is-up" : verdict.trend! < -0.5 ? "is-down" : ""}`}><Trend size={18} aria-hidden="true" /> {verdict.trend! > 0.5 ? t("+{pct}% față de data trecută ({price})", { pct: pctText(verdict.trend!), price: lei(verdict.previous.price) }) : verdict.trend! < -0.5 ? t("−{pct}% față de data trecută ({price})", { pct: pctText(verdict.trend!), price: lei(verdict.previous.price) }) : t("La fel ca data trecută")}</p>}
       {verdict.cheapest && <p className="bn-bc-cheap">{t("Cel mai mic preț la tine: {price} pe {per}, la {vendor} ({date}).", { price: lei(verdict.cheapest.price), per: perText(verdict.cheapest.per), vendor: verdict.cheapest.vendor, date: dayText(verdict.cheapest.date) })}</p>}
-      <label className="bn-bc-shelf"><span>{t("Prețul de pe raft acum")}</span><input inputMode="decimal" value={shelf} onChange={(event) => setShelf(event.target.value)} placeholder="0,00" aria-label={t("Prețul de pe raft acum")} /><em>RON</em></label>
+      <label className="bn-bc-shelf"><span>{t("Prețul de pe raft acum")}</span><input inputMode="decimal" value={shelf} onChange={(event) => { setShelf(event.target.value); setKept(false); }} placeholder="0,00" aria-label={t("Prețul de pe raft acum")} /><em>RON</em></label>
       {diff !== undefined && <p className={`bn-bc-verdict ${diff > 0.5 ? "is-up" : diff < -0.5 ? "is-down" : ""}`} role="status">{diff > 0.5 ? t("Mai scump cu {pct}% decât ai dat ultima dată.", { pct: pctText(diff) }) : diff < -0.5 ? t("Mai ieftin cu {pct}% decât ai dat ultima dată.", { pct: pctText(diff) }) : t("Același preț ca ultima dată.")}</p>}
+      {shelfPrice > 0 && <div className="bn-bc-keep">
+        <label><input type="checkbox" checked={promo} onChange={(event) => { setPromo(event.target.checked); setKept(false); }} /> {t("E preț de promoție")}</label>
+        <button type="button" className="sh-link" disabled={kept} onClick={() => { if (!linked || !verdict) return; rememberShelf({ key: linked, label: verdict.label, price: Math.round(shelfPrice * 100) / 100, date: today, ...(promo ? { promo: true } : {}) }, today); setKept(true); }}>{kept ? t("Ținut minte: îl verific pe bon") : t("Ține minte și verifică-l pe bon")}</button>
+      </div>}
       {guessed && <p className="bn-bc-guess">{t("Potrivit după nume.")} <button type="button" className="sh-link" onClick={confirm}>{t("E corect")}</button> <button type="button" className="sh-link" onClick={() => setPicking(true)}>{t("Alt produs")}</button></p>}
       {!guessed && <button type="button" className="sh-link bn-bc-change" onClick={() => setPicking(true)}>{t("Schimbă produsul legat")}</button>}
       <button type="button" className="sh-scan bn-bc-add" onClick={addToList} disabled={added}>{added ? <><Check size={18} aria-hidden="true" /> {t("Adăugat în listă")}</> : <><Plus size={18} aria-hidden="true" /> {t("Adaugă în listă")}</>}</button>

@@ -139,6 +139,27 @@ const FEATURES = {
     await waitFor(async () => (await page.evaluate(async () => { const s = await import("/src/lib/app-storage.ts"); const d = await s.readAppData(); return d.settings.shoppingList.some((i) => /Cafea Jacobs/.test(i.text)); })), "cafeaua pe listă");
     await waitFor(async () => !(await card.isVisible()) || !/Cafea Jacobs/.test(await card.innerText()), "cafeaua iese din card");
   },
+  /** 4. Laptele luat azi la Lidl cu 8,49 (ultima dată 6,99 acolo) e semnalat în detaliul bonului. */
+  async discount(page, theme) {
+    await page.evaluate(async () => {
+      const s = await import("/src/lib/app-storage.ts"); const { isoToday } = await import("/src/lib/finance-data.ts");
+      const d = await s.readAppData(); const now = new Date().toISOString();
+      d.receipts.push({ id: "d1", vendor: "LIDL DISCOUNT SCS", date: isoToday(), category: "Cumpărături", amount: 13.69, lines: [{ id: "d1a", label: "Lapte Zuzu 1L", amount: 8.49, category: "Alimente" }, { id: "d1b", label: "Pâine albă", amount: 5.2, category: "Alimente" }], updatedAt: now });
+      const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(d, later); s.writeLocalStorageSnapshot(JSON.stringify(d), later);
+    });
+    await page.reload(); await page.waitForTimeout(2000);
+    await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(600);
+    await page.getByRole("button", { name: /^Bonuri/ }).first().click();
+    const history = page.getByRole("dialog", { name: "Istoric" });
+    await history.getByText(/LIDL DISCOUNT/).first().click();
+    const flags = page.locator(".bn-flags");
+    await waitFor(() => flags.isVisible(), "secțiunea Verifică reducerile");
+    const text = await flags.innerText();
+    if (!/Lapte Zuzu/.test(text) || !text.includes("6,99") || /Pâine/.test(text)) fail(`semnal greșit: ${text}`);
+    await shot(page, `discount-${theme}`, flags);
+    const cut = await clipped(page, ".bn-flags");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+  },
 };
 
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });

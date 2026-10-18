@@ -4,6 +4,9 @@ import { ArrowLeft, Pencil, Trash2, X } from "lucide-react";
 import type { AppData, Receipt } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
 import { receiptsByMonth, storeHue, storeInitials } from "@/lib/shop-stats";
+import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
+import { productObservations } from "@/lib/personal-inflation";
+import { DiscountFlags } from "@/components/DiscountFlags";
 
 const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
 const dayRo = (d: string) => { const [y, m, day] = d.split("-"); return `${Number(day)} ${["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"][Number(m) - 1]} ${y}`; };
@@ -16,6 +19,7 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
   const open = openId ? data.receipts.find((r) => r.id === openId) : undefined;
   const setOpen = (r?: Receipt) => setOpenId(r?.id);
   const [menu, setMenu] = useState<Receipt>();
+  const flags = useMemo(() => (open ? checkReceiptLines((open.lines || []).map((l) => ({ ...l, label: l.label || "" })), open.vendor, open.date, productObservations(data).filter((o) => o.receiptId !== open.id), readShelfSeen()) : []), [open, data]);
   const press = useRef<{ timer?: number; fired?: boolean }>({});
   const startPress = (r: Receipt) => { press.current.fired = false; window.clearTimeout(press.current.timer); press.current.timer = window.setTimeout(() => { press.current.fired = true; setMenu(r); }, 500); };
   const endPress = () => window.clearTimeout(press.current.timer);
@@ -32,6 +36,7 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={open ? () => setOpen(undefined) : onClose}><ArrowLeft size={20} /></button><b>{open ? open.vendor : tab === "receipts" ? t("Bonuri") : t("Toate costurile")}</b><span /></header>
     {open ? <div className="bn-costs-body">
       <section className="bn-costs-hero"><small>{dayRo(open.date)}{open.time ? ` · ${open.time}` : ""}{open.city ? ` · ${open.city}` : ""}</small><strong>{lei(open.amount)}</strong><span>{open.lines?.length ? t("{n} produse", { n: open.lines.length }) : t("fără produse detaliate")}</span></section>
+      <DiscountFlags flags={flags} />
       {(onEdit || onDelete) && <div className="bn-history-actions">
         {onEdit && <button type="button" className="bn-btn" onClick={() => onEdit(open)}><Pencil size={16} aria-hidden="true" /> {t("Editează")}</button>}
         {onDelete && <button type="button" className="bn-btn is-danger" onClick={() => void remove(open)}><Trash2 size={16} aria-hidden="true" /> {t("Șterge bonul")}</button>}
