@@ -10,8 +10,6 @@ on:
     paths:
       - "client/src/**"
       - "e2e/layout.e2e.mjs"
-      - "e2e/flows.e2e.mjs"
-      - "e2e/split-receipt.e2e.mjs"
       - "e2e/review-scroll.e2e.mjs"
       - "client/e2e/**"
       - "package.json"
@@ -21,8 +19,6 @@ on:
     paths:
       - "client/src/**"
       - "e2e/layout.e2e.mjs"
-      - "e2e/flows.e2e.mjs"
-      - "e2e/split-receipt.e2e.mjs"
       - "e2e/review-scroll.e2e.mjs"
       - "client/e2e/**"
   workflow_dispatch:
@@ -61,10 +57,3 @@ jobs:
       - name: Verifică derularea ecranului de verificare a bonului
         timeout-minutes: 5
         run: pnpm test:review-scroll
-      - name: Verifică fluxurile de bază
-        timeout-minutes: 10
-        run: pnpm test:flows
-      - name: Verifică bonul plătit din două surse
-        # Scanare → salvare → repornire → corectură → pierderea unei părți → „Repară” → „Șterse recent”.
-        timeout-minutes: 6
-        run: pnpm test:split

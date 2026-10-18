@@ -1,7 +1,0 @@
-/* Recomandări locale: date și pas următor. */
-.bf-advice-intro { margin: 5px 0 13px; color: #667970; font-size:12px; line-height: 1.5; }
-.bf-saving-suggestions .bf-advice-basis, .bf-saving-suggestions .bf-advice-next { display: block; margin-top: 6px; font-size:12px; line-height: 1.4; }
-.bf-saving-suggestions .bf-advice-basis { color: #6b796f; }
-.bf-saving-suggestions .bf-advice-next { color: #275c4d; font-weight:600; }
-.dark .bf-advice-intro, .dark .bf-saving-suggestions .bf-advice-basis { color: #b7cbbd; }
-.dark .bf-saving-suggestions .bf-advice-next { color: #e9d37b; }

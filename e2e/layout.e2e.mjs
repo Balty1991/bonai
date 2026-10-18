@@ -36,25 +36,26 @@ async function startVite() {
 
 const click = (label) => async (page) => { await page.getByRole("button", { name: label }).first().click(); await page.waitForTimeout(1000); };
 const seq = (...steps) => async (page) => { for (const step of steps) await step(page); };
-const more = (label) => seq(click(/Deschide instrumentele/), click(label));
-const tab = (label) => async (page) => { await page.getByRole("tab", { name: label }).first().click(); await page.waitForTimeout(1000); };
+const dock = (index) => async (page) => { await page.locator(".os-dock-v2 > button").nth(index).click(); await page.waitForTimeout(1000); };
+const cont = (label) => seq(dock(4), click(label));
+// BonAI: Acasă · Cumpărături · Scanează · Prețuri · Cont, plus ecranele din Cont.
 const SCREENS = {
-  "Astăzi": null,
-  "Mișcări": click(/^Mișcări$/),
-  // Pe telefon: Astăzi · Plicuri · ＋ · Mișcări · Mai mult; Obligații și Analiză sunt în „Mai mult”.
-  "Plicuri": click(/^Plicuri$/),
-  "Obligații": more(/^Obligații/),
-  "Analiză": more(/^Analiză/),
-  "Gospodărie": seq(more(/^Analiză/), tab(/Gospodărie/)),
-  "Scadențe": seq(more(/^Obligații/), click(/Scadențe programate/)),
-  "Mai mult": click(/Deschide instrumentele/),
-  "Setări": more(/^Setări/),
-  "Sincronizare": more(/^Sincronizare/),
-  "De verificat": more(/De verificat/),
-  "Notează": click(/^Notează$/),
-  "Ghid": click(/Deschide ghidul/),
+  "Acasă": null,
+  "Cumpărături": dock(1),
+  "Scanează": dock(2),
+  "Prețuri": dock(3),
+  "Statistici": seq(dock(3), async (page) => { await page.getByRole("tab", { name: /^Statistici$/ }).or(page.getByRole("button", { name: /^Statistici$/ })).first().click(); await page.waitForTimeout(1000); }),
+  "Cont": dock(4),
+  "Bonuri": cont(/^Bonuri/),
+  "Abonamente": cont(/^Abonamente/),
+  "Facturi": cont(/^Facturi/),
+  "Datorii": cont(/^Datorii/),
+  "Familie": cont(/^Familie și membri/),
+  "Garanții": cont(/^Garanții și retururi/),
+  "Setări": cont(/^Setări/),
+  "Asistent": click(/Deschide ghidul/),
 };
-const THEMES = process.env.THEMES ? process.env.THEMES.split(",") : ["white", "dark", "navy"];
+const THEMES = process.env.THEMES ? process.env.THEMES.split(",") : ["white", "dark"];
 const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 const WIDTHS = [360, 412];
 
@@ -82,6 +83,7 @@ async function seed(page) {
     data.savings = [{ id: "s1", name: "Vacanță", current: 1200, target: 5000, due: "", tone: "forest", dueDate: day(280) }];
     data.recurring = [{ id: "r1", name: "Internet", amount: 60, category: "Casă & facturi", sourceId: "source-debit", memberId: me, dueDay: 12, active: true }];
     const later = new Date(Date.now() + 3_600_000).toISOString();
+    data.receipts = [["r1", "Lidl", 143.27, day(-1)], ["r2", "Mega Image", 58.4, day(-3)], ["r3", "Kaufland", 212.9, day(-12)], ["r4", "Profi", 31.5, day(-30)]].map(([id, vendor, amount, date]) => ({ id, vendor, amount, date, category: "Cumpărături", lines: [{ name: "Lapte", price: 7.49, qty: 1 }, { name: "Pâine", price: 5.2, qty: 1 }] }));
     await storage.writeAppData(data, later);
     storage.writeLocalStorageSnapshot(JSON.stringify(data), later);
   });
@@ -148,7 +150,7 @@ function inspect() {
     const style = getComputedStyle(el);
     if (style.textOverflow !== "ellipsis" && !(style.overflowX === "hidden" && style.whiteSpace === "nowrap")) continue;
     if (!el.textContent.trim() || !el.checkVisibility() || el.closest("[aria-hidden='true']")) continue;
-    if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) problems.push(`„${el.textContent.trim().slice(0, 30)}” e tăiat cu „…”`);
+    if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) problems.push(`„${el.textContent.trim().slice(0, 30)}” e tăiat cu „…” (${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]})`);
   }
   return [...new Set(problems)].slice(0, 8);
 }
@@ -196,7 +198,7 @@ async function main() {
       const context = await browser.newContext({ viewport: { width, height: 800 }, locale: "ro-RO" });
       await context.addInitScript((theme) => {
         try {
-          const keys = { "buget-familie:app-mode": "budget", "buget-familie:legacy-writable": "1", "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:theme": theme, "buget-familie:whats-new-2026-10h": "1" };
+          const keys = { "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:theme": theme, "buget-familie:whats-new-2026-10h": "1" };
           for (const [key, value] of Object.entries(keys)) localStorage.setItem(key, value);
           for (const key of ["catalog", "ink", "atelier", "premium", "ui-chrome"]) localStorage.setItem(`buget-familie:theme-migrated-${key}-2026-09`, "1");
         } catch { /* about:blank */ }

@@ -78,8 +78,6 @@ jobs:
           # apt (oglinda Azure) rămâne uneori agățat: 5 minute pe încercare, de cel mult 3 ori.
           for attempt in 1 2 3; do timeout 300 pnpm exec playwright-core install --with-deps chromium && break; done
           check layout "timeout 1500 pnpm test:layout"
-          check flows "timeout 600 pnpm test:flows"
-          check split "timeout 360 pnpm test:split"
           check server "timeout 300 node e2e/receipt-smoke.mjs"
           git log --since="5 days ago" --pretty=format:"%h %ad %s" --date=short > review/changes.txt || true
           head -60 docs/CHANGELOG.md > review/changelog.txt || true

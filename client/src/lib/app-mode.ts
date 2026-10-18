@@ -18,11 +18,9 @@ const LEGACY_TEST_KEY = "buget-familie:legacy-writable";
 const legacyTestHook = () => { try { return window.localStorage.getItem(LEGACY_TEST_KEY) === "1"; } catch { return false; } };
 
 export function readAppMode(): AppMode {
-  try {
-    if (legacyTestHook()) return window.localStorage.getItem(KEY) === "budget" ? "budget" : "shop";
-    if (window.localStorage.getItem(KEY)) window.localStorage.removeItem(KEY);
-    return window.sessionStorage.getItem(KEY) === "budget" ? "budget" : "shop";
-  } catch { return "shop"; }
+  // Bugetul vechi a fost scos: aplicația e mereu BonAI. Vechea preferință se șterge.
+  try { if (window.localStorage.getItem(KEY)) window.localStorage.removeItem(KEY); } catch { /* fără stocare */ }
+  return "shop";
 }
 
 export const isArchiveMode = () => readAppMode() === "budget" && !legacyTestHook();

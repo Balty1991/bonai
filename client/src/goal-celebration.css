@@ -1,9 +1,0 @@
-.bf-celebrate-backdrop{display:grid;place-items:center;padding:20px}
-.bf-celebrate{display:grid;justify-items:center;gap:8px;padding:26px 22px;text-align:center}
-.bf-celebrate>*{margin:0}
-.bf-celebrate h2{font:600 24px/1.2 Fraunces,Georgia,serif}
-.bf-celebrate>b{color:var(--cf-primary-strong);font:600 44px/1 Fraunces,Georgia,serif}
-.bf-confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none}
-.bf-confetti i{position:absolute;top:-16px;width:9px;height:14px;animation:bf-confetti linear forwards}
-@keyframes bf-confetti{to{transform:translateY(105vh) rotate(540deg)}}
-@media (prefers-reduced-motion:reduce){.bf-confetti{display:none}}

@@ -1,3 +1,4 @@
+import { readAppMode } from "@/lib/app-mode";
 /**
  * Ecranul Sync. Scos din home-secondary. Conectarea rămâne aceeași.
  * Starea live trăiește în Home, ca să reziste la schimbarea de tab.
@@ -195,7 +196,20 @@ export function SyncPanel({ connected, busy, online, password, setPassword, noti
   return <div className="bf-sync">
     {!canUseFamilySync() || phoneBlocked ? <FamilieUpgrade reason="sync" /> : null}
     <div className="bf-sync-hero"><Users size={25} /><p className="bf-kicker">{connected ? t("FAMILIE CONECTATĂ") : t("SINCRONIZARE")}</p><h2>{connected ? t("Sesiunea familiei este activă.") : t("Sincronizare criptată, în timp real, între telefoane.")}</h2><p>{t("Datele se criptează pe telefon. Serverul vede doar un pachet pe care nu-l poate citi.")}</p></div>
-    <aside className="bf-sync-local-only" role="note">
+    {readAppMode() === "shop" ? <aside className="bf-sync-local-only" role="note">
+      <p className="bf-kicker">{t("CE SE SINCRONIZEAZĂ")}</p>
+      <ul>
+        <li>{t("Bonurile, produsele și prețurile")}</li>
+        <li>{t("Lista de cumpărături, stocul și meniul")}</li>
+        <li>{t("Abonamentele, facturile, datoriile și garanțiile")}</li>
+      </ul>
+      <p className="bf-kicker">{t("CE NU SE SINCRONIZEAZĂ")}</p>
+      <ul>
+        <li>{t("Codul PIN și setările acestui telefon")}</li>
+        <li>{t("Pozele bonurilor (nu se păstrează)")}</li>
+      </ul>
+      <p>{t("Dacă același lucru e schimbat diferit pe două telefoane, te întrebăm care variantă rămâne — nu alegem noi în locul tău.")}</p>
+    </aside> : <aside className="bf-sync-local-only" role="note">
       <p className="bf-kicker">{t("CE SE SINCRONIZEAZĂ")}</p>
       <ul>
         <li>{t("Mișcări, plicuri, scadențe, datorii, economii")}</li>
@@ -211,13 +225,13 @@ export function SyncPanel({ connected, busy, online, password, setPassword, noti
         <li>{t("Cursurile valutare salvate")}</li>
       </ul>
       <p>{t("Dacă aceeași sumă (un plic sau o mișcare) e schimbată diferit pe două telefoane, te întrebăm care variantă rămâne — nu alegem noi în locul tău. La notițe și etichete rămâne ultima modificare.")}</p>
-    </aside>
+    </aside>}
     <div className={`bf-sync-state ${stateClass}`} role="status"><span aria-hidden="true">{connected && !busy && !pendingMerge && !failedMerge ? <Check size={15} /> : busy || pendingMerge ? <RotateCcw size={15} /> : <Cloud size={15} />}</span><div><b>{stateLabel}</b><small>{stateDetail}</small></div></div>
 
     <section className="bf-sync-session">
       <p className="bf-kicker">{connected ? t("CONECTAT") : t("CONECTEAZĂ FAMILIA")}</p>
       {connected ? <>
-        <p><b>{t("Actualizare live, fără reîmprospătare manuală")}</b><br />{t("Cât aplicația rămâne deschisă pe orice telefon din familie, mișcările apar automat pe toate celelalte în câteva secunde.")}</p>
+        <p><b>{t("Actualizare live, fără reîmprospătare manuală")}</b><br />{readAppMode() === "shop" ? t("Cât aplicația rămâne deschisă pe orice telefon din familie, bonurile și lista apar automat pe toate celelalte în câteva secunde.") : t("Cât aplicația rămâne deschisă pe orice telefon din familie, mișcările apar automat pe toate celelalte în câteva secunde.")}</p>
         {sessionRemembered && <p className="bf-helper">{invite ? t("Telefonul se reconectează singur când redeschizi aplicația.") : t("Telefonul se reconectează singur când redeschizi aplicația. Parola nu e păstrată, doar o cheie făcută din ea.")}</p>}
         {!isAdmin ? (
           <div className="bf-sync-invite" role="note">

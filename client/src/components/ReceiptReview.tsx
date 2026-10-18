@@ -68,7 +68,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
         <p className="sh-kicker">{fmtDate(date)}{prefill.store?.time ? ` · ${prefill.store.time}` : ""}{prefill.store?.city ? ` · ${prefill.store.city}` : ""}</p>
         <p className="bn-review-total">{lei(total)}</p>
         <div className="bn-chips">
-          <span className="bn-chip">{t("{count} produse", { count: rows.length })}</span>
+          <span className="bn-chip">{rows.length === 1 ? t("1 produs") : t("{count} produse", { count: rows.length })}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
           {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {prefill.amount > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
         </div>

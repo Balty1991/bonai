@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { suggestWeeklyAllocationsFromCashflow, allocationBudget, allocationSpent, allocationStatus, allocationWeekStatus, allocationWeeksStatus, adoptOutsideExpenses, answerBudgetQuestion, applySalaryAllocationRules, autoPostDueRecurring, closeReceiptGap, commitLedgerEntry, confirmReviewDraft, createEmptyAppData, debtPaymentHistory, debtSnowball, financialBalance, inPlanPeriod, isoToday, matchingAllocationsForExpense, pickerAllocationsForExpense, newId, normalizeAppData, parseNaturalSpendScenario, parseRomanianAmount, paydayWindow, pendingRecurringInPlan, planEndDate, planForecast, recordDebtPayment, resolveReceiptLines, revertSalaryAllocationApplication, savingSuggestions, sourceBalance, transferBetweenEnvelopes, transferBetweenWeeks, unappliedSalaryIncomes, weeklySummary, transactionShareScope } from "./finance-data";
 import { deriveFamilyRoomId, mergeFamilyData } from "./family-crypto";
-import { journalCsvSnapshot } from "./journal-csv";
-import { calendarBudget, calendarBudgetWeekKey, currentCalendarBudgetWeek } from "./calendar-budget";
-import { calendarPlanPdfSnapshot } from "./calendar-plan-pdf";
+import { calendarBudget } from "./calendar-budget";
 
 describe("registrul financiar Buget Familie", () => {
   it("interpretează sumele românești cu punct pentru mii și virgulă zecimală", () => {
@@ -431,14 +429,6 @@ describe("registrul financiar Buget Familie", () => {
     expect(cash.id).toBeTruthy();
   });
 
-  it("exportă CSV local cu delimitare sigură, sumă românească și numai rândurile primite", () => {
-    const csv = journalCsvSnapshot([{ id: "taxi", title: "Taxi; seară", amount: 45.5, kind: "expense", category: "Transport", sourceId: "cash", source: "Cash", memberId: "member-me", person: "Eu", date: "2026-08-12", allocationId: "outside", note: "Plată \"confirmată\"" }]);
-    expect(csv).toContain('"Data";"Tip";"Denumire"');
-    expect(csv).toContain('"Taxi; seară"');
-    expect(csv).toContain('"45,50"');
-    expect(csv).toContain('"Plată ""confirmată"""');
-    expect(csv.split("\r\n")).toHaveLength(2);
-  });
 
   it("normalizează arhiva locală de șabloane și filtrele salvate valide", () => {
     const migrated = normalizeAppData({ settings: { archivedQuickTemplates: [{ id: "taxi-aug", label: "Taxi august", kind: "expense", category: "Transport", amount: "45,50", archivedAt: "2026-08-27T10:00:00.000Z" }], savedJournalFilters: [{ id: "august", label: "Ieșiri august", kind: "expense", query: "taxi", fromDate: "2026-08-01", toDate: "2026-08-31", updatedAt: "2026-08-27T10:00:00.000Z" }, { id: "bad-range", label: "Interval greșit", kind: "all", fromDate: "2026-08-31", toDate: "2026-08-01" }, { id: "august-duplicate", label: "ieșiri august", kind: "all" }] } });
@@ -630,14 +620,7 @@ describe("registrul financiar Buget Familie", () => {
     expect(roomId).not.toBe(await deriveFamilyRoomId("altă-parolă-1234"));
     expect(roomId).toMatch(/^[0-9a-f]{64}$/);
   });
-  it("identifică o singură tranșă curentă și construiește snapshotul PDF fără mișcări", () => {
-    const active = currentCalendarBudgetWeek(2400, "2026-08-31", "2026-09-27", "2026-09-11");
-    expect(active).toMatchObject({ index: 2, start: "2026-09-07", end: "2026-09-13", amount: 600 });
-    expect(calendarBudgetWeekKey(active!)).toBe("2026-09-07:2026-09-13:2");
-    const report = calendarPlanPdfSnapshot(calendarBudget(2400, "2026-08-31", "2026-09-27")!, "Familia mea");
-    expect(report).toMatchObject({ familyName: "Familia mea", total: 2400, days: 28 });
-    expect(report.weeks).toHaveLength(4);
-  });
+
 });
 
 describe("sugestia săptămânală din fluxul real", () => {

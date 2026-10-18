@@ -120,7 +120,7 @@ html[data-app="shop"] .sh-alert { margin: 0; display: flex; gap: 8px; align-item
 html[data-app="shop"] .sh-link { justify-self: start; display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--bn-accent); font-weight: 650; cursor: pointer; }
 html[data-app="shop"] .sh-bars { display: grid; gap: 9px; }
 html[data-app="shop"] .sh-bar { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 8fr) auto; gap: 10px; align-items: center; font-size: 14px; }
-html[data-app="shop"] .sh-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-app="shop"] .sh-bar span { overflow-wrap: anywhere; min-width: 0; }
 html[data-app="shop"] .sh-bar i { display: block; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #8b5cf6, #22d3ee); box-shadow: 0 0 12px -2px rgba(34, 211, 238, .6); }
 html[data-app="shop"] .sh-bar b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 html[data-app="shop"] .sh-rows { display: grid; border-radius: 24px; overflow: hidden; background: var(--bn-glass); border: 1px solid var(--bn-edge); box-shadow: var(--bn-shadow); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
@@ -305,7 +305,7 @@ html[data-app="shop"] .sh-avatar { display: grid; place-items: center; width: 52
 .bn-assist-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #8b5cf6, #22d3ee); }
 .bn-assist-roles, .bn-assist-quick { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 10px; scrollbar-width: none; }
 .bn-assist-roles button, .bn-assist-quick button, .bn-assist-examples button, .bn-assist-actions button { flex: none; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--bn-edge); color: var(--bn-ink); background: var(--bn-glass); font: 600 13px/1 var(--bn-body); }
-.bn-assist-roles button.is-on { color: #fff; border-color: transparent; background: linear-gradient(135deg, #7c3aed, #0891b2); }
+.bn-assist-roles button.is-on { color: #fff; border-color: transparent; background: linear-gradient(135deg, #6d28d9, #0e7490); }
 .bn-assist-log { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px 16px 12px; display: grid; align-content: start; gap: 10px; }
 .bn-assist-msg { max-width: 86%; padding: 12px 14px; border-radius: 18px; background: var(--bn-glass); border: 1px solid var(--bn-edge); }
 .bn-assist-msg p { margin: 0; line-height: 1.45; } .bn-assist-msg.is-user { justify-self: end; color: #fff; border-color: transparent; background: linear-gradient(135deg, #7c3aed, #4f46e5); }
@@ -329,8 +329,8 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 .bn-costs-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-radius: 22px; overflow: hidden; border: 1px solid var(--bn-edge); background: var(--bn-glass); }
 .bn-costs-list li + li { border-top: 1px solid var(--bn-edge); }
 .bn-costs-list button { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 64px; padding: 10px 14px; border: 0; color: inherit; background: none; text-align: left; font: inherit; }
-.bn-costs-day { display: grid; place-items: center; height: 48px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #7c3aed, #0891b2); } .bn-costs-day b { font: 700 17px/1 var(--bn-head); } .bn-costs-day small { font-size: 10px; text-transform: uppercase; }
-.bn-costs-copy { display: grid; gap: 3px; min-width: 0; } .bn-costs-copy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bn-costs-copy small { color: var(--bn-muted); font-size: 12px; }
+.bn-costs-day { display: grid; place-items: center; height: 48px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #6d28d9, #0e7490); } .bn-costs-day b { font: 700 17px/1 var(--bn-head); } .bn-costs-day small { font-size: 10px; text-transform: uppercase; }
+.bn-costs-copy { display: grid; gap: 3px; min-width: 0; } .bn-costs-copy b { overflow-wrap: anywhere; } .bn-costs-copy small { color: var(--bn-muted); font-size: 12px; }
 .bn-costs-amount { font: 700 15px/1 var(--bn-head); white-space: nowrap; }
 .bn-costs-add { justify-self: stretch; min-height: 50px; } .bn-costs-note { margin: 0; color: var(--bn-muted); font-size: 13px; text-align: center; }
 .bn-costs-form label { display: grid; gap: 6px; } .bn-costs-form label > span { color: var(--bn-muted); font: 600 13px/1 var(--bn-body); }
@@ -363,7 +363,8 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 .bn-stats-cats i { height: 8px; border-radius: 8px; transform-origin: left; background: linear-gradient(90deg, #7c3aed, #22d3ee); transition: transform .5s ease; } .bn-stats-cats span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .bn-stats-chart i { animation: none; } }
 html[data-app="shop"] .bf-danger-zone { padding: 4px 0 24px; background: none; border: 0; box-shadow: none; }
-html[data-app="shop"] .bf-danger-zone .bf-danger { width: 100%; min-height: 48px; border-radius: 16px; border: 1px solid rgb(239 68 68 / .45); background: rgb(239 68 68 / .1); color: #ef4444; font-weight: 700; }
+html[data-app="shop"] .bf-danger-zone .bf-danger { width: 100%; min-height: 48px; border-radius: 16px; border: 1px solid rgb(239 68 68 / .45); background: rgb(239 68 68 / .1); color: #fca5a5; font-weight: 700; }
+html[data-app="shop"]:not(.dark) .bf-danger-zone .bf-danger { color: #b91c1c; }
 html[data-app="shop"] .bf-shopping > header { display: none; }
 /* Scanare: bon virtual care se construiește (schelet → magazin → rânduri → total verificat). */
 .bn-scan-stage { min-height: 0; display: grid; place-items: center; padding: 14px 10px; }
@@ -410,8 +411,8 @@ html:not(.dark) .bn-scan-term li span, html:not(.dark) .bn-scan-term li.is-muted
 html:not(.dark) .bn-scan-term li b { color: #0e7490; }
 /* Bara de jos: fiecare pastilă cât eticheta ei (360–412 px). */
 html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 { display: flex; gap: 2px; }
-html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button { flex: 1 1 auto; min-width: max-content; width: auto; padding-inline: 7px; }
-html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button span { white-space: nowrap; }
+html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button { flex: 1 1 auto; min-width: min-content; width: auto; padding-inline: 4px; overflow: visible; text-overflow: clip; }
+html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button span { white-space: nowrap; font-size: min(12px, 2.9vw); overflow: visible; text-overflow: clip; }
 /* Ecranul de analiză încape în 100dvh, fără derulare: bonul virtual se micșorează, jurnalul arată ultimele rânduri, mesajul de stare rămâne vizibil. */
 .bn-scan-hub .bn-review-scroll:has(.bn-scan) { display: flex; flex-direction: column; overflow: hidden; gap: 10px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 .bn-scan-hub .bf-scan-receipt:has(.bn-scan) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -425,3 +426,6 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button span
 .bn-scan-hub .bn-scan-term { flex: none; min-height: 0; max-height: none; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px 12px; }
 .bn-scan-hub .bf-scan-receipt-busy { flex: none; margin: 0; }
 @media (max-height: 700px) { .bn-scan-hub .bn-scan { padding: 10px; gap: 8px; } .bn-scan-hub .bn-scan-stages li { font-size: 11px; } .bn-scan-hub .bn-vr { padding: 10px 12px; } .bn-scan-hub .bn-vr-lines { gap: 5px; } }
+/* Ecranul de bon: coloanele nu se lățesc după cel mai lung conținut (rândul în editare ieșea din ecran). */
+.bn-review-scroll { grid-template-columns: minmax(0, 1fr); }
+.bn-review-scroll > *, .bn-group, .bn-group * { min-width: 0; }

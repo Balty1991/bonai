@@ -54,7 +54,7 @@ async function phone(browser, { name, partner }) {
   await context.addInitScript(() => {
     try {
       localStorage.setItem("buget-familie:setup-complete", "true");
-      localStorage.setItem("buget-familie:app-mode", "budget"); localStorage.setItem("buget-familie:legacy-writable", "1");
+      
       localStorage.setItem("buget-familie:onboarding-complete", "true");
     } catch {
       // about:blank nu are stocare; pagina aplicației o are.
@@ -98,19 +98,23 @@ async function copiedInvite(page) {
 
 async function openSync(page) {
   if (await page.locator(".bf-sync-session").count()) return;
-  await page.getByRole("button", { name: /Deschide instrumentele/ }).first().click();
-  // „Mai mult” se redeschide pe ultimul instrument; din lista de instrumente se alege Sync.
-  await page.waitForTimeout(400);
-  if (!(await page.locator(".bf-sync-session").count())) await page.getByRole("button", { name: /Sincroniz/ }).first().click();
+  // BonAI: Cont → Familie și membri.
+  await page.locator(".os-dock-v2 > button").last().click();
+  await page.getByRole("button", { name: /^Familie și membri/ }).first().click();
   await page.locator(".bf-sync-session").waitFor();
 }
 
 async function addExpense(page, amount) {
-  await page.getByRole("button", { name: "Mișcări" }).first().click();
-  await page.getByRole("button", { name: "Adaugă mișcare" }).first().click();
-  await page.locator(".bf-modal input[inputmode=\"decimal\"]").first().fill(String(amount));
-  await page.getByRole("button", { name: "Gata" }).last().click();
-  await page.locator(".bf-undo-bar").waitFor();
+  // BonAI: „Fără bon” → un produs cu suma → Salvează bonul (aceeași cheltuială ca înainte, sincronizată la fel).
+  await page.keyboard.press("Escape").catch(() => undefined);
+  await page.locator(".os-dock-add").click();
+  await page.getByRole("button", { name: /Fără bon/ }).click();
+  await page.getByRole("button", { name: /Adaugă un produs/ }).click();
+  await page.locator(".bn-review input:not([inputmode])").nth(1).fill(`Test ${amount}`);
+  await page.locator(".bn-review input[inputmode=\"decimal\"]").nth(1).fill(String(amount).replace(".", ","));
+  await page.getByRole("button", { name: "Gata" }).click();
+  await page.getByRole("button", { name: /Salvează bonul/ }).click();
+  await page.locator(".bn-review").waitFor({ state: "detached" });
 }
 
 /** „Intră în familie”; telefonul are deja date, deci confirmă că le trimite în camera invitației. */

@@ -3,7 +3,7 @@
  * First paint: doar Astăzi. Restul ecranelor, sync-ul și formularele se încarcă la cerere.
  */
 import { enrichSavedReceipt } from "@/lib/receipt-products";
-import { splitGroupIds, storedMove } from "@/lib/split-payment";
+import { storedMove } from "@/lib/split-payment";
 import { recordRemovals } from "@/lib/removed-bin";
 import { readAutoBackup, writeAutoBackup } from "@/lib/auto-backup";
 import { saveLiveBackup } from "@/lib/app-storage";
@@ -17,17 +17,16 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
-import { allocationStatus, autoPostDueRecurring, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, confirmRecurringPayment, addIsoDays, formatDate, inPlanPeriod, isoDate, isoToday, newId, transferBetweenEnvelopes, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
-import { addContribution, eventTraits } from "@/lib/planned-events";
-import { applyDeclaredBalance } from "@/lib/balance-check";
-import { levelStartedWeek, totalForWeeklyPace } from "@/lib/started-week";
+import { allocationStatus, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, formatDate, isoToday, newId, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
+
+
+
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 import { queueReceiptForReview, attachReceiptDetail } from "@/lib/receipt-review";
-import { markCelebrated, pendingCelebration } from "@/lib/goal-celebration";
+import { pendingCelebration } from "@/lib/goal-celebration";
 import { safeSetItem } from "@/lib/safe-storage";
 import { closeTopDialog } from "@/hooks/use-focus-trap";
 import { BrandMark } from "@/components/BrandMark";
-import type { FinancialUpdate, GuidedRevert, NaturalDraft } from "@/components/AICompanion";
 import type { ScanPrefill } from "@/lib/receipt-scan";
 import { isAppLockEnabled } from "@/lib/app-lock";
 import { useToday } from "@/hooks/useToday";
@@ -41,7 +40,6 @@ import { useMemberMode } from "@/lib/member-mode";
 import { MemberModeScreen } from "@/components/MemberModeScreen";
 import {
   WhatsNewSheet,
-  Modal,
   fmtExact,
   money,
   type MainView,
@@ -52,8 +50,8 @@ import { markWhatsNewSeen, shouldShowWhatsNew } from "@/lib/theme-default";
 import { markFirstWeekTourSeen, shouldOfferFirstWeekTour } from "@/lib/first-week-tour";
 import { daysLabel, t } from "@/lib/i18n";
 import { todayBrief } from "@/lib/household-insights";
-import { applyIncomeSplit, pendingSplitIncome } from "@/lib/monthly-needs";
-import { applyPayday } from "@/lib/payday";
+
+
 import { hideNativeSplash, syncAndroidChrome } from "@/lib/native-splash";
 import { ensureDeferredStyles, deferredStylesReady } from "@/lib/ram-hygiene";
 import { useLanguage } from "@/hooks/use-language";
@@ -65,40 +63,19 @@ import { useSimpleMode } from "@/hooks/useSimpleMode";
 import { clearQuietStart, distinctExpenseDays, isQuietStart } from "@/lib/quiet-start";
 import { setSimpleMode } from "@/lib/ui-prefs";
 import { FAMILIE_OPEN_EVENT } from "@/lib/entitlements";
-import { selfMemberOf } from "@/lib/member-identity";
+
 import { isNativeApp } from "@/lib/app-storage";
 import { buildUndoSave } from "@/lib/undo-delete";
 import { formatInvite, parseInvite, takeInviteFromLocation } from "@/lib/family-invite";
-import { openHouseholdGuide, TodayView as TodayViewRaw } from "@/pages/TodayView";
-import { stableView } from "@/lib/stable-view";
-const TodayView = stableView(TodayViewRaw);
+import { openHouseholdGuide } from "@/pages/TodayView";
+
 import { reloadToNewVersion, useUpdateAvailable } from "@/lib/update-check";
 import { labelWithQty } from "@/lib/receipt-review-model";
 
 export { recentActivityMoves } from "@/pages/TodayView";
 
 const ReceiptReview = lazy(safeImport(() => import("@/components/ReceiptReview").then((module) => ({ default: module.ReceiptReview }))));
-const PlanStudio = lazy(safeImport(() => import("@/components/PlanStudio").then((module) => ({ default: stableView(module.PlanStudio) }))));
-const MovementsJournal = lazy(safeImport(() => import("@/components/MovementsJournal").then((module) => ({ default: stableView(module.MovementsJournal) }))));
-const AffordSheet = lazy(safeImport(() => import("@/components/AffordSheet").then((module) => ({ default: module.AffordSheet }))));
-const GoalCelebration = lazy(safeImport(() => import("@/components/GoalCelebration").then((module) => ({ default: module.GoalCelebration }))));
-const QuickEntryPanel = lazy(safeImport(() => import("@/components/QuickEntryPanel").then((module) => ({ default: module.QuickEntryPanel }))));
-const FirstWeekTour = lazy(safeImport(() => import("@/components/FirstWeekTour").then((module) => ({ default: module.FirstWeekTour }))));
-const FinancialCalendarView = lazy(safeImport(() => import("@/components/FinancialCalendarView").then((module) => ({ default: module.FinancialCalendarView }))));
-const ThemePicker = lazy(safeImport(() => import("@/pages/ThemePicker").then((module) => ({ default: module.ThemePicker }))));
-const QuickActionsPalette = lazy(safeImport(() => import("@/pages/QuickActionsPalette").then((module) => ({ default: module.QuickActionsPalette }))));
-const CalmOnboarding = lazy(safeImport(() => import("@/pages/QuickActionsPalette").then((module) => ({ default: module.CalmOnboarding }))));
-const TransactionForm = lazy(safeImport(() => import("@/pages/TransactionForm").then((module) => ({ default: module.TransactionForm }))));
-const GoalForm = lazy(safeImport(() => import("@/pages/GoalForms").then((module) => ({ default: module.GoalForm }))));
-const DebtPaymentForm = lazy(safeImport(() => import("@/pages/GoalForms").then((module) => ({ default: module.DebtPaymentForm }))));
-const ReceiptForm = lazy(safeImport(() => import("@/pages/ReceiptForm").then((module) => ({ default: module.ReceiptForm }))));
-const SpendingHabitsView = lazy(safeImport(() => import("@/pages/HabitsGoals").then((module) => ({ default: module.SpendingHabitsView }))));
-const LongTermGoalsView = lazy(safeImport(() => import("@/pages/HabitsGoals").then((module) => ({ default: module.LongTermGoalsView }))));
-const ObjectivesView = lazy(safeImport(() => import("@/pages/ObjectivesView").then((module) => ({ default: module.ObjectivesView }))));
-const InsightsView = lazy(safeImport(() => import("@/pages/InsightsView").then((module) => ({ default: module.InsightsView }))));
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
-const WeekCloseSheet = lazy(safeImport(() => import("@/components/WeekCloseSheet").then((module) => ({ default: module.WeekCloseSheet }))));
-const PaydaySheet = lazy(safeImport(() => import("@/components/PaydaySheet").then((module) => ({ default: module.PaydaySheet }))));
 const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
 const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
 const BonAIAssistant = lazy(safeImport(() => import("@/components/BonAIAssistant")));
@@ -110,8 +87,6 @@ const PricesView = lazy(safeImport(() => import("@/pages/ShopViews").then((modul
 const HouseView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.HouseView }))));
 const ShopWelcome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopWelcome }))));
 const ReceiptScanButton = lazy(safeImport(() => import("@/components/ReceiptScanButton").then((module) => ({ default: module.ReceiptScanButton }))));
-const FirstRunSetup = lazy(safeImport(() => import("@/components/FirstRunSetup").then((module) => ({ default: module.FirstRunSetup }))));
-const AICompanion = lazy(safeImport(() => import("@/components/AICompanion").then((module) => ({ default: module.AICompanion }))));
 
 /**
  * Link direct către un ecran. Lista era scrisă de mână și rămăsese în urmă: „goals”,
@@ -137,13 +112,7 @@ let secondaryModule: typeof import("@/pages/home-secondary") | undefined;
 const loadSecondary = () => preloadView("utilities").then(() => import("@/pages/home-secondary")).then((module) => (secondaryModule = module));
 const warmedViews = new Set<MainView>(["today"]);
 const preloadView = (id: MainView): Promise<void> => {
-  const task = id === "journal" ? warmLazy(MovementsJournal)
-    : id === "plan" ? warmLazy(PlanStudio)
-    : id === "calendar" ? warmLazy(FinancialCalendarView)
-    : id === "insights" ? warmLazy(InsightsView).then(() => import("@/pages/InsightsView")).then((module) => module.preloadInsights())
-    : id === "obligations" ? warmLazy(ObjectivesView)
-    : id === "goals" || id === "habits" ? warmLazy(id === "goals" ? LongTermGoalsView : SpendingHabitsView)
-    : id === "utilities" ? warmLazy(MoreViewScreen)
+  const task = id === "utilities" ? warmLazy(MoreViewScreen)
     : id === "shop" || id === "list" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
@@ -233,16 +202,16 @@ export default function Home() {
   const showTools = useCallback(() => { const seq = ++goSeq.current; void moreReady.current.then(() => { if (seq === goSeq.current) setView("utilities"); }); }, []);
   /** Ecranul de unde s-a deschis un instrument, ca „Înapoi” să ducă tot acolo (testare, #6). */
   const [moreReturn, setMoreReturn] = useState<{ view: MainView; label: string } | null>(null);
-  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  const [, setQuickActionsOpen] = useState(false);
   const [guideOn, setGuideOn] = useState(false);
   const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts" | "receipts" | "costs">();
   const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | null>(null);
-  const [quickTemplateId, setQuickTemplateId] = useState<string | undefined>(undefined);
-  const [quickKind, setQuickKind] = useState<"income" | undefined>(undefined);
-  const [quickMoving, setQuickMoving] = useState(false);
-  const [quickVoice, setQuickVoice] = useState(false);
-  const [paydayOpen, setPaydayOpen] = useState(false);
-  const [weekCloseOpen, setWeekCloseOpen] = useState(false);
+  const [, setQuickTemplateId] = useState<string | undefined>(undefined);
+  const [, setQuickKind] = useState<"income" | undefined>(undefined);
+  const [, setQuickMoving] = useState(false);
+  const [, setQuickVoice] = useState(false);
+  const [, setPaydayOpen] = useState(false);
+  const [, setWeekCloseOpen] = useState(false);
   useEffect(() => {
     // „Închide săptămâna”: restul plicurilor și soldul, duminică seara sau luni.
     const openWeekClose = () => setWeekCloseOpen(true);
@@ -290,24 +259,20 @@ export default function Home() {
     return () => window.removeEventListener("buget-familie:open-events", openEvents);
   }, []);
   useEffect(() => { if (modal !== "quick") { setQuickKind(undefined); setQuickMoving(false); } }, [modal]);
-  const [editTx, setEditTx] = useState<Transaction>();
+  const [, setEditTx] = useState<Transaction>();
   const [scanPrefill, setScanPrefill] = useState<ScanPrefill>();
-  const [editGoal, setEditGoal] = useState<Debt | SavingsGoal>();
+  const [, setEditGoal] = useState<Debt | SavingsGoal>();
   const receiptStorageNotice = "";
   const legacyReceiptMigrationStarted = useRef(false);
   const setupOffered = useRef(setupOpen);
   // Obiectiv atins: o felicitare pe obiectiv, pe telefonul acesta.
-  const [affordOpen, setAffordOpen] = useState(false);
-  const [celebrate, setCelebrate] = useState<SavingsGoal | undefined>(undefined);
+  const [, setAffordOpen] = useState(false);
+  const [, setCelebrate] = useState<SavingsGoal | undefined>(undefined);
   useEffect(() => { const goal = pendingCelebration(data.savings, typeof window !== "undefined" ? window.localStorage : undefined); if (goal) setCelebrate(goal); }, [data.savings]);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false); const [firstWeekTourOpen, setFirstWeekTourOpen] = useState(false);
   const {
-    themePickerOpen, setThemePickerOpen,
     activeTheme, setTheme,
     themeSchedule, setThemeSchedule,
-    background, setBackground,
-    highContrast, setHighContrast,
-    scheduleTimes, setScheduleTimes,
   } = useThemeChrome();
 
   useEffect(() => {
@@ -397,8 +362,7 @@ export default function Home() {
     let stopped = false;
     const idle = (fn: () => void) => { const win = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }; if (typeof win.requestIdleCallback === "function") win.requestIdleCallback(fn, { timeout: 3000 }); else window.setTimeout(fn, 200); };
     const later = window.setTimeout(() => void loadSecondary().then((module) => {
-      const forms = [QuickEntryPanel, TransactionForm, ReceiptForm, GoalForm, DebtPaymentForm, QuickActionsPalette, ThemePicker].map((form) => () => warmLazy(form));
-      const queue: (() => Promise<unknown>)[] = [...forms, ...module.MORE_TABS.map((tab) => () => module.preloadMoreTab(tab)), () => preloadView("habits"), () => preloadView("calendar")];
+      const queue: (() => Promise<unknown>)[] = [...module.MORE_TABS.map((tab) => () => module.preloadMoreTab(tab))];
       const next = () => { if (stopped) return; const task = queue.shift(); if (!task) return; void task().catch(() => undefined).finally(() => idle(next)); };
       idle(next);
     }).catch(() => undefined), 2500);
@@ -571,220 +535,6 @@ export default function Home() {
       if (loggedDays([...data.transactions, ...saved]) >= REVIEW_AFTER_LOGGED_DAYS) void askReviewAfterMilestone();
     }
   };
-  const applyFinancialUpdate = (change: FinancialUpdate) => update((current) => { const member = current.settings.members.find((item) => "memberId" in change && change.memberId && item.id === change.memberId) || current.settings.members[0]; const source = current.settings.paymentSources.find((item) => item.memberId && member && item.memberId === member.id) || current.settings.paymentSources[0]; const now = new Date().toISOString(); if (change.kind === "income" && member && source) { const incomeSource = current.settings.paymentSources.find((item) => item.memberId === member.id && item.kind !== "meal") || current.settings.paymentSources.find((item) => item.kind !== "meal") || source; const incomeCaptureId = ("clientCaptureId" in change && change.clientCaptureId) || newId("guided-income"); if (current.transactions.some((item) => item.id === incomeCaptureId || (item.kind === "income" && item.memberId === member.id && item.amount === change.amount && item.title === change.title && item.date === (change.date || isoToday())))) return current; const transaction: Transaction = { id: incomeCaptureId, title: change.title, amount: change.amount, kind: "income", category: "Venit", sourceId: incomeSource.id, source: incomeSource.name, memberId: member.id, person: member.name, date: change.date || isoToday(), note: t("Venit adăugat împreună cu ghidul AI"), createdAt: now }; return { ...current, transactions: [transaction, ...current.transactions] }; } if (change.kind === "debt") { const key = change.name.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim(); const existingIndex = current.debts.findIndex((item) => item.name.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim() === key); const nextDebt: Debt = { id: existingIndex >= 0 ? current.debts[existingIndex].id : newId("guided-debt"), name: change.name, remaining: change.remaining, monthly: existingIndex >= 0 ? current.debts[existingIndex].monthly : 0, due: change.due || (existingIndex >= 0 ? current.debts[existingIndex].due : "Nespecificat"), memberId: member?.id, tone: existingIndex >= 0 ? current.debts[existingIndex].tone : "coral", updatedAt: now }; const debts = existingIndex >= 0 ? current.debts.map((item, index) => index === existingIndex ? nextDebt : item) : [nextDebt, ...current.debts]; return { ...current, debts }; } if (change.kind === "debt-monthly") { const key = change.name?.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim(); const index = key ? current.debts.findIndex((item) => item.name.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim() === key) : 0; if (index < 0) return current; return { ...current, debts: current.debts.map((item, itemIndex) => itemIndex === index ? { ...item, monthly: change.amount, updatedAt: now } : item) }; } if (change.kind === "expense" && member && source) { const day = change.date || isoToday(); const usedSource = current.settings.paymentSources.find((item) => item.id === change.sourceId) || source; const usedMember = current.settings.members.find((item) => item.id === change.memberId) || member; const expenseCaptureId = change.clientCaptureId || newId("guided-expense"); if (current.transactions.some((item) => item.id === expenseCaptureId)) return current; if (change.recurringId && current.transactions.some((item) => item.recurringId === change.recurringId && inPlanPeriod(item.date, current.settings.salaryPlan))) return current; const transaction: Transaction = { id: expenseCaptureId, title: change.title, amount: change.amount, kind: "expense", category: change.category, sourceId: usedSource.id, source: usedSource.name, memberId: usedMember.id, person: usedMember.name, date: day, allocationId: change.allocationId || "outside", recurringId: change.recurringId, note: change.recurringId ? t("Plată recurentă confirmată") : t("Cheltuială adăugată împreună cu ghidul AI"), createdAt: now }; try { const next = commitLedgerEntry(current, transaction, change.fromWeekIndex); if (change.kind === "expense" && change.receiptDraft?.items?.length) { const receipt: Receipt = { id: newId("guided-receipt"), vendor: change.receiptDraft.vendor || change.title, amount: change.amount, category: change.category, date: day, sourceId: usedSource.id, memberId: usedMember.id, linkedTransactionId: transaction.id, note: t("Bon citit de ghid — produsele sunt în rubrica Bonuri."), lines: change.receiptDraft.items.map((item, index) => ({ id: `guided-line-${index}`, category: item.category, amount: item.amount, label: item.label })), updatedAt: now }; return { ...next, receipts: [receipt, ...next.receipts] }; } return next; } catch { return current; } } if (change.kind === "transfer") return transferBetweenEnvelopes(current, { fromAllocationId: change.fromId, toAllocationId: change.toId, amount: change.amount, note: t("Realocare din ghidul AI") }) || current; if (change.kind === "recurring") {
-      const source = current.settings.paymentSources.find((item) => item.memberId === member?.id) || current.settings.paymentSources[0];
-      if (!source || !member) return current;
-      const item = { id: newId("recurring"), name: change.name, amount: change.amount, category: change.category, sourceId: source.id, memberId: member.id, dueDay: Math.min(31, Math.max(1, change.dueDay)), active: true, autoPost: false, updatedAt: now };
-      return { ...current, recurring: [...current.recurring, item] };
-    }
-    /**
-     * Ștergerea și corectarea cerute prin asistent. Rândul pleacă din registru cu
-     * piatră de mormânt, ca sincronizarea între telefoane să nu-l readucă înapoi.
-     */
-    if (change.kind === "delete-transaction") {
-      const removed = current.transactions.find((item) => item.id === change.id);
-      if (!removed) return current;
-      const now = new Date().toISOString();
-      // Bonul plătit din două surse pleacă întreg, cu bonul lui, ca în Mișcări: niciodată doar o parte.
-      const group = splitGroupIds(current.transactions, change.id);
-      const receiptIds = current.receipts.filter((receipt) => group.includes(receipt.linkedTransactionId || "")).map((receipt) => receipt.id);
-      return {
-        ...current,
-        transactions: current.transactions.filter((item) => !group.includes(item.id)),
-        receipts: current.receipts.filter((receipt) => !receiptIds.includes(receipt.id)),
-        deleted: [...current.deleted, ...group.map((id) => ({ entity: "transactions" as const, id, deletedAt: now })), ...receiptIds.map((id) => ({ entity: "receipts" as const, id, deletedAt: now }))].slice(-TOMBSTONE_MAX),
-      };
-    }
-    if (change.kind === "amend-transaction") {
-      if (!current.transactions.some((item) => item.id === change.id)) return current;
-      const now = new Date().toISOString();
-      return {
-        ...current,
-        transactions: current.transactions.map((item) => item.id === change.id ? { ...item, amount: change.amount, updatedAt: now } : item),
-      };
-    }
-    if (change.kind === "goal") {
-      const goal: SavingsGoal = { id: newId("goal"), name: change.name, current: change.current || 0, target: change.target, due: change.dueDate ? formatDate(change.dueDate, { day: "2-digit", month: "long", year: "numeric" }) : t("Fără termen"), dueDate: change.dueDate, memberId: member?.id, tone: "honey", updatedAt: now };
-      return { ...current, savings: [goal, ...current.savings] };
-    }
-    /**
-     * Evenimentul cerut prin asistent intră în aceeași listă ca cel scris de mână.
-     * Același nume la aceeași dată nu se dublează: „notează Crăciunul” spus de două
-     * ori într-o conversație ar fi făcut două fonduri pentru aceeași zi.
-     */
-    if (change.kind === "planned-event") {
-      const key = change.name.toLocaleLowerCase("ro-RO").trim();
-      const events = current.settings.plannedEvents;
-      const existing = events.find((item) => item.name.toLocaleLowerCase("ro-RO").trim() === key && item.date === change.date);
-      const next = existing
-        ? events.map((item) => item.id === existing.id ? { ...item, estimate: change.estimate || item.estimate, repeat: change.repeat, updatedAt: now } : item)
-        : [...events, { id: newId("planned-event"), name: change.name, date: change.date, estimate: change.estimate, repeat: change.repeat, memberId: member?.id, updatedAt: now, ...eventTraits(change.name, isoToday()) }];
-      return { ...current, settings: { ...current.settings, plannedEvents: next } };
-    }
-    /**
-     * O regulă de magazin cerută prin asistent: „de fiecare dată când scriu Lidl, pune-l pe
-     * Alimente”. Regula nu scrie nimic singură — la următoarea cheltuială propune, iar omul
-     * confirmă. Același text nu se dublează: se actualizează regula existentă.
-     */
-    if (change.kind === "merchant-rule") {
-      const rules = current.settings.merchantRules || [];
-      const key = change.match.toLocaleLowerCase("ro-RO").trim();
-      const existing = rules.find((item) => item.match.toLocaleLowerCase("ro-RO").trim() === key);
-      const next = existing
-        ? rules.map((item) => item.id === existing.id ? { ...item, category: change.category || item.category, allocationId: change.allocationId || item.allocationId, updatedAt: now } : item)
-        : [...rules, { id: newId("merchant-rule"), match: change.match, category: change.category, allocationId: change.allocationId, updatedAt: now }];
-      return { ...current, settings: { ...current.settings, merchantRules: next.slice(0, 60) } };
-    }
-    /**
-     * Repartizarea automată a venitului: „din fiecare salariu pune 20% la economii”. Se
-     * aplică la venitul următor, nu la banii de acum — de aceea nu atinge nimic aici.
-     */
-    if (change.kind === "income-split") {
-      // Venitul din aceeași propunere a intrat deja (actualizările se aplică pe rând).
-      const income = pendingSplitIncome(current, isoToday());
-      return income ? applyIncomeSplit(current, income.id).data : current;
-    }
-    if (change.kind === "salary-rule") {
-      const plan = current.settings.salaryPlan;
-      if (!plan.allocations.some((item) => item.id === change.allocationId)) return current;
-      const rules = plan.salaryAllocationRules || [];
-      const existing = rules.find((item) => item.allocationId === change.allocationId && item.mode === change.mode);
-      const next = existing
-        ? rules.map((item) => item.id === existing.id ? { ...item, label: change.label, value: change.value, active: true, updatedAt: now } : item)
-        : [...rules, { id: newId("salary-rule"), label: change.label, allocationId: change.allocationId, mode: change.mode, value: change.value, active: true, updatedAt: now }];
-      return { ...current, settings: { ...current.settings, salaryPlan: { ...plan, salaryAllocationRules: next.slice(0, 24), updatedAt: now } } };
-    }
-    /**
-     * Bani puși deoparte pentru un eveniment, cerut prin asistent. Nu e transfer și nu e
-     * cheltuială: surse și registru rămân neatinse, se schimbă doar cât s-a strâns pentru
-     * ziua aceea din calendar. Un eveniment care nu există nu se creează aici — asistentul
-     * cere întâi să fie notat.
-     */
-    if (change.kind === "event-contribution") {
-      const events = current.settings.plannedEvents;
-      const target = events.find((item) => item.id === change.eventId);
-      if (!target) return current;
-      return {
-        ...current,
-        settings: {
-          ...current.settings,
-          plannedEvents: events.map((item) => item.id === target.id ? addContribution(item, change.amount, change.date, t("Pus deoparte din ghidul AI")) : item),
-        },
-      };
-    }
-    /**
-     * Ștergerea unui plic cerută prin asistent. Banii nu dispar: suma plicului se întoarce
-     * în nerepartizat, fiindcă „liberul” se calculează din surse minus plicuri. Un nume care
-     * nu se potrivește cu niciun plic nu șterge nimic — mai bine nimic decât altceva.
-     */
-    /**
-     * „Am un buget de 1800.” Banii nu sunt un venit de azi și nu sunt o cheltuială: sunt
-     * soldul din care se face planul. Îl punem pe sursă astfel încât soldul curent să fie
-     * chiar suma spusă — dacă există deja mișcări, ele rămân la locul lor și se scade doar
-     * diferența, ca registrul să nu mintă în niciun sens.
-     */
-    /**
-     * „Am un buget de 1850.” Banii ajungeau doar în soldul de pornire al sursei, deci omul
-     * îi vedea în Plan, dar nu-i găsea nicăieri în Mișcări — iar o intrare de bani pe care
-     * n-o vezi în registru pare pierdută. Acum se scrie diferența dintre cât spune el că
-     * are și cât vede aplicația, ca mișcare adevărată, cu ziua ei.
-     *
-     * Soldul iese la fel ca înainte, fiindcă tot diferența se adaugă. Spus de două ori,
-     * al doilea mesaj nu mai scrie nimic: diferența e zero.
-     */
-    if (change.kind === "funds") {
-      const sources = current.settings.paymentSources;
-      const target = sources.find((item) => item.id === change.sourceId)
-        || (change.sourceHint ? sources.find((item) => item.kind === change.sourceHint) : undefined)
-        || sources[0];
-      // Aceeași scriere ca la verificarea soldului: diferența intră în registru, nu pe ascuns.
-      return target ? applyDeclaredBalance(current, target.id, change.amount, change.date || isoToday()) : current;
-    }
-    if (change.kind === "allocation-delete") {
-      const plan = current.settings.salaryPlan;
-      const target = plan.allocations.find((item) => item.label === change.label || item.category === change.label);
-      if (!target) return current;
-      return {
-        ...current,
-        settings: {
-          ...current.settings,
-          salaryPlan: {
-            ...plan,
-            allocations: plan.allocations.filter((item) => item.id !== target.id),
-            transfers: (plan.transfers || []).filter((item) => item.fromAllocationId !== target.id && item.toAllocationId !== target.id),
-            weekTransfers: (plan.weekTransfers || []).filter((item) => item.allocationId !== target.id),
-            updatedAt: now,
-          },
-        },
-      };
-    }
-    if (change.kind === "payday") {
-      // Data cerută devine reperul planului; fereastra spune cât poate întârzia salariul.
-      const plan = current.settings.salaryPlan;
-      const earliest = addIsoDays(change.date, 0);
-      return { ...current, settings: { ...current.settings, salaryPlan: { ...plan, nextPayday: change.date, earliestPayday: earliest >= plan.periodStart ? earliest : plan.periodStart, paydayFlexDays: change.flexDays, updatedAt: now } } };
-    }
-    if (change.kind !== "allocation") return current;
-    const labels: Record<string, string> = { Alimente: "Alimente", Facturi: "Casă & facturi", Transport: "Transport", Economii: "Economii", Datorii: "Rate produse" };
-    const label = change.label || labels[change.category] || change.category;
-    const existing = current.settings.salaryPlan.allocations.find((item) => item.label === label || item.category === label || (change.category && item.category === change.category));
-    const weeklyPace = change.weekly ? true : false;
-    const plan = current.settings.salaryPlan;
-    const start = plan.periodStart || isoToday();
-    const weeks = change.weeks && change.weeks >= 2 ? change.weeks : 4;
-    const fallbackPayday = new Date(`${start}T12:00:00`); fallbackPayday.setDate(fallbackPayday.getDate() + weeks * 7 - 1);
-    const spokenPayday = "payday" in change && change.payday && change.payday >= start ? change.payday : undefined;
-    const nextPayday = spokenPayday || plan.nextPayday || isoDate(fallbackPayday);
-    const flex = plan.paydayFlexDays ?? 3;
-    const earliest = new Date(`${nextPayday}T12:00:00`); earliest.setDate(earliest.getDate() - flex);
-    const earliestIso = isoDate(earliest);
-    const earliestPayday = earliestIso < start ? start : earliestIso;
-    /**
-     * „Fă-mi plic Alimente cu 600 pe săptămână” spune un ritm, nu un total. Cât înseamnă în
-     * bani se poate afla abia după ce se știe perioada, așa că suma se calculează aici, pe
-     * zilele rămase până la venit — nu pe cele 26 din calendar, dintre care unele au trecut.
-     */
-    const withPeriod = { ...current, settings: { ...current.settings, salaryPlan: { ...plan, periodStart: start, nextPayday, earliestPayday, paydayFlexDays: flex } } };
-    /**
-     * „Mărește plicul de alimente cu 200” cere 1.100 peste 900, nu 200. Fără sensul ăsta,
-     * ajustarea înlocuia suma și tăia 700 de lei din plic fără ca nimic să spună asta.
-     * Scăderea nu trece sub zero, iar un plic care încă nu există primește suma spusă.
-     */
-    const paced = (change.amountIsWeekly ? totalForWeeklyPace(withPeriod, change.amount) : undefined) ?? change.amount;
-    const amount = change.delta && existing
-      ? Math.max(0, Math.round(((change.delta === "increase" ? existing.amount + change.amount : existing.amount - change.amount)) * 100) / 100)
-      : paced;
-    // O ajustare nu atinge ritmul plicului: rămâne cum l-a pus omul.
-    const nextAllocation = existing ? { ...existing, amount, weeklyPace: change.delta ? existing.weeklyPace : weeklyPace, category: label, updatedAt: now } : { id: newId("guided-allocation"), label, category: label, amount, weeklyPace, memberId: member?.id, sourceId: source?.id };
-    const allocations = existing ? current.settings.salaryPlan.allocations.map((item) => item.id === existing.id ? nextAllocation : item) : [...current.settings.salaryPlan.allocations, nextAllocation];
-    const weeklyLimit = change.weeklyAmount || plan.weeklyLimit || (change.weekly ? Math.round((amount / weeks) * 100) / 100 : plan.weeklyLimit);
-    const saved = { ...current, settings: { ...current.settings, salaryPlan: { ...plan, periodStart: start, nextPayday, earliestPayday, paydayFlexDays: flex, weeklyLimit, sourceIds: plan.sourceIds.length ? plan.sourceIds : source ? [source.id] : plan.sourceIds, allocations, updatedAt: now } } };
-    /**
-     * Aceeași regulă ca pe ecranul Plan: dacă săptămâna e deja începută, tranșa curentă
-     * păstrează doar partea zilelor rămase, iar restul pleacă în săptămânile următoare.
-     * Nu face nimic pentru un plic fără ritm săptămânal sau pentru o perioadă neîncepută.
-     */
-    return levelStartedWeek(saved, nextAllocation.id);
-  });
-  const revertGuided = (item: GuidedRevert) => update((current) => {
-    const index = current.transactions.findIndex((entry) => entry.kind === item.kind && entry.title === item.title && entry.amount === item.amount && entry.date === item.date && (entry.note || "").includes("ghidul AI"));
-    if (index < 0) return current;
-    const removed = current.transactions[index];
-    const now = new Date().toISOString();
-    return {
-      ...current,
-      transactions: current.transactions.filter((_, position) => position !== index),
-      deleted: [...current.deleted, { entity: "transactions" as const, id: removed.id, deletedAt: now }].slice(-TOMBSTONE_MAX),
-    };
-  });
-  const openNaturalDraft = (draft: NaturalDraft) => { const member = selfMemberOf(data); const source = data.settings.paymentSources[0]; if (!member || !source) { openTx(); return; } openTx({ id: newId("natural-draft"), title: draft.title, amount: draft.amount, kind: draft.kind, category: draft.category, source: source.name, sourceId: source.id, person: member.name, memberId: member.id, date: draft.date || isoToday(), note: draft.note }); };
-  const saveQuickTemplate = (item: AppData["settings"]["quickTemplates"][number]) => update((current) => ({ ...current, settings: { ...current.settings, quickTemplates: [item, ...current.settings.quickTemplates.filter((entry) => entry.id !== item.id && entry.label.toLocaleLowerCase("ro-RO") !== item.label.toLocaleLowerCase("ro-RO"))].slice(0, 12) } }));
-  const deleteQuickTemplate = (id: string) => update((current) => ({ ...current, settings: { ...current.settings, quickTemplates: current.settings.quickTemplates.filter((item) => item.id !== id) } }));
-  const archiveQuickTemplate = (id: string) => update((current) => { const template = current.settings.quickTemplates.find((item) => item.id === id); if (!template) return current; const archivedAt = new Date().toISOString(); return { ...current, settings: { ...current.settings, quickTemplates: current.settings.quickTemplates.filter((item) => item.id !== id), archivedQuickTemplates: [{ ...template, archivedAt }, ...current.settings.archivedQuickTemplates.filter((item) => item.id !== id)].slice(0, 60) } }; });
-  const restoreQuickTemplate = (id: string) => update((current) => { const template = current.settings.archivedQuickTemplates.find((item) => item.id === id); if (!template) return current; const { archivedAt: _archivedAt, ...restored } = template; return { ...current, settings: { ...current.settings, quickTemplates: [{ ...restored, updatedAt: new Date().toISOString() }, ...current.settings.quickTemplates.filter((item) => item.id !== id && item.label.toLocaleLowerCase("ro-RO") !== restored.label.toLocaleLowerCase("ro-RO"))].slice(0, 12), archivedQuickTemplates: current.settings.archivedQuickTemplates.filter((item) => item.id !== id) } }; });
-  const deleteArchivedQuickTemplate = (id: string) => update((current) => ({ ...current, settings: { ...current.settings, archivedQuickTemplates: current.settings.archivedQuickTemplates.filter((item) => item.id !== id) } }));
-  const saveDebt = (item: Debt | SavingsGoal) => update((current) => { const stamped = { ...item, updatedAt: new Date().toISOString() } as Debt; return { ...current, debts: current.debts.some((entry) => entry.id === item.id) ? current.debts.map((entry) => entry.id === item.id ? stamped : entry) : [...current.debts, stamped] }; });
-  const saveSaving = (item: Debt | SavingsGoal) => update((current) => { const stamped = { ...item, updatedAt: new Date().toISOString() } as SavingsGoal; return { ...current, savings: current.savings.some((entry) => entry.id === item.id) ? current.savings.map((entry) => entry.id === item.id ? stamped : entry) : [...current.savings, stamped] }; });
   const saveReceipt = (item: Receipt) => update((current) => queueReceiptForReview(current, item));
   const deleteReceipt = (id: string) => {
     deleteWithUndo(t("Bonul a fost șters."), (current) => {
@@ -930,27 +680,17 @@ export default function Home() {
   }, [simpleMode, view]);
   /** Bannerele de sync se ascund doar când ecranul Sync e chiar deschis, nu când a fost ultimul instrument. */
   const onSyncScreen = view === "utilities" && more === "sync";
+  const rawView = view;
   const current = () => {
-    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    const view = (["shop", "list", "products", "stores", "house", "utilities"] as MainView[]).includes(rawView) ? rawView : "shop";
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
     if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
     if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenCosts={setCostsKind} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
-    if (view === "journal") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim mișcările…")}</div>}><MovementsJournal data={data} onChange={applyData} onAdd={() => openTx()} onEdit={openTx} onOpenReview={() => { setMore("review"); go("utilities"); }} onDelete={(id) => deleteWithUndo(t("Mișcarea a fost ștearsă."), (currentData) => ({
-      // Bonul plătit din două surse se șterge întreg: ambele părți.
-      next: { ...currentData, transactions: currentData.transactions.filter((item) => !splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => !splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")), deleted: [...currentData.deleted, ...splitGroupIds(currentData.transactions, id).map((removedId) => ({ entity: "transactions" as const, id: removedId, deletedAt: new Date().toISOString() }))].slice(-TOMBSTONE_MAX) },
-      removed: { transactions: currentData.transactions.filter((item) => splitGroupIds(currentData.transactions, id).includes(item.id)), receipts: currentData.receipts.filter((receipt) => splitGroupIds(currentData.transactions, id).includes(receipt.linkedTransactionId || "")) },
-    }))} /></Suspense>; if (view === "plan")
- return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim planul…")}</div>}><PlanStudio data={data} onChange={applyData} simpleMode={simpleMode} /></Suspense>; if (view === "habits") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim obiceiurile…")}</div>}><SpendingHabitsView data={data} /></Suspense>; if (view === "calendar") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim calendarul…")}</div>}><FinancialCalendarView data={data} onOpenEvents={() => { setMore("events"); go("utilities"); }} /></Suspense>; if (view === "goals") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim obiectivele…")}</div>}><LongTermGoalsView data={data} onOpen={() => { setEditGoal(undefined); setModal("saving"); }} onEdit={(item) => { setEditGoal(item); setModal("saving"); }} onDelete={(id) => deleteWithUndo(t("Obiectivul a fost șters."), (currentData) => ({
-      next: { ...currentData, savings: currentData.savings.filter((item) => item.id !== id), deleted: [...currentData.deleted, { entity: "savings" as const, id, deletedAt: new Date().toISOString() }].slice(-TOMBSTONE_MAX) },
-      removed: { savings: currentData.savings.filter((item) => item.id === id) },
-    }))} /></Suspense>; if (view === "obligations") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim obligațiile…")}</div>}><ObjectivesView data={data} onSaveToGoal={(id, amount) => update((currentData) => ({ ...currentData, savings: currentData.savings.map((item) => item.id === id ? { ...item, current: Math.round((item.current + amount) * 100) / 100, updatedAt: new Date().toISOString() } : item) }))} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onDeleteDebt={(id) => deleteWithUndo(t("Datoria a fost ștearsă."), (currentData) => ({
-      next: { ...currentData, debts: currentData.debts.filter((item) => item.id !== id), deleted: [...currentData.deleted, { entity: "debts" as const, id, deletedAt: new Date().toISOString() }].slice(-TOMBSTONE_MAX) },
-      removed: { debts: currentData.debts.filter((item) => item.id === id) },
-    }))} onDeleteSaving={(id) => deleteWithUndo(t("Obiectivul a fost șters."), (currentData) => ({
-      next: { ...currentData, savings: currentData.savings.filter((item) => item.id !== id), deleted: [...currentData.deleted, { entity: "savings" as const, id, deletedAt: new Date().toISOString() }].slice(-TOMBSTONE_MAX) },
-      removed: { savings: currentData.savings.filter((item) => item.id === id) },
-    }))} onUpdate={(change) => update(change)} openDebt={() => { setEditGoal(undefined); setModal("debt"); }} openSaving={() => { setEditGoal(undefined); setModal("saving"); }} onOpenGoals={() => go("goals")} onOpenCalendar={() => go("calendar")} onOpenEvents={() => { setMore("events"); go("utilities"); }} onOpenAssistant={() => { setMore("assistant"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); }} onAddRecurring={(item) => update((currentData) => autoPostDueRecurring({ ...currentData, recurring: [...currentData.recurring, item] }))} onAddSaving={(goal) => update((currentData) => ({ ...currentData, savings: [...currentData.savings, goal] }))} onPayRecurring={(id) => { if (data.recurring.find((item) => item.id === id)?.variable) { setMoreReturn({ view: "obligations", label: t("Înapoi la Obligații") }); setMore("recurring"); go("utilities"); return; } update((currentData) => confirmRecurringPayment(currentData, id) || currentData); }} /></Suspense>; if (view === "insights") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim analiza…")}</div>}><InsightsView data={data} onChange={applyData} onGo={go} /></Suspense>; if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenDebt={() => { setEditGoal(undefined); setModal("debt"); }} onOpenSaving={() => { setEditGoal(undefined); setModal("saving"); }} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>; return <TodayView data={data} onAdd={() => openTx()} onEdit={openTx} onGo={go} onChange={applyData} onOpenReview={() => { setMore("review"); go("utilities"); }} onOpenSettings={() => { setMore("settings"); go("utilities"); }} onOpenRecurring={() => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("recurring"); go("utilities"); }} coach={view === "today" && firstWeekTourOpen && !onboardingOpen && !setupOpen && !modal && more !== "sync" ? <Suspense fallback={null}><FirstWeekTour onClose={dismissFirstWeekTour} onCapture={() => { dismissFirstWeekTour(); openTx(); }} onPlan={() => { dismissFirstWeekTour(); go("plan"); }} onSync={() => { dismissFirstWeekTour(); setMore("sync"); go("utilities"); }} /></Suspense> : null} />; };
+    if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenDebt={() => { setEditGoal(undefined); setModal("debt"); }} onOpenSaving={() => { setEditGoal(undefined); setModal("saving"); }} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
+    return null;
+  };
   return <div className={"bf-app os-shell" + ((setupOpen && !shopMode) || onboardingOpen ? " is-setup" : "")}>
     <a className="bf-skip-link" href="#main-content">{t("Sari la conținut")}</a>
     {appMode === "budget" && isArchiveMode() && <div className="bf-storage-notice bf-archive-banner" role="status" style={{ background: "#14231E", color: "#FFFFFF" }}><Archive size={15} aria-hidden="true" /><span style={{ color: "inherit" }}>{t("Arhiva veche, doar citire")}</span><button type="button" style={{ color: "#FFFFFF", background: "transparent", textDecoration: "underline", fontWeight: 700 }} onClick={() => setAppMode("shop")}>{t("Înapoi la BonAI")}</button></div>}
@@ -959,7 +699,7 @@ export default function Home() {
     {!online && <div className="bf-offline-banner" role="status" aria-live="polite"><CloudOff size={15} aria-hidden="true" /><span>{syncPanelProps.connected ? t("Fără conexiune — modificările rămân pe telefon și se trimit la reconectare.") : t("Fără conexiune — lucrezi local pe acest telefon.")}</span></div>}
     {syncPanelProps.stopped && !onSyncScreen && <div className="bf-offline-banner bf-sync-off-banner" role="status" aria-live="polite"><CloudOff size={15} aria-hidden="true" /><span>{t("Sincronizarea familiei e oprită pe acest telefon. Ce notezi nu ajunge la ceilalți.")}</span><button type="button" onClick={() => { setMore("sync"); go("utilities"); }}>{t("Reconectează")}</button></div>}
     {syncPanelProps.needsSelfChoice && syncPanelProps.connected && !onSyncScreen && !memberModeActive && <div className="bf-offline-banner bf-sync-off-banner" role="status"><Users size={15} aria-hidden="true" /><span>{t("Spune-ne cine ești pe acest telefon, ca cheltuielile tale să nu apară pe altcineva.")}</span><button type="button" onClick={() => { setMore("sync"); go("utilities"); }}>{t("Alege")}</button></div>}
-    <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("today")}><BrandMark /><span className="os-brand-copy bn-wordmark"><b>Bon</b><i>AI</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={17} aria-hidden="true" /><span>{t("Notează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools">{!shopMode && <button className="os-tool" aria-label={t("Deschide acțiunile rapide")} title={t("Acțiuni rapide · Ctrl K")} onPointerDown={() => void import("@/pages/QuickActionsPalette")} onClick={() => setQuickActionsOpen(true)}><Search size={17} /></button>}{!shopMode && <button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button>}<button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={20} aria-hidden="true" /><span>{t("Notează")}</span></button>}
+    <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("today")}><BrandMark /><span className="os-brand-copy bn-wordmark"><b>Bon</b><i>AI</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={17} aria-hidden="true" /><span>{t("Notează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools">{!shopMode && <button className="os-tool" aria-label={t("Deschide acțiunile rapide")} title={t("Acțiuni rapide · Ctrl K")} onPointerDown={() => void import("@/pages/QuickActionsPalette")} onClick={() => setQuickActionsOpen(true)}><Search size={17} /></button>}{!shopMode && <button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button>}<button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={20} aria-hidden="true" /><span>{t("Notează")}</span></button>}
     {demo && !setupOpen && <aside className="bf-demo-banner" role="status"><span><b>{t("Familie exemplu")}</b> · {t("datele sunt inventate")}</span><button type="button" className="bf-primary" onClick={() => void leaveDemo()}>{t("Încep cu datele mele")}</button></aside>}
     <main id="main-content" key={today} className={(setupOpen && !shopMode) || onboardingOpen ? "is-setup-main" : undefined}>{setupOpen ? (shopMode ? <Suspense fallback={null}><ShopWelcome onScan={() => { finishShopWelcome(); openScan(); }} onList={() => { finishShopWelcome(); go("list"); }} onJoin={() => { finishShopWelcome(); setMore("sync"); go("utilities"); }} onSkip={finishShopWelcome} /></Suspense> : null) : memberModeActive ? <MemberModeScreen data={data} memberId={memberMode} onChange={applyData} /> : current()}</main>
     {undo && (
@@ -976,7 +716,7 @@ export default function Home() {
         Obligațiile și Analiza sunt în „Mai mult”, ca pe telefon să rămână 4 file și butonul care contează. */}
     {nav.length > 0 && !(shopMode && setupOpen) && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{(shopMode ? shopDock : dockNav).map((item) => {
       if (item.id === "add" && shopMode) return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/ReceiptScanButton")} onClick={openScan}><span className="os-dock-add-disc"><ScanLine size={24} aria-hidden="true" /></span><span>{t("Scanează")}</span></button>;
-      if (item.id === "add") return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/QuickEntryPanel")} onClick={() => openTx()}><span className="os-dock-add-disc"><Plus size={24} aria-hidden="true" /></span><span>{t("Notează")}</span></button>;
+      if (item.id === "add") return <button key="add" type="button" className="os-dock-add" onClick={() => openTx()}><span className="os-dock-add-disc"><Plus size={24} aria-hidden="true" /></span><span>{t("Notează")}</span></button>;
       const Icon = item.icon;
       const on = view === item.id || (item.id === "utilities" && (view === "obligations" || view === "insights" || view === "goals"));
       return <button key={item.id} className={on ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerDown={() => { preloadView(item.id as MainView); void ensureDeferredStyles(); }} onClick={() => { if (item.id === "utilities") setMore("overview"); go(item.id as MainView); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span>{(item.id === "journal" || item.id === "utilities") && data.pendingReview.length > 0 ? <i className="bf-dock-dot" aria-hidden="true" /> : null}</button>;
@@ -985,14 +725,14 @@ export default function Home() {
     {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && (costsKind === "sub" || costsKind === "bill") && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && guideOn && <Suspense fallback={null}><BonAIAssistant data={data} onChange={applyData} onClose={() => setGuideOn(false)} onGo={(screen) => { setGuideOn(false); if (screen === "scan") { openScan(); return; } if (screen === "prices") { go("products"); return; } go("list"); if (screen !== "list") window.setTimeout(() => window.dispatchEvent(new CustomEvent("bonai:list-tab", { detail: screen })), 0); }} /></Suspense>}
-    {!shopMode && !simpleMode && !memberModeActive && guideOn && <Suspense fallback={null}><AICompanion initiallyOpen data={data} view={view} onAdd={() => openTx()} onGo={go} onNaturalEntry={openNaturalDraft} onFinancialUpdate={applyFinancialUpdate} onRevert={revertGuided} /></Suspense>}
-    {themePickerOpen && <Suspense fallback={null}><ThemePicker theme={activeTheme} schedule={themeSchedule} scheduleTimes={scheduleTimes} highContrast={highContrast} background={background} onChange={setTheme} onScheduleChange={setThemeSchedule} onScheduleTimesChange={setScheduleTimes} onContrastChange={setHighContrast} onBackgroundChange={setBackground} onClose={() => setThemePickerOpen(false)} /></Suspense>} {quickActionsOpen && <Suspense fallback={null}><QuickActionsPalette data={data} onClose={() => setQuickActionsOpen(false)} onAdd={() => openTx()} onGo={go} /></Suspense>} {onboardingOpen && <Suspense fallback={null}><CalmOnboarding onClose={() => { setOnboardingOpen(false); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0); if (!window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted) setSetupOpen(true); }} onAdd={() => openTx()} onGo={go} /></Suspense>} {setupOpen && !shopMode && <Suspense fallback={null}><FirstRunSetup data={data} onChange={applyData} onClose={() => { setSetupOpen(false); setDemo(isDemoMode()); }} onGoPlan={() => go("plan")} onAdd={() => openTx()} onOpenSync={() => { setMore("sync"); go("utilities"); }} /></Suspense>}
-    {weekCloseOpen && <Suspense fallback={null}><WeekCloseSheet data={data} today={todayIso} evening={new Date().getHours() >= 18} onClose={() => setWeekCloseOpen(false)} onApply={(change) => update(change)} /></Suspense>}
-    {paydayOpen && <Suspense fallback={null}><PaydaySheet data={data} today={todayIso} onClose={() => setPaydayOpen(false)} onApply={(proposal) => { update((current) => applyPayday(current, proposal)); setPaydayOpen(false); }} /></Suspense>}
-    {modal === "quick" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim înregistrarea rapidă…")}</div></div>}><QuickEntryPanel data={data} initialMoving={quickMoving} onAddSource={(source) => update((current) => ({ ...current, settings: { ...current.settings, paymentSources: [...current.settings.paymentSources, source] } }))} autoVoice={quickVoice} initialKind={quickKind} initialTemplateId={quickTemplateId} onSave={saveTx} onSaveTemplate={saveQuickTemplate} onDeleteTemplate={deleteQuickTemplate} onArchiveTemplate={archiveQuickTemplate} onRestoreTemplate={restoreQuickTemplate} onDeleteArchivedTemplate={deleteArchivedQuickTemplate} onClose={() => { setModal(null); setQuickTemplateId(undefined); setQuickKind(undefined); setQuickVoice(false); }} onMore={(draft, scan) => { setEditTx(draft); setScanPrefill(scan); setQuickTemplateId(undefined); setModal("transaction"); }} /></Suspense>}
-    {modal === "transaction" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim mișcarea…")}</div></div>}><TransactionForm data={data} initial={editTx} scan={scanPrefill} onSave={saveTx} onClose={() => { setModal(null); setEditTx(undefined); setScanPrefill(undefined); }} /></Suspense>}
+    
+       
+    
+    
+    
+    
     {modal === "scan" && !memberModeActive && shopMode && createPortal(<div className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={() => setModal(null)}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll"><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setEditTx(undefined); setScanPrefill(prefill); setModal("review"); }} /></Suspense></div></div>, document.body)}
-    {modal === "scan" && !memberModeActive && !shopMode && <Modal title={t("Scanează bonul")} onClose={() => setModal(null)}><div className="sh-scan-sheet"><p className="bf-helper">{t("Fă o poză bonului întreg. Citesc fiecare produs, cu marca, gramajul și prețul, iar tu verifici înainte să salvez.")}</p><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton data={data} onResult={(prefill) => { setEditTx(undefined); setScanPrefill(prefill); setModal(shopMode ? "review" : "transaction"); }} /></Suspense><button type="button" className="bf-secondary" onClick={() => { setModal(null); openTx(); }}><Plus size={16} aria-hidden="true" /> {t("Fără bon: notează de mână")}</button></div></Modal>}
+    
     {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
       // Bonul nou: o cheltuială simplă (fără plic, fără alegerea sursei), cu rândurile verificate. Aceeași formă ca înainte, deci sincronizarea rămâne compatibilă.
       const member = data.settings.members.find((item) => item.id === review.memberId) || data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -1005,12 +745,12 @@ export default function Home() {
       const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
       saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: scanPrefill.store });
     }} /></Suspense>}
-    {modal === "receipt" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptForm data={data} onSave={saveReceipt} onClose={() => setModal(null)} /></Suspense>}
-    {modal === "debt" && <Suspense fallback={null}><GoalForm data={data} type="debt" item={editGoal} onSave={saveDebt} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}
-    {modal === "saving" && <Suspense fallback={null}><GoalForm data={data} type="saving" item={editGoal} onSave={saveSaving} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}
-    {modal === "debt-payment" && editGoal && "remaining" in editGoal && <Suspense fallback={null}><DebtPaymentForm data={data} debt={editGoal} onSave={applyData} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}
-    {affordOpen && <Suspense fallback={null}><AffordSheet data={data} onClose={() => setAffordOpen(false)} onLog={() => { setAffordOpen(false); window.dispatchEvent(new Event("buget-familie:open-expense")); }} /></Suspense>}
-    {celebrate && !modal && <Suspense fallback={null}><GoalCelebration goal={celebrate} onClose={() => { markCelebrated(window.localStorage, celebrate.id); setCelebrate(undefined); }} /></Suspense>}
+    
+    
+    
+    
+    
+    
     {whatsNewOpen && !onboardingOpen && !setupOpen && !firstWeekTourOpen && !modal && more !== "sync" && <WhatsNewSheet onClose={dismissWhatsNew} onOpenTrip={() => { dismissWhatsNew(); window.dispatchEvent(new Event("buget-familie:open-charts")); }} onOpenMore={() => { dismissWhatsNew(); setMore("overview"); go("utilities"); }} />}
   </div>;
 }

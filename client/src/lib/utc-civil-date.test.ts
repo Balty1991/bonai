@@ -3,8 +3,7 @@
  * mută seara locală în ziua UTC greșită ori de câte ori offset-ul nu e zero.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addIsoDays, createEmptyAppData, isoDate, isoToday } from "./finance-data";
-import { buildSuggestions } from "./suggestions";
+import { addIsoDays, isoDate, isoToday } from "./finance-data";
 
 describe("date civile locale, nu UTC", () => {
   afterEach(() => {
@@ -43,17 +42,4 @@ describe("date civile locale, nu UTC", () => {
     expect(noon.toISOString().slice(0, 10) === isoDate(noon) || noon.getTimezoneOffset() !== 0).toBe(true);
   });
 
-  it("sugestia de magazin frecvent folosește fereastra locală de două luni", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 8, 12, 23, 50, 0));
-    const data = createEmptyAppData();
-    const base = { kind: "expense" as const, category: "Alimente", source: "Card debit", person: "Eu", sourceId: "source-debit", memberId: "member-me" };
-    data.transactions = [
-      { id: "1", title: "Lidl", amount: 40, date: "2026-08-01", ...base },
-      { id: "2", title: "Lidl", amount: 55, date: "2026-08-15", ...base },
-      { id: "3", title: "Lidl", amount: 30, date: "2026-09-01", ...base },
-    ];
-    const out = buildSuggestions(data, isoToday());
-    expect(out.some((item) => /Lidl/i.test(item.text))).toBe(true);
-  });
 });
