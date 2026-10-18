@@ -17,8 +17,7 @@ import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
 import { idsFromTickReply, listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
 import { productObservations } from "@/lib/personal-inflation";
-import { pantryFromReceipts, readRunoutSnooze, runningOut, RUNOUT_SNOOZE_KEY } from "@/lib/pantry";
-import { nameScore } from "@/lib/barcode-check";
+import { pantryFromReceipts } from "@/lib/pantry";
 import { weeklyMenu } from "@/lib/weekly-menu";
 import { threeMonthAverage } from "@/lib/savings-summary";
 import { savedShareTextV2, savedWithBonAI } from "@/lib/saved-with-bonai";
@@ -238,33 +237,11 @@ export function ListView({ data, onChange }: { data: AppData; onChange: (next: A
       {todo.length > 0 && (reply === undefined
         ? <button type="button" className="sh-link" onClick={() => setReply("")}>{t("Am primit răspunsul cu ce s-a luat")}</button>
         : <div className="sh-card"><textarea className="sh-reply" aria-label={t("Răspunsul de pe WhatsApp")} placeholder={t("Lipește aici mesajul „Am luat: …”")} value={reply} onChange={(event) => setReply(event.target.value)} rows={4} /><button type="button" className="sh-link" onClick={applyReply}>{t("Bifează ce s-a luat")}</button></div>)}
-      <RunningOutCard data={data} onAdd={addToList} />
       <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ShoppingListPanel data={data} onChange={onChange} /></Suspense>
     </>}
     {tab === "pantry" && <PantryCard data={data} onAdd={addToList} />}
     {tab === "menu" && <ProGate data={data} feature="weeklyMenu" title={t("Meniul săptămânii")} pitch={t("Șapte mese ieftine din ce cumperi deja, cu costul din prețurile tale.")}><MenuCard data={data} onAdd={addToList} /></ProGate>}
   </div>;
-}
-
-/** „Ți se termină”: din ritmul cumpărăturilor tale, cu un tap pe listă. */
-function RunningOutCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) => void }) {
-  const today = isoToday();
-  const [snoozed, setSnoozed] = useState(() => readRunoutSnooze());
-  const items = useMemo(() => pantryFromReceipts(productObservations(data), today), [data, today]);
-  const onList = visibleShopping(data.settings.shoppingList || []).todo.map((item) => item.text);
-  const list = runningOut(items, onList, snoozed, nameScore);
-  if (!list.length) return null;
-  const snooze = (key: string, lastDate: string) => { const next = { ...snoozed, [key]: lastDate }; setSnoozed(next); try { window.localStorage.setItem(RUNOUT_SNOOZE_KEY, JSON.stringify(next)); } catch { /* fără stocare */ } };
-  return <section className="sh-card sh-runout" aria-label={t("Ți se termină")}>
-    <p className="sh-kicker">{t("ȚI SE TERMINĂ")}</p>
-    <p className="sh-muted">{t("După cât de des le cumperi.")}</p>
-    <ul className="sh-runout-list">{list.map((item) => <li key={item.key}>
-      <span><b>{item.label}</b><small>{item.state === "out" ? t("de obicei la ~{days} zile, acum {since} zile", { days: item.everyDays, since: item.daysSince }) : t("o dată la ~{days} zile · curând", { days: item.everyDays })}</small></span>
-      <button type="button" className="sh-runout-add" aria-label={t("Pune {item} pe listă", { item: item.label })} onClick={() => onAdd([item.label])}><Plus size={18} aria-hidden="true" /></button>
-      <button type="button" className="sh-link sh-runout-skip" onClick={() => snooze(item.key, item.lastDate)}>{t("Am destul")}</button>
-    </li>)}</ul>
-    {list.length > 1 && <button type="button" className="sh-link" onClick={() => onAdd(list.map((item) => item.label))}><Plus size={16} aria-hidden="true" /> {t("Pune-le pe toate pe listă")}</button>}
-  </section>;
 }
 
 function PantryCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) => void }) {

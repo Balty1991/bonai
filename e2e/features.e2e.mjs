@@ -3,7 +3,6 @@
  *   1. Economisit cu BonAI pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
  *   0. Cheltuială fără bon: suma + categoria în 2 atingeri, repetare dintr-o atingere, apare în Toate costurile.
  *   2. Lista cu prețuri: ultimul preț pe bucată, unde și când, totalul estimat și magazinul mai ieftin.
- *   3. Ți se termină: din ritmul cumpărăturilor, cu un tap pe listă și „Am destul”.
  * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
  * Rulare: node e2e/features.e2e.mjs (CHROMIUM_PATH, THEMES, ONLY=regex, SHOTS=dir opționale).
  */
@@ -124,21 +123,6 @@ const FEATURES = {
     await shot(page, `list-${theme}`, panel.locator(".bf-shop-estimate"));
     const cut = await clipped(page, ".bf-shopping");
     if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
-  },
-  /** 3. Cafeaua (o dată la ~15 zile, ultima acum 30) apare; un tap o pune pe listă și dispare din card. */
-  async runout(page, theme) {
-    await page.locator(".os-dock-v2 > button").nth(1).click();
-    const card = page.locator(".sh-runout");
-    await waitFor(() => card.isVisible(), "cardul Ți se termină");
-    const text = await card.innerText();
-    if (!/Cafea Jacobs/.test(text)) fail(`cafeaua lipsește: ${text}`);
-    if (/Lapte/.test(text)) fail("laptele e deja pe listă, nu trebuia sugerat");
-    await shot(page, `runout-${theme}`, card);
-    const cut = await clipped(page, ".sh-runout");
-    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
-    await card.getByRole("button", { name: /Pune Cafea Jacobs/ }).click();
-    await waitFor(async () => (await page.evaluate(async () => { const s = await import("/src/lib/app-storage.ts"); const d = await s.readAppData(); return d.settings.shoppingList.some((i) => /Cafea Jacobs/.test(i.text)); })), "cafeaua pe listă");
-    await waitFor(async () => !(await card.isVisible()) || !/Cafea Jacobs/.test(await card.innerText()), "cafeaua iese din card");
   },
   /** 4. Laptele luat azi la Lidl cu 8,49 (ultima dată 6,99 acolo) e semnalat în detaliul bonului. */
   async discount(page, theme) {

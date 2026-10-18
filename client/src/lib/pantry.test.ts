@@ -12,16 +12,3 @@ describe("cămara din bonuri", () => {
     expect(pantryFromReceipts(rows, "2026-10-26")[0]).toMatchObject({ key: "lapte", state: "out", daysSince: 11 });
   });
 });
-
-describe("ți se termină", () => {
-  it("arată doar ce e pe terminate, nu e pe listă și n-a fost amânat", async () => {
-    const { runningOut } = await import("./pantry");
-    const { nameScore } = await import("./barcode-check");
-    const item = (key: string, label: string, state: "ok" | "soon" | "out", lastDate = "2026-10-01") => ({ key, label, lastDate, everyDays: 7, daysSince: 10, state, purchases: 4 });
-    const items = [item("lapte", "Lapte Zuzu 1L", "out"), item("paine", "Pâine albă", "soon"), item("oua", "Ouă 10 buc", "soon"), item("ulei", "Ulei", "ok")];
-    const got = runningOut(items, ["lapte"], { oua: "2026-10-01" }, nameScore);
-    expect(got.map((i) => i.key)).toEqual(["paine"]);
-    // După o cumpărare nouă, amânarea expiră.
-    expect(runningOut([{ ...items[2], lastDate: "2026-10-09" }], [], { oua: "2026-10-01" }, nameScore).map((i) => i.key)).toEqual(["oua"]);
-  });
-});

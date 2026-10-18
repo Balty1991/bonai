@@ -30,7 +30,6 @@ BonAI transformă bonurile de la casă în informații utile pentru toată famil
 🛒 LISTA DE CUMPĂRĂTURI A FAMILIEI
 • Listă comună, cu ultimul preț plătit și totalul estimat
 • O trimiți pe WhatsApp printr-un link, fără cont pentru cel care o primește
-• Sugestii „Ți se termină”, adăugate în listă cu o atingere
 • Stocul casei și Meniul săptămânii, ca să cumperi doar ce lipsește
 
 🧾 TOATE COSTURILE CASEI, ÎNTR-UN SINGUR LOC
@@ -61,7 +60,7 @@ Buget Familie devine BonAI:
 • Scanare de bonuri cu AI, plus scanare offline gratuită
 • Prețurile tale din bonuri și ce s-a scumpit
 • Cod de bare în magazin: cât ai plătit ultima dată
-• Lista familiei cu prețuri și „Ți se termină”
+• Lista familiei cu prețuri
 • Cheltuieli fără bon, „Ce urmează”, editare și ștergere bonuri
 • Temă luminoasă și de noapte mai clare
 </ro-RO>

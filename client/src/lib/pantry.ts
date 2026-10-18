@@ -33,20 +33,3 @@ export function pantryFromReceipts(observations: ReadonlyArray<ProductObservatio
   const rank = { out: 0, soon: 1, ok: 2 } as const;
   return out.sort((a, b) => rank[a.state] - rank[b.state] || b.purchases - a.purchases);
 }
-
-/**
- * „Ți se termină”: produsele din Stoc care, după ritmul tău, sunt pe terminate sau terminate,
- * fără cele care sunt deja pe listă și fără cele amânate („Am destul”) până la următoarea cumpărare.
- */
-export function runningOut(items: ReadonlyArray<PantryItem>, onList: ReadonlyArray<string>, snoozed: Readonly<Record<string, string>>, score: (a: string, b: string) => number, limit = 6): PantryItem[] {
-  return items
-    .filter((item) => item.state !== "ok")
-    .filter((item) => snoozed[item.key] !== item.lastDate)
-    .filter((item) => !onList.some((text) => score(text, item.label) >= 0.5))
-    .slice(0, limit);
-}
-
-export const RUNOUT_SNOOZE_KEY = "bonai:runout-snooze-v1";
-export function readRunoutSnooze(storage: Pick<Storage, "getItem"> = window.localStorage): Record<string, string> {
-  try { const v = JSON.parse(storage.getItem(RUNOUT_SNOOZE_KEY) || "{}"); return v && typeof v === "object" ? v as Record<string, string> : {}; } catch { return {}; }
-}
