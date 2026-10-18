@@ -2,7 +2,10 @@ import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import "../receipt-scan.css";
 import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanAnimation";
 import { useEffect, useRef, useState } from "react";
-import { Camera, ImagePlus, Loader2 } from "lucide-react";
+import { Camera, FileText, ImagePlus, Info, Loader2, PenLine } from "lucide-react";
+import { currentBonutPlan } from "@/lib/bonut-plan-current";
+import { FREE_SCANS_PER_MONTH } from "@/lib/bonut-plans";
+import { isoToday } from "@/lib/finance-data";
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
 import { askConfirm } from "@/lib/confirm-dialog";
@@ -14,7 +17,8 @@ import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScan
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
  * Google Gemini (sau Anthropic Claude, ca rezervă) doar ca să fie citită; nu o păstrăm nici pe telefon, nici pe server.
  */
-export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData; memberId?: string; onResult: (prefill: ScanPrefill) => void }) {
+export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: { data: AppData; memberId?: string; onResult: (prefill: ScanPrefill) => void; hub?: boolean; onManual?: () => void }) {
+  const [tipOpen, setTipOpen] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -102,11 +106,30 @@ export function ReceiptScanButton({ data, memberId, onResult }: { data: AppData;
         <button type="button" className="bf-link-button" onClick={() => setPending([])}>{t("Renunță")}</button>
       </div>
     </div> : reveal ? <ReceiptScanAnimation photo={photo} seconds={0} items={reveal.items} total={reveal.total} onDone={() => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); }} />
-    : busy ? <><ReceiptScanAnimation photo={photo} seconds={seconds} /><p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p></> : <div className="bf-scan-receipt-actions">
+    : busy ? <><ReceiptScanAnimation photo={photo} seconds={seconds} /><p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p></> : hub ? (() => {
+      const month = isoToday().slice(0, 7);
+      const used = data.receipts.filter((receipt) => receipt.date.startsWith(month)).length;
+      const free = currentBonutPlan(data, isoToday()) === "free";
+      return <div className="bn-hub">
+        <span className="bn-hub-pill">{free ? t("{used}/{limit} luna asta", { used, limit: FREE_SCANS_PER_MONTH }) : t("{used} bonuri luna asta", { used })}</span>
+        <button type="button" className="bn-viewfinder" onClick={() => void pick("camera")}>
+          <span className="bn-vf-corner is-tl" /><span className="bn-vf-corner is-tr" /><span className="bn-vf-corner is-bl" /><span className="bn-vf-corner is-br" />
+          <span className="bn-vf-beam" aria-hidden="true" />
+          <span className="bn-vf-copy"><Camera size={30} aria-hidden="true" /><b>{t("Scanează bonul")}</b><small>{t("Toate produsele, pe categorii")}</small></span>
+        </button>
+        <div className="bn-hub-tiles">
+          <button type="button" className="bn-tile" onClick={() => void pick("gallery")}><ImagePlus size={22} aria-hidden="true" /><b>{t("Galerie")}</b><small>{t("una sau mai multe")}</small></button>
+          <button type="button" className="bn-tile" onClick={() => void pick("gallery")}><FileText size={22} aria-hidden="true" /><b>{t("E-bon")}</b><small>{t("captură din e-mail")}</small></button>
+          {onManual && <button type="button" className="bn-tile" onClick={onManual}><PenLine size={22} aria-hidden="true" /><b>{t("Fără bon")}</b><small>{t("notez de mână")}</small></button>}
+        </div>
+        <button type="button" className="bn-tip" aria-expanded={tipOpen} onClick={() => setTipOpen((open) => !open)}><Info size={15} aria-hidden="true" /> {t("Bon lung? Fă mai multe poze")}</button>
+        {tipOpen && <p className="bn-tip-pop" role="note">{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</p>}
+      </div>;
+    })() : <div className="bf-scan-receipt-actions">
       <button type="button" className="bf-scan-receipt-main" onClick={() => void pick("camera")}><Camera size={18} aria-hidden="true" /><span><b>{t("Scanează bonul")}</b><small>{t("Toate produsele, pe categorii")}</small></span></button>
       <button type="button" className="bf-scan-receipt-gallery" aria-label={t("Alege din galerie poza bonului sau mai multe capturi ale lui")} title={t("Din galerie: o poză sau mai multe capturi ale aceluiași bon")} onClick={() => void pick("gallery")}><ImagePlus size={18} aria-hidden="true" /></button>
     </div>}
-    {!busy && !reveal && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
+    {!busy && !reveal && !hub && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
     {error && <p className="bf-form-error" role="alert">{error}</p>}
     <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(event) => addShot(event.target.files)} />
     <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={(event) => void read(event.target.files)} />

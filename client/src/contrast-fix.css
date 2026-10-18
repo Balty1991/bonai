@@ -1,39 +1,15 @@
-/**
- * Corecții de contrast și de aspect, aplicate peste toate temele.
- *
- * Fișierul se încarcă ultimul, anume: `index.css` este importat primul, iar cele
- * peste șaptezeci de foi de redesign de după el îi suprascriu regulile. O corecție
- * scrisă acolo nu ajunge niciodată pe ecran.
- *//**
- * Accentele temelor, aduse peste pragul de citire.
- *
- * Culorile de accent sunt folosite și ca text, și ca umplutură. Ca text pe
- * fundalul paginii coborau la 2,6–4,5, iar eticheta albă de pe umplutura „danger”
- * ajungea la 1,99 pe temele de noapte, unde coralul este deschis.
- *
- * Valorile sunt calculate, nu alese: fiecare accent a fost mutat spre negru (pe
- * temele de zi) sau spre alb (pe cele de noapte) exact cât să treacă de 4,6 pe
- * toate cele trei fundaluri pe care apare — pagină, suprafață și suprafață
- * alternativă. Deplasarea este mică, deci caracterul temei rămâne. Raportul
- * măsurat este scris lângă fiecare valoare, iar eticheta de pe fiecare umplutură
- * a fost aleasă tot prin măsurare, nu presupusă.
- *
- * Selectorul este `html.theme-…`, ca al declarațiilor originale: scris mai slab,
- * nu le-ar fi ajuns din urmă.
- *//* Alb / Atelier Platinum — pin pe hârtie ⇒ etichetă albă pe umplutură. */
+
 html.theme-white{
-  --cf-muted: #5a675f;          /* 4.7+ pe #f1f0ec */
+  --cf-muted: #5a675f;          
   --cf-primary: #2f6b55;
   --cf-primary-strong: #1f5240;
   --cf-danger: #b64338;
   --cf-info: #3d6f8c;
   --cf-warning: #8b630e;
-  --cf-on-primary: #ffffff;     /* pe #1f5240 / #2f6b55 */
+  --cf-on-primary: #ffffff;     
   --cf-on-danger: #ffffff;
   --cf-on-forest: #ffffff;
 }
-
-/* Întunecat — grafit argintiu, lizibil pe OLED */
 html.theme-dark {
   --cf-muted: #9aa3ad;
   --cf-primary: #b8bec8;
@@ -45,29 +21,16 @@ html.theme-dark {
   --cf-on-danger: #111214;
   --cf-on-forest: #111214;
 }
-
-/* Aurora Glass — mapat din midnight */
-
-/* Navy Cabinet */
 html.theme-navy {
-  --cf-muted: #9aa8be;          /* 6.17 */
-  --cf-primary: #d4b06a;        /* 7.23 */
-  --cf-primary-strong: #c49a4a; /* 5.71 */
-  --cf-danger: #ff8b7a;         /* 6.53 */
-  --cf-info: #8bb4e8;           /* 6.93 */
-  --cf-warning: #e0c07a;        /* 8.48 */
-  --cf-on-primary: #111111;     /* 7.25 */
-  --cf-on-danger: #111111;      /* 8.3 */
-}/* Grafit *//* Ember Ledger *//* Velvet Plum *//* Rosewood Night */
-
-/**
- * Setul de tokenuri `--os-*`, definit unde ajunge.
- *
- * `household-os-chrome.css` le declară pe `.os-shell.bf-app` — un element care nu
- * există: rădăcina aplicației poartă doar `bf-app`. Deci niciuna dintre cele
- * șaptesprezece variabile nu avea valoare, iar fiecare `var(--os-…)` fără rezervă
- * era invalidă.
- */
+  --cf-muted: #9aa8be;          
+  --cf-primary: #d4b06a;        
+  --cf-primary-strong: #c49a4a; 
+  --cf-danger: #ff8b7a;         
+  --cf-info: #8bb4e8;           
+  --cf-warning: #e0c07a;        
+  --cf-on-primary: #111111;     
+  --cf-on-danger: #111111;      
+}
 :root {
   --os-bg: var(--cf-bg, #07090c);
   --os-surface: var(--cf-surface, #10151a);
@@ -84,14 +47,6 @@ html.theme-navy {
   --os-out: var(--cf-danger, #ff8a7a);
   --os-card: var(--cf-surface-alt, var(--cf-surface, transparent));
 }
-
-/**
- * Ecranul Astăzi: paleta vine din temă, nu din prezența clasei `dark`.
- *
- * `household-os-today.css` ține două palete fixe, alese prin `html:not(.dark)`.
- * Clasa `dark` și clasa temei se scriu separat; dacă ajung nepotrivite, se aplica
- * paleta deschisă peste cerneala deschisă a temei — eroul alb cu titlul nevăzut.
- */
 .bf-today-workspace {
   --os-bg: var(--cf-bg) !important;
   --os-surface: var(--cf-surface) !important;
@@ -101,22 +56,7 @@ html.theme-navy {
   --os-muted: var(--cf-muted);
   --os-warn: var(--cf-warning);
 }
-
-/**
- * Etichetele mici cu majuscule stăteau pe `--cf-muted`, care în temele deschise
- * dă 3,9–4,4 — sub cei 4,5 ceruți pentru text mic. Sunt cel mai des întâlnit
- * element din aplicație, deci și cel mai des greu de citit.
- */
 .bf-kicker { color: var(--cf-ink, currentColor); opacity: 0.72; }
-
-/**
- * Comenzile cu umplutură de accent, într-un singur loc.
- *
- * Fiecare avea eticheta scrisă alb, fixat, în foaia ei. Alb pe un verde închis se
- * citește; pe accentele deschise ale temelor de noapte — roz, auriu, coral —
- * coboară la 2. Umplutura devine varianta „strong”, iar eticheta se alege după
- * accent, nu după pagină.
- */
 html .bf-primary,
 html .bf-movement-add,
 html .bf-recurring .bf-primary,
@@ -138,16 +78,12 @@ html .bf-plan-period .active {
   background-image: none !important;
   color: var(--cf-on-primary) !important;
 }
-
-/* Filled danger — doar confirmări de plată, NU CTA-urile outline Adaugă/Creează. */
 html button.pay,
 html .bf-obligation-entry-actions .pay {
   background-color: var(--cf-danger) !important;
   background-image: none !important;
   color: var(--cf-on-danger) !important;
 }
-
-/* Obligații CTAs + secondary/outline: etichetă pe fundalul paginii via --cf-ink. */
 html .bf-obligation-actions button,
 html .bf-obligation-actions > button,
 html .os-shell .bf-obligation-actions > button,
@@ -160,68 +96,31 @@ html .bf-ghost:not(.bf-primary) {
   background-image: none !important;
   border-color: color-mix(in srgb, var(--cf-line) 90%, transparent) !important;
 }
-
 html .bf-obligation-actions button:first-child,
 html .os-shell .bf-obligation-actions > button:first-child {
   color: var(--cf-ink);
   border-color: color-mix(in srgb, var(--cf-danger) 55%, var(--cf-line));
   background-color: color-mix(in srgb, var(--cf-surface) 90%, transparent) !important;
 }
-
-/**
- * Butoanele secundare stau pe fundal transparent, deci eticheta lor trebuie să
- * contrasteze cu pagina, nu cu o umplutură. `.bf-today-add` primise culoarea de
- * pe umplutură — aproape alb pe o temă deschisă, adică 1,1. Corecția e scrisă cu
- * aceeași specificitate ca regula pe care o repară.
- */
 html:not(.dark) .bf-today-add,
 html.dark .bf-today-add,
 html .bf-today-add { color: var(--cf-ink); background-color: transparent; }
-
-/**
- * Obligații, pe ecran îngust: rândul se așază pe verticală.
- *
- * Rândul era o grilă cu două coloane, iar coloana cu butonul lua 134 din 330 de
- * pixeli. Din cei 157 rămași, denumirea primea 34 — „Plată recurentă 1” se afișa
- * pe 34px din cei 135 de care avea nevoie, adică vreo două litere. Nu e destul să
- * lăsăm o singură coloană: butonul are `grid-column: 2` scris pe el, așa că își
- * crea singur a doua coloană.
- */
 @media (max-width: 560px) {
   .bf-obligation-entry { grid-template-columns: minmax(0, 1fr); }
   .bf-obligation-entry-actions { grid-column: 1 !important; justify-content: flex-start; }
   .bf-obligation-entry-main { grid-template-columns: 34px minmax(0, 1fr) auto; }
 }
-
-/* Linia secundară nu are voie să se rupă; un text întreg pe două rânduri se citește, unul tăiat nu. */
 .bf-obligation-entry-main small { white-space: normal; overflow: visible; text-overflow: clip; }
-
-/* Factori care nu intră în scor: prezenți, dar vizibil inactivi. */
 .bf-health-factor.unknown { opacity: 0.55; }
 .bf-health-factor.unknown .bf-health-factor-top span { font-style: italic; }
 .bf-health-missing { margin: 12px 0; padding: 12px 14px; border-radius:12px; background: var(--cf-surface-alt, var(--cf-surface, transparent)); }
 .bf-health-missing ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
 .bf-health-missing li { font-size: 14px; line-height: 1.45; color: var(--cf-ink, inherit); }
-
-/* Ținte de atins: Android cere 48dp, filtrele coborâseră la 29–33px. */
 .bf-analysis-scope button,
 .bf-pocket-switch button,
 .bf-price-window button,
 .bf-segment button { min-height: 44px; }
 .bf-chip-list span button { min-width: 32px; min-height: 32px; }
-
-/**
- * Controalele de formular: textul trebuie să încapă.
- *
- * Pe telefon, formularele stăteau pe două coloane, iar un `select` de 118–220px
- * trebuia să arate „Transfer comun · Familie / comun · 0 RON”, care cere 279px.
- * Browserul taie fără niciun semn, deci omul citea „Toate plicuri” și nu avea de
- * unde ști că mai urmează ceva.
- *
- * Două măsuri, în ordinea asta: pe ecran îngust formularele trec pe o singură
- * coloană, iar ce tot nu încape se încheie cu „…”, ca tăierea să fie cel puțin
- * vizibilă. Săgeata unui `select` nativ mănâncă vreo 26px, de care ținem cont.
- */
 @media (max-width: 560px) {
   .bf-form-grid,
 .bf-field,
@@ -235,13 +134,10 @@ html .bf-today-add { color: var(--cf-ink); background-color: transparent; }
 .bf-week-transfer-form {
     grid-template-columns: minmax(0, 1fr) !important;
   }
-
-  /* Etichetele cu câmp alături: eticheta deasupra, câmpul pe toată lățimea. */
   .bf-analysis-control label,
   .bf-plan-field label,
   .bf-field label { grid-template-columns: minmax(0, 1fr) !important; }
 }
-
 .bf-app select,
 .bf-app input[type="text"],
 .bf-app input[type="month"],
@@ -252,29 +148,13 @@ html .bf-today-add { color: var(--cf-ink); background-color: transparent; }
   max-width: 100%;
   text-overflow: ellipsis;
 }
-
-/* Săgeata nativă are nevoie de loc; fără el, ultimele litere intră sub ea. */
 .bf-app select { padding-right: 30px; }
-
-/**
- * Ultimele controale care nu încăpeau.
- *
- * Cele mai multe casete erau deja pe o singură coloană — textul opțiunii este pur
- * și simplu mai lung decât orice casetă de telefon: „Transfer comun · Familie /
- * comun · 0 RON” cere 279px, iar caseta are 270. Două grile rămăseseră totuși pe
- * două coloane, cu o coloană de 44px pentru o sumă; acolo nu încăpea nici „0,00”.
- */
 html .bf-recurring-form,
 html .bf-source-builder,
 html .bf-transfer-form,
 html .bf-allocation-history-toolbar,
 html .bf-quick-entry-grid {
   grid-template-columns: minmax(0, 1fr) !important;
-  /*
-   * O singură coloană nu e destul: dacă un copil are coloana scrisă pe el, grila
-   * își creează una nouă și strivirea reîncepe. Aceeași capcană ca la rândul din
-   * Obligații.
-   */
   grid-auto-flow: row;
 }
 html .bf-recurring-form > *,
@@ -282,11 +162,6 @@ html .bf-source-builder > *,
 html .bf-transfer-form > *,
 html .bf-allocation-history-toolbar > *,
 html .bf-quick-entry-grid > * { grid-column: auto !important; }
-
-/*
- * Sub 420px, literele din controale scad puțin. Un text întreg, scris mai mic,
- * se citește; unul tăiat, oricât de mare, nu.
- */
 @media (max-width: 420px) {
   .bf-app select,
   .bf-app input[type="text"],
@@ -294,14 +169,6 @@ html .bf-quick-entry-grid > * { grid-column: auto !important; }
   .bf-app input[type="date"],
   .bf-app input:not([type]) { font-size: 14px; }
 }
-
-/* ---------------------------------------------------------------------------
-   Text tăiat de „…”
-   Un rând secundar poartă data, sursa și suma: tăiat la jumătate nu mai spune
-   nimic. Aici textul se rupe pe două rânduri în loc să dispară. Regulile de mai
-   devreme pierdeau în fața selectoarelor din mobile-obligations-pass.css (mai
-   specifice) și din modernization-pass.css, de aceea insistă.
-   --------------------------------------------------------------------------- */
 .bf-obligation-entry-main small,
 .bf-obligations-workspace .bf-obligation-entry-main small,
 .bf-obligation-entry-main b,
@@ -316,13 +183,6 @@ html .bf-quick-entry-grid > * { grid-column: auto !important; }
   white-space: normal !important;
   overflow-wrap: anywhere;
 }
-
-/* ---------------------------------------------------------------------------
-   Sugestiile de sub conversație
-   Rândul se derulează pe orizontală, dar ultimul buton rămânea tăiat în mijlocul
-   cuvântului — arăta stricat, nu ca „mai sunt”. Un strat de umbră la margine
-   spune că lista continuă, iar butoanele nu se mai strâng sub lățimea lor.
-   --------------------------------------------------------------------------- */
 .ai-chat-suggestions {
   position: relative;
   display: flex;
@@ -338,9 +198,7 @@ html .bf-quick-entry-grid > * { grid-column: auto !important; }
   scroll-snap-align: start;
   white-space: nowrap;
 }
-/* Ultimul buton capătă loc cât umbra, ca să poată fi atins întreg. */
 .ai-chat-suggestions > button:last-child { margin-right: 22px; }
-
 .ai-chat-input { position: relative; }
 .ai-chat-input::before {
   content: "";
@@ -354,10 +212,7 @@ html .bf-quick-entry-grid > * { grid-column: auto !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ai-chat-suggestions { scroll-behavior: auto; }
-}/* ============================================================
- * Mobile display repair (360–430px) + contrast pe butoane filled.
- * Rulează ultimul: etichete vizibile, overflow wrap, spațiu dock/header.
- * ============================================================ */
+}
 html.theme-white .bf-os-decide, html.theme-navy .bf-os-decide, html.theme-white .bf-movement-add, html.theme-navy .bf-movement-add, html.theme-white .bf-primary, html.theme-navy .bf-primary, html.theme-white .bf-movement-kind button.active, html.theme-navy .bf-movement-kind button.active, html.theme-white .bf-segment button.active, html.theme-navy .bf-segment button.active, html.theme-white .bf-journal-quickbar .active, html.theme-navy .bf-journal-quickbar .active, html.theme-white .bf-movement-scope button.active, html.theme-navy .bf-movement-scope button.active{
   background-color: var(--cf-primary-strong, #1f5240) !important;
   background-image: none;
@@ -370,9 +225,6 @@ html.theme-white .bf-os-decide, html.theme-navy .bf-os-decide, html.theme-white 
   background-color: var(--cf-surface, #fbfaf7);
   border: 1px solid var(--cf-line, #d5d2c8);
 }
-
-/* Dock is-on pe temele de noapte: etichetă pe umplutură via --cf-on-primary */
-/* D1: doar dock-ul are umplutură aurie; în bara laterală fundalul e ardezie, iar textul rămâne auriu (--os-mint). */
 html.theme-navy .os-dock button.is-on {
   color: var(--cf-on-primary, #0d0b1c) !important;
 }
@@ -380,8 +232,6 @@ html.theme-navy .os-dock button.is-on svg {
   color: var(--cf-on-primary, #0d0b1c);
   stroke: currentColor;
 }
-
-/* Contor căutare: badge în buton, nu „2” gol sub bară */
 .bf-journal-search {
   position: relative;
   min-width: 0;
@@ -404,7 +254,6 @@ html.theme-navy .os-dock button.is-on svg {
   white-space: nowrap;
   grid-column: auto !important;
 }
-
 @media (max-width: 430px) {
   .os-shell .bf-today-workspace,
   .os-shell .bf-movements-ledger,
@@ -416,18 +265,14 @@ html.theme-navy .os-dock button.is-on svg {
     padding-top: 14px !important;
     padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px));
   }
-
   .os-shell .bf-today-workspace > header h1,
 .os-shell .bf-movements-header h1 {
     scroll-margin-top: 12px;
   }
-
   .bf-movement-scope {
     margin-bottom: 12px;
     padding-bottom: 4px;
   }
-
-  /* Mai mult: carduri 2-col — wrap + line-clamp, fără list-row pe cell */
   .os-shell .bf-more-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -493,7 +338,6 @@ html.theme-navy .os-dock button.is-on svg {
     grid-column: auto;
     grid-row: auto;
   }
-
   .bf-movements-ledger .bf-movement-kind {
     width: 100%;
   }
@@ -528,9 +372,6 @@ html.theme-navy .os-dock button.is-on svg {
     stroke: currentColor;
   }
 }
-
-
-/* --- a11y 2026-09: theme-dark filled + 44px nav/filters + offline honesty --- */
 html.theme-dark .bf-os-decide,
 html.theme-dark .bf-movement-add,
 html.theme-dark .bf-primary,
@@ -559,7 +400,6 @@ html.theme-dark .os-dock button.is-on svg {
   color: var(--cf-on-primary, #ffffff);
   stroke: currentColor;
 }
-
 .os-dock button,
 .os-desktop-nav button,
 .bf-movement-kind button,
@@ -569,7 +409,6 @@ html.theme-dark .os-dock button.is-on svg {
   min-height: 44px;
   min-width: 44px;
 }
-
 .os-dock button:focus-visible,
 .os-desktop-nav button:focus-visible,
 .bf-primary:focus-visible,
@@ -581,7 +420,6 @@ html.theme-dark .os-dock button.is-on svg {
   outline: 2px solid var(--cf-primary-strong, #1f5240) !important;
   outline-offset: 2px !important;
 }
-
 .bf-offline-banner {
   display: flex;
   align-items: center;
@@ -609,8 +447,6 @@ html.theme-dark .os-dock button.is-on svg {
   color: var(--cf-ink, #1a2420);
   font: inherit;
 }
-
-/* „Cine ești pe acest telefon?” */
 .bf-sync-self {
   display: grid;
   gap: .6rem;
@@ -667,9 +503,6 @@ html.theme-dark .os-dock button.is-on svg {
 .bf-review-partner-list b { font-size:14px; color: var(--cf-ink, #1a2420); }
 .bf-review-partner-list span,
 .bf-review-partner-list small { color: var(--cf-muted, #66756c); font-size:12px; }
-
-
-/* ui-chrome-dock-clearance — floating pill dock must not clip secondary tabs */
 @media (max-width: 760px) {
   .os-shell .bf-page,
 .os-shell .bf-today-workspace,
@@ -683,8 +516,6 @@ html.theme-dark .os-dock button.is-on svg {
     padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
-
-/* Analiză / Plan / Sync: last-word contrast — light glass, never muted-on-emerald */
 html .bf-advisor-hero,
 html .bf-sync-hero,
 html .bf-coach-card {
@@ -711,13 +542,11 @@ html .bf-advisor-metrics small {
 html .bf-advisor-metrics b {
   color: var(--cf-ink, #0c1612) !important;
 }
-
 html.theme-white .bf-advisor-hero, html.theme-white .bf-sync-hero {
   background: linear-gradient(160deg, #ffffff, #eef2f0) !important;
   border-color: #c5cec8 !important;
   color: #0c1612 !important;
 }
-
 html.theme-dark .bf-advisor-hero,
 html.theme-navy .bf-advisor-hero,
 html.theme-dark .bf-sync-hero,
@@ -737,7 +566,6 @@ html.theme-dark .bf-advisor-metrics small,
 html.theme-navy .bf-advisor-metrics small {
   color: var(--cf-muted, #c5d0c8) !important;
 }
-
 @media (max-width: 760px) {
   .os-shell .bf-insights-workspace,
   .os-shell .bf-advisor-studio,
@@ -746,14 +574,6 @@ html.theme-navy .bf-advisor-metrics small {
     padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
-
-
-/* ============================================================
- * Aurora / Navy / Cyber — same readability bar as White:
- * filled controls use --cf-on-primary; body copy on dark cards
- * uses --cf-ink (light), never the light-theme #0c1612 fallback.
- * ============================================================ */
-
 html.theme-navy .bf-coach-card,
 html.theme-navy .bf-week-digest,
 html.theme-navy .bf-obligation-ai,
@@ -763,7 +583,6 @@ html.theme-navy .bf-household article,
 html.theme-navy .bf-weekly-summary {
   color: var(--cf-ink, #f1f4f8) !important;
 }
-
 html.theme-navy .bf-coach-card h2,
 html.theme-navy .bf-obligation-ai h2,
 html.theme-navy .bf-week-digest b,
@@ -771,15 +590,12 @@ html.theme-navy .bf-goal-card b,
 html.theme-navy .bf-household article b {
   color: var(--cf-ink, #f1f4f8) !important;
 }
-
 html.theme-navy .bf-coach-card p:not(.bf-kicker),
 html.theme-navy .bf-week-digest small,
 html.theme-navy .bf-household article em,
 html.theme-navy .bf-household article small {
   color: var(--cf-muted, #c5d0c8) !important;
 }
-
-/* Filled controls: force on-primary (dark ink on light mint/gold/teal fills) */
 html.theme-navy .bf-os-decide,
 html.theme-navy .bf-today-add,
 html.theme-navy .bf-primary,
@@ -788,7 +604,6 @@ html.theme-navy .bf-week-checkin-actions .bf-week-share,
 html.theme-navy .bf-analysis-balance button {
   color: var(--cf-on-primary, #0d0b1c) !important;
 }
-
 html.theme-navy .bf-os-decide svg,
 html.theme-navy .bf-today-add svg,
 html.theme-navy .bf-primary svg,
@@ -796,20 +611,11 @@ html.theme-navy .bf-movement-add svg {
   color: var(--cf-on-primary, #0d0b1c);
   stroke: currentColor;
 }
-
-/* Secondary / outline controls on night themes: light ink on dark surface */
 html.theme-navy .bf-secondary {
   color: var(--cf-ink, #f1f4f8);
   background-color: var(--cf-surface, #18142f);
   border-color: var(--cf-line, #49416c);
 }
-
-/* ============================================================
- * Mișcări header „Adaugă”: icon-only pe umplutură primary.
- * ui-chrome aplicase padding 18px + gap 10px pe un pătrat de 46px,
- * iar Plus se strângea la 1px (buton verde gol). Forțează padding 0,
- * icon 20px și --cf-on-primary pe stroke.
- * ============================================================ */
 html .bf-movement-add,
 .os-shell .bf-movement-add,
 .bf-movements-ledger .bf-movement-add {
@@ -842,11 +648,6 @@ html .bf-movement-add svg,
   color: var(--cf-on-primary, #ffffff);
   stroke: currentColor;
 }
-
-
-/* ============================================================
- * Filled controls pe Noapte (theme-dark) + Aurora/Navy/Cyber — ink pe primary.
- * ============================================================ */
 html.theme-dark .bf-os-decide,
 html.theme-dark .bf-today-add,
 html.theme-dark .bf-primary,
@@ -874,16 +675,11 @@ html.theme-dark .bf-secondary {
   background-color: var(--cf-surface, #1a1f27);
   border-color: var(--cf-line, #3a4450);
 }
-
-/* Chip / tab filled pe aurora/navy/cyber — ținte ≥48dp pe dock active */
 html.theme-navy .bf-allocation-period-tabs button.active,
 html.theme-dark .bf-allocation-period-tabs button.active {
   color: var(--cf-on-primary, #0d0b1c);
   background-color: var(--cf-primary-strong, #7dcea0);
 }
-
-
-/* P0 2026-09-12 Obligații outline CTAs — ink pe orice temă */
 html.theme-dark .bf-obligation-actions button,
 html.theme-navy .bf-obligation-actions button,
 html.theme-dark .bf-obligation-empty > button,
@@ -900,8 +696,6 @@ html.theme-navy .bf-secondary,
   background-color: color-mix(in srgb, var(--cf-surface) 88%, transparent) !important;
   border-color: color-mix(in srgb, var(--cf-line) 85%, transparent) !important;
 }
-
-/* Coral/danger outline (delete, danger section) — ink pe noapte, nu coral închis pe navy. */
 html.theme-dark .bf-danger > button,
 html.theme-navy .bf-danger > button,
 html.theme-dark .bf-obligation-entry-actions > button.delete,
@@ -912,8 +706,6 @@ html.theme-navy .bf-obligation-entry-actions > button.delete,
   border-color: color-mix(in srgb, var(--cf-danger) 45%, var(--cf-line)) !important;
   background-color: color-mix(in srgb, var(--cf-danger) 12%, var(--cf-surface)) !important;
 }
-
-/* Plicurile bifate din primul ecran: textul mic și bifă rămâneau verde pe verde. */
 html body .bf-setup-presets button.active,
 html body .bf-setup-presets button[aria-pressed="true"] {
   color: var(--cf-on-primary, #ffffff) !important;
@@ -928,8 +720,6 @@ html body .bf-setup-presets button.active svg,
 html body .bf-setup-presets button[aria-pressed="true"] svg {
   color: inherit !important;
 }
-
-/* Notează stă în card, sub pași. Nu se lipește de dock și nu rămâne transparent. */
 html body .os-shell .bf-today-workspace .bf-os-actions,
 html body .os-shell .bf-today-add.bf-os-decide {
   position: static;
@@ -943,13 +733,9 @@ html body .os-shell .bf-today-add.bf-os-decide {
   background-color: var(--cf-primary-strong, #1f6b4a) !important;
   background-image: none;
 }
-/* Configurarea la 320 px: spațiu egal stânga-dreapta, ca bara de derulare să nu cadă peste
-   câmpuri (testare cu utilizatori, problema medie #13). */
 .bf-first-run-body {
   padding: 0 6px 28px !important;
 }
-
-/* Banda de zile: eticheta se citește, ținta de atingere are cel puțin 44px înălțime. */
 html body .bf-os-day {
   min-height: 44px;
 }
@@ -957,8 +743,6 @@ html body .bf-os-day > span:first-child {
   font-size: 12px;
   letter-spacing: 0.04em;
 }
-
-/* Turul primei săptămâni stă lângă Notează, nu peste tot ecranul. */
 .bf-coach-note {
   display: grid;
   gap: 6px;
@@ -986,9 +770,6 @@ html body .bf-os-day > span:first-child {
 .bf-coach-actions .bf-primary {
   min-height: 44px;
 }
-
-
-/* Camera familiei: creare, invitație, mutare de pe parolă */
 .bf-sync-start,
 .bf-sync-invite,
 .bf-sync-move {
@@ -1014,8 +795,6 @@ html body .bf-os-day > span:first-child {
 .bf-sync-move { border-color: color-mix(in srgb, var(--cf-warning, #c49a2a) 70%, transparent); background: color-mix(in srgb, var(--cf-warning, #c49a2a) 10%, var(--cf-surface, #fffdf7)); }
 .bf-sync-invite-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .bf-sync-invite-actions > button { flex: 1 1 10rem; }
-
-/* Dialogul comun de confirmare (în locul ferestrei native) */
 .bf-confirm-backdrop { z-index: 90; display: grid; place-items: center; padding: 16px; }
 .bf-confirm {
   width: min(420px, 100%);
@@ -1040,12 +819,8 @@ html body .bf-os-day > span:first-child {
   font: inherit;
   font-weight: 700;
 }
-
-/* Scadență cu sumă variabilă: suma de pe factură, scrisă la confirmare */
 .bf-recurring-paid-amount { grid-column: 1 / -1; display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
 .bf-recurring-paid-amount input { min-height: 44px; padding: 0 12px; border: 1px solid var(--cf-line, #d5d2c8); border-radius: 12px; font: inherit; font-size: 16px; }
-
-/* Datorii: ordinea de plată și data în care scapi de ele (testare, M4) */
 .bf-debt-strategy { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .75rem 0; }
 .bf-debt-strategy button { display: grid; gap: 2px; min-height: 52px; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--cf-ink, #1a2420) 18%, transparent); border-radius: 12px; background: transparent; color: inherit; font: inherit; text-align: left; }
 .bf-debt-strategy button small { font-size: 12px; opacity: .8; }
@@ -1055,24 +830,16 @@ html body .bf-os-day > span:first-child {
 .bf-debt-order li { display: grid; gap: 1px; }
 .bf-debt-order small { font-size: 12px; opacity: .8; }
 .bf-debt-schedule-head small { display: block; margin-top: 2px; font-size: 12px; opacity: .85; }
-
-/* Abonament Familia: cumpărare și restaurare */
 .bf-billing-actions { display: grid; gap: .5rem; margin: .75rem 0; }
 .bf-billing-buy { display: grid; gap: .5rem; }
 .bf-billing-buy > button { white-space: normal; }
 .bf-billing-active { display: flex; align-items: center; gap: .35rem; margin: 0; font-weight: 700; }
-
-/* Codul QR al invitației: pe fond alb, pe orice temă */
 .bf-invite-qr { display: grid; justify-items: center; gap: .5rem; margin: .5rem 0; }
 .bf-invite-qr svg { width: min(240px, 100%); height: auto; border-radius: 12px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--cf-ink, #1a2420) 14%, transparent); }
 .bf-invite-qr figcaption { font-size: 13px; line-height: 1.45; text-align: center; }
 .bf-open-in-app { display: flex; align-items: center; justify-content: center; min-height: 44px; text-decoration: none; }
-
-/* Fond lunar pentru o scadență anuală / trimestrială */
 .bf-recurring-fund { display: block; grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; line-height: 1.45; white-space: normal; }
 .bf-recurring-fund .bf-link-button { display: inline; min-height: 0; padding: 0; font-size: inherit; }
-
-/* Feedback pentru testarea închisă */
 .bf-feedback { display: grid; gap: .7rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--cf-ink, #1a2420) 14%, transparent); border-radius: 1rem; background: var(--cf-surface, #fffdf7); color: var(--cf-ink, #1a2420); }
 .bf-feedback h2 { display: flex; align-items: center; gap: .4rem; margin: 0; font-size: 1.15rem; }
 .bf-feedback p { margin: 0; }
@@ -1082,18 +849,12 @@ html body .bf-os-day > span:first-child {
 .bf-feedback-kinds button.active { border-color: var(--cf-primary-strong, #1f5240); background: var(--cf-primary-strong, #1f5240); color: #fff; }
 .bf-feedback-details { display: flex; gap: .5rem; align-items: flex-start; font-size: 13px; line-height: 1.45; }
 .bf-feedback-details input { margin-top: 3px; flex: 0 0 auto; }
-
-/* Texte care se tăiau cu „…” pe telefon (auditul pe ecran): se rup pe al doilea rând. */
 body .bf-weekly-tranche-notice > div > span {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
 }
-
-/* Pe telefon „＋ Notează” stă în bara de jos; al doilea buton în cifra zilei era în plus.
-   Stă după regula de mai sus, cu același selector, ca să câștige pe ecran îngust. */
 @media (max-width: 760px) {
   html body .os-shell .bf-today-add.bf-os-decide,html body .os-shell .bf-os-actions { display: none; }
 }
-/* Butonul selectat (Cheltuială / Venit): fundal verde închis, text alb (culoarea textului rămânea verde pe verde). */
 html:is(.theme-white, .theme-navy) body :is(.bf-modal, .bf-quick-entry-panel) .bf-segment button.active { background-color: var(--cf-primary-strong, #1f5240) !important; color: var(--cf-on-primary, #fff) !important; }

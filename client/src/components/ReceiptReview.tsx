@@ -1,4 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+
+/** Peste tot ecranul: un strămoș cu transform ar prinde altfel `position: fixed`. */
+const Layer = ({ children }: { children: ReactNode }) => typeof document === "undefined" ? <>{children}</> : createPortal(children, document.body);
 import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
@@ -16,6 +20,8 @@ export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date
  * Verificarea bonului scanat, în locul formularului vechi de mișcare: fără surse, plicuri sau venituri.
  * Produsele pe categorii, cu subtotal și reduceri; totalul tipărit e verificat înainte de salvare.
  */
+
+
 export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan: () => void }) {
   const [rows, setRows] = useState<ReviewRow[]>(() => rowsFromPrefill(prefill));
   const [store, setStore] = useState(() => prefill.title.replace(/^Bon\s*[—-]\s*/, ""));
@@ -36,7 +42,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
 
   if (saved) {
     const split = groupRows(saved.rows);
-    return <div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Bon salvat")}>
+    return <Layer><div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Bon salvat")}>
       <div className="bn-review-scroll bn-aha">
         <div className="bn-aha-badge" aria-hidden="true"><Check size={34} /></div>
         <p className="sh-kicker">{t("BON SALVAT")}</p>
@@ -48,10 +54,10 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
         {previous && <p className="sh-muted">{t("Ultima dată la {store}: {amount}, {date}.", { store: previous.vendor, amount: lei(previous.amount), date: fmtDate(previous.date) })}</p>}
       </div>
       <div className="bn-review-bar"><button type="button" className="bn-btn is-primary" onClick={onCancel}>{t("Gata")}</button></div>
-    </div>;
+    </div></Layer>;
   }
 
-  return <div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Verifică bonul")}>
+  return <Layer><div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Verifică bonul")}>
     <header className="bn-review-top">
       <button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={onCancel}><ChevronLeft size={22} /></button>
       <label className="bn-store-pill"><span className="bn-avatar" aria-hidden="true">{(store.trim()[0] || "?").toUpperCase()}</span><input value={store} placeholder={t("Magazinul")} onChange={(event) => setStore(event.target.value)} aria-label={t("Magazinul")} /></label>
@@ -99,5 +105,5 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan }: { d
       <button type="button" className="bn-btn" onClick={onCancel}><X size={16} aria-hidden="true" /> {t("Anulează")}</button>
       <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={save}>{t("Salvează bonul")}</button>
     </footer>
-  </div>;
+  </div></Layer>;
 }

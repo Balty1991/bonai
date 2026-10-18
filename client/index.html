@@ -18,7 +18,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <style>
       html, body, #root { margin: 0; background: #E4E9E6; min-height: 100%; }
-      html.dark, html.dark body, html.dark #root { background: #0B0F0E; }
+      html.dark, html.dark body, html.dark #root { background: #0b1026; }
       /*
        * Culorile foii de start (pictate înainte de CSS-ul aplicației) trec prin tokens.
        * Fiecare regulă de mai jos cere întâi tokenul real al temei (`--cf-*`, definit de
@@ -49,14 +49,25 @@
         display: grid;
         place-items: center;
         margin: 0;
-        background: #E4E9E6;
+        background: radial-gradient(70% 45% at 50% 38%, rgba(139, 92, 246, .22), transparent 70%), linear-gradient(170deg, #f6f4ff, #e9ecff 60%, #e3f6fb);
         pointer-events: none;
         transition: none;
       }
-      html.dark #bf-boot { background: #0B0F0E; }
+      html.dark #bf-boot { background: radial-gradient(70% 45% at 50% 38%, rgba(139, 92, 246, .38), transparent 70%), radial-gradient(60% 40% at 80% 90%, rgba(34, 211, 238, .16), transparent 70%), linear-gradient(170deg, #0b1026, #1a1446 60%, #2a1a63); }
+      #bf-boot .boot-stack { display: grid; justify-items: center; gap: 14px; font-family: "Space Grotesk", "Inter", system-ui, sans-serif; }
+      #bf-boot .boot-icon { position: relative; width: 132px; height: 132px; border-radius: 30px; overflow: hidden; box-shadow: 0 18px 50px -14px rgba(124, 58, 237, .7); }
+      #bf-boot .boot-icon img { width: 132px; height: 132px; }
+      #bf-boot .boot-beam { position: absolute; left: 10%; right: 10%; top: 30%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, #a855f7, #22d3ee, #fff); box-shadow: 0 0 14px 3px rgba(139, 92, 246, .7); animation: boot-beam 1.4s ease-in-out infinite alternate; }
+      #bf-boot .boot-word { margin: 6px 0 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em; color: #12142b; }
+      #bf-boot .boot-word span { background: linear-gradient(90deg, #8b5cf6, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      #bf-boot .boot-tag { margin: 0; font: 500 14px/1.3 "Inter", system-ui, sans-serif; color: #444963; }
+      html.dark #bf-boot .boot-word { color: #e8eaf6; }
+      html.dark #bf-boot .boot-tag { color: #b8bedc; }
+      @keyframes boot-beam { from { top: 26%; } to { top: 70%; } }
+      @media (prefers-reduced-motion: reduce) { #bf-boot .boot-beam { animation: none; top: 50%; } }
       html.bf-ready #bf-boot,
       #bf-boot[hidden] { display: none !important; }
-      #bf-boot img { width: 240px; height: 240px; display: block; object-fit: contain; }
+      #bf-boot img { display: block; object-fit: contain; }
       html:not(.bf-ready) .bf-onboarding,
       html:not(.bf-ready) .bf-onboarding-backdrop,
       html:not(.bf-ready) .bf-first-run,
@@ -250,7 +261,7 @@
           var theme = localStorage.getItem("buget-familie:theme") || "white";
           if (legacy[theme]) theme = legacy[theme];
           var schedule = localStorage.getItem("buget-familie:theme-schedule");
-          if (schedule === "system" || (!schedule && !localStorage.getItem("buget-familie:setup-complete"))) {
+          if (schedule === "system" || !localStorage.getItem("bonai:look-v1") || (!schedule && !localStorage.getItem("buget-familie:setup-complete"))) {
             theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "white";
           } else if (schedule === "auto") {
             var now = new Date();
@@ -293,7 +304,7 @@
 
   <body>
     <div id="bf-boot" aria-hidden="true">
-      <img src="icons/mark-240.webp?v=2" alt="" width="240" height="240" decoding="async" fetchpriority="low" />
+      <div class="boot-stack"><div class="boot-icon"><img src="icons/bonai-mark.svg?v=1" alt="" width="132" height="132" decoding="sync" /><span class="boot-beam"></span></div><p class="boot-word">Bon<span>AI</span></p><p class="boot-tag">Scanare inteligentă a bonurilor</p></div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
