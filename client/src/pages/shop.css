@@ -216,7 +216,7 @@ html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .bf-kicker { co
 .bn-review-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: calc(env(safe-area-inset-top) + 10px) 14px 10px; }
 .bn-icon-btn { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); }
 .bn-store-pill { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 14px 4px 5px; border-radius: 99px; border: 1px solid var(--bn-edge); background: var(--bn-glass); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.bn-store-pill input { flex: 1; min-width: 0; border: 0; background: none; color: var(--bn-ink); font: 650 17px/1.2 var(--bn-head); outline: none; }
+.bn-store-pill input { flex: 1; min-width: 0; border: 0; background: none; color: var(--bn-ink); font: 650 17px/1.2 var(--bn-head); outline: none; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
 .bn-avatar { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%; color: #fff; font: 700 17px/1 var(--bn-head); background-color: #5b21b6; background-image: var(--bn-grad); box-shadow: var(--bn-glow); }
 .bn-review-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; display: grid; align-content: start; gap: 14px; padding: 4px 16px 24px; }
 .bn-review-hero { display: grid; gap: 10px; padding: 20px; border-radius: 26px; background: linear-gradient(150deg, var(--bn-soft), transparent 70%), var(--bn-glass); border: 1px solid var(--bn-edge); box-shadow: var(--bn-shadow), inset 0 1px 0 var(--bn-edge-hi); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
@@ -468,6 +468,10 @@ html[data-app="shop"] .bn-bc-note { font-size: 13px; }
 .bn-barcode-hint, .bn-barcode-msg { position: absolute; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); z-index: 2; margin: 0; padding: 14px 16px; border-radius: 16px; background: rgba(0, 0, 0, .72); font-size: 16px; line-height: 1.45; text-align: center; }
 .bn-barcode-msg p { margin: 0 0 12px; }
 .bn-barcode-msg div { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.bn-barcode-msg .bn-barcode-digits { display: grid; gap: 8px; margin-top: 14px; text-align: left; }
+.bn-barcode-digits label { font-size: 14px; }
+.bn-barcode-digits input { min-height: 48px; padding: 0 12px; border: 1px solid rgba(255,255,255,.4); border-radius: 12px; color: #fff; background: rgba(255,255,255,.12); font-size: 20px; letter-spacing: .08em; }
+.bn-barcode-digits button:disabled { opacity: .5; }
 .bn-barcode-msg .sh-scan { min-height: 48px; padding: 0 18px; margin: 0; }
 html[data-app] .bn-barcode-msg .sh-link { color: #fff; text-decoration: underline; }
 html[data-app="shop"] .bn-bc-search:focus-within { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124, 58, 237, .35); }
@@ -572,3 +576,30 @@ html[data-app="shop"].theme-dark .sh-link, html[data-app="shop"].theme-navy .sh-
 .bn-bc-noimg{background:color-mix(in srgb,var(--bn-accent) 14%,transparent)}
 .bn-bc-found p{margin:0;display:grid;gap:2px;min-width:0}.bn-bc-found b{overflow-wrap:anywhere}
 .bn-bc-found small{color:var(--bn-muted);font-size:.82rem}
+
+/* Familie și membri (și restul paginilor din Cont) în aspectul aplicației de cumpărături, nu în cel vechi al bugetului. */
+html[data-app="shop"] .bf-utilities-workspace { padding: 6px 16px 28px; }
+html[data-app="shop"] .bf-utilities-workspace > .bf-topline { margin: 0 0 8px; padding: 0; border: 0; background: none; box-shadow: none; }
+html[data-app="shop"] .bf-utilities-workspace > .bf-topline h1 { margin: 0; color: var(--bn-ink); font: 700 28px/1.1 var(--bn-head); letter-spacing: -.02em; }
+html[data-app="shop"] .bf-utilities-workspace .bf-more-back { min-height: 44px; border: 0; background: none; box-shadow: none; color: var(--bn-accent); font: 600 15px/1 var(--bn-body); padding: 0; }
+html[data-app="shop"] .bf-sync { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 0; border: 0; background: none; box-shadow: none; }
+html[data-app="shop"] .bf-sync > * { margin: 0; }
+html[data-app="shop"] .bf-sync-hero,
+html[data-app="shop"] .bf-sync .bf-sync-local-only,
+html[data-app="shop"] .bf-sync .bf-sync-session,
+html[data-app="shop"] .bf-sync > section { display: grid; gap: 8px; padding: 18px; border-radius: 24px; color: var(--bn-ink); background: var(--bn-glass); border: 1px solid var(--bn-edge); box-shadow: var(--bn-shadow), inset 0 1px 0 var(--bn-edge-hi); }
+html[data-app="shop"] .bf-sync-hero { background: linear-gradient(140deg, rgba(124, 58, 237, .16), rgba(14, 116, 144, .12)), var(--bn-glass); border-color: rgba(139, 92, 246, .35); }
+html[data-app="shop"] .bf-sync-hero h2 { margin: 0; color: var(--bn-ink); font: 700 20px/1.2 var(--bn-head); }
+html[data-app="shop"] .bf-sync-hero p:last-child, html[data-app="shop"] .bf-sync p { color: var(--bn-muted); font-size: 14px; line-height: 1.45; }
+html[data-app="shop"] .bf-sync-hero > svg { color: var(--bn-accent); }
+html[data-app="shop"] .bf-sync .bf-kicker { margin: 4px 0 0; font: 600 11.5px/1.2 var(--bn-head); letter-spacing: .07em; text-transform: uppercase; color: var(--bn-accent); }
+html[data-app="shop"] .bf-sync .bf-sync-local-only { border-style: solid; }
+html[data-app="shop"] .bf-sync .bf-sync-local-only ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+html[data-app="shop"] .bf-sync .bf-sync-local-only li { position: relative; padding-left: 22px; color: var(--bn-ink); font-size: 14px; }
+html[data-app="shop"] .bf-sync .bf-sync-local-only li::before { content: "✓"; position: absolute; left: 0; color: var(--bn-save); font-weight: 700; }
+html[data-app="shop"] .bf-sync .bf-sync-local-only ul:nth-of-type(2) li::before { content: "–"; color: var(--bn-muted); }
+/* La 360–390 px numele lungi (magazin, produs) se termină cu „…”, nu tăiate brusc. */
+html[data-app="shop"] .bn-costs-copy, html[data-app="shop"] .sh-list li > span { min-width: 0; }
+html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-app="shop"] .sh-list li > span > b { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-store-pill { min-width: 0; }

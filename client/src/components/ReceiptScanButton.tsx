@@ -13,7 +13,7 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
 import { warmOcr } from "@/lib/receipt-orientation-ocr";
-import { signDiscountLines, compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
+import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
@@ -25,6 +25,8 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const galleryRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  /** Pozele ultimei încercări eșuate: „Încearcă din nou” le retrimite, fără altă poză. */
+  const lastFiles = useRef<File[]>([]);
   const [seconds, setSeconds] = useState(0);
   const [shots, setShots] = useState(1);
   /** Pozele făcute cu camera până acum: un bon de hârtie lung se fotografiază pe bucăți, apoi se citesc împreună. */
@@ -87,6 +89,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       if (galleryRef.current) galleryRef.current.value = "";
       return;
     }
+    lastFiles.current = files;
     setShots(files.length);
     // Poza apare imediat (EXIF aplicat de browser), apoi se înlocuiește lin cu cea pusă drept.
     // Miniaturile apar imediat (EXIF aplicat de browser); bonul virtual se construiește lângă ele.
@@ -113,8 +116,9 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
       const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
       const final = dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill;
+      lastFiles.current = [];
       setStore(receipt.store || undefined);
-      setReveal({ items: signDiscountLines(receipt.items).filter((item) => item.amount !== 0).map((item) => ({ name: item.name, amount: item.amount })), total: prefill.amount, prefill: final });
+      setReveal({ items: final.lines.map((line) => ({ name: line.label, amount: line.amount })), total: prefill.amount, prefill: final });
     } catch (reason) {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       setError(offline ? t("Nu ai internet acum. Păstrează bonul și scanează-l din nou când revii online.") : reason instanceof Error ? reason.message : t("Nu am putut citi bonul acum. Mai încearcă o dată."));
@@ -171,7 +175,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       <button type="button" className="bf-scan-receipt-gallery" aria-label={t("Alege din galerie poza bonului sau mai multe capturi ale lui")} title={t("Din galerie: o poză sau mai multe capturi ale aceluiași bon")} onClick={() => void pick("gallery")}><ImagePlus size={18} aria-hidden="true" /></button>
     </div>}
     {!busy && !reveal && !hub && !pending.length && <small>{t("Bon lung? Pe hârtie: mai multe poze, una după alta. Digital: alege din galerie toate capturile.")}</small>}
-    {error && <p className="bf-form-error" role="alert">{error}</p>}
+    {error && <div className="bf-form-error bf-scan-error" role="alert"><p>{error}</p>{lastFiles.current.length > 0 && !busy && <button type="button" className="bf-secondary" onClick={() => void read(lastFiles.current)}>{t("Încearcă din nou")}</button>}</div>}
     <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(event) => addShot(event.target.files)} />
     <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={(event) => void read(event.target.files)} />
   </section>;

@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 const Layer = ({ children }: { children: ReactNode }) => typeof document === "undefined" ? <>{children}</> : createPortal(children, document.body);
 import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
-import { t } from "@/lib/i18n";
+import { productsLabel, t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
 import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
@@ -88,7 +88,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
         <p className="bn-review-total">{lei(total)}</p>
         <div className="bn-chips">
           {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
-          <span className="bn-chip">{rows.length === 1 ? t("1 produs") : t("{count} produse", { count: rows.length })}</span>
+          <span className="bn-chip">{productsLabel(rows.length)}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
           {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {printed > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
         </div>

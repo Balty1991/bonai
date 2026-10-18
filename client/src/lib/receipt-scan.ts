@@ -3,6 +3,7 @@
  * întoarce articolele pe categorii. Nimic nu se salvează singur: rezultatul umple
  * formularul „Adaugă mișcare”, iar omul verifică și apasă Salvează.
  */
+import { consistentName, consistentStore, knownNames } from "./name-consistency";
 import { storeBrand } from "./store-brand";
 import { syncAiQuota, type ServerAiQuota } from "./bonut-plans";
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
@@ -105,7 +106,9 @@ export function scanToPrefill(raw: ScannedReceipt, data: AppData, memberId?: str
   const folded = foldDiscountLines(receipt.items).filter((item) => item.amount > 0);
   const sumOf = (list: ReadonlyArray<{ amount: number }>) => list.reduce((sum, item) => sum + item.amount, 0);
   const useFolded = receipt.total > 0 && folded.length > 0 && Math.abs(sumOf(folded) - receipt.total) + 0.005 < Math.abs(sumOf(positive) - receipt.total);
+  const names = knownNames(data);
   const lines = (useFolded ? folded : positive)
+    .map((item) => ({ ...item, name: consistentName(item.name, names) }))
     .map((item) => ({
       // Cantitatea rămâne în nume („× 2”, „× 0,456 kg”), ca istoricul de prețuri să compare pe bucată sau pe kg.
       // Reducerea stă separat: suma e cea plătită, iar numele rămâne curat pentru sugestii.
@@ -146,7 +149,7 @@ export function scanToPrefill(raw: ScannedReceipt, data: AppData, memberId?: str
   }
 
   // Marca (Familiaro, Lidl) în locul firmei operatoare (Sales Consulting, Lidl Discount).
-  const store = storeBrand(receipt.store.trim(), { cui: receipt.storeCui, items: receipt.items.map((item) => item.rawName || item.name || "") }).trim();
+  const store = consistentStore(storeBrand(receipt.store.trim(), { cui: receipt.storeCui, items: receipt.items.map((item) => item.rawName || item.name || "") }).trim(), data);
   return {
     title: store ? t("Cumpărături {store}", { store }) : t("Cumpărături"),
     amount: total,
@@ -316,18 +319,30 @@ export class AiQuotaError extends Error { readonly code = "ai_quota"; }
 
 export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[], context: { receiptCount?: number; roomId?: string } = {}): Promise<ScannedReceipt> {
   // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
-  const { appCheckHeader, authHeader } = await import("./realtime-sync");
+  const { appCheckHeader, authHeader, freshAuthHeader } = await import("./realtime-sync");
   // Verificarea aplicației poate rămâne agățată fără rețea bună; după 8 s cererea pleacă oricum.
   const capped = <T,>(work: Promise<T>) => Promise.race([work, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 8_000))]);
   const t0 = performance.now();
-  const [token, identity] = await Promise.all([capped(appCheckHeader()), capped(authHeader())]);
+  const [token, quick] = await Promise.all([capped(appCheckHeader()), capped(authHeader())]);
+  // Scanarea cere identitatea anonimă: la primul pornit al aplicației o așteptăm, nu trimitem fără ea.
+  const identity = quick || await freshAuthHeader();
   const t1 = performance.now();
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (token) headers["X-Firebase-AppCheck"] = token;
   if (identity) headers.Authorization = identity;
+  const body = JSON.stringify({ ...(images.length === 1 ? { image: images[0].data, mimeType: images[0].mimeType } : { images }), categories, receiptCount: context.receiptCount ?? 0, ...(context.roomId ? { roomId: context.roomId } : {}) });
+  const send = () => fetch(ENDPOINT, { method: "POST", headers, body, signal: AbortSignal.timeout(images.length > 1 ? 120_000 : 95_000) });
   let response: Response;
   try {
-    response = await fetch(ENDPOINT, { method: "POST", headers, body: JSON.stringify({ ...(images.length === 1 ? { image: images[0].data, mimeType: images[0].mimeType } : { images }), categories, receiptCount: context.receiptCount ?? 0, ...(context.roomId ? { roomId: context.roomId } : {}) }), signal: AbortSignal.timeout(images.length > 1 ? 120_000 : 95_000) });
+    response = await send();
+    // Token expirat sau identitate încă neconfirmată: o singură reîncercare automată, cu token proaspăt.
+    if (response.status === 401 && (await response.clone().json().catch(() => ({})) as { code?: string }).code === "identity") {
+      const again = await freshAuthHeader(true);
+      if (again) {
+        headers.Authorization = again;
+        response = await send();
+      }
+    }
   } catch {
     throw new Error(t("Nu am putut trimite poza. Verifică internetul și mai încearcă o dată."));
   }

@@ -122,11 +122,21 @@ export const countLabel = (count: number, forms: { one: string; few: string; man
 export const daysLabel = (count: number) => countLabel(count, { one: "{count} zi", few: "{count} zile", many: "{count} de zile" });
 export const monthsLabel = (count: number) => countLabel(count, { one: "{count} lună", few: "{count} luni", many: "{count} de luni" });
 export const envelopesLabel = (count: number) => countLabel(count, { one: "{count} plic", few: "{count} plicuri", many: "{count} de plicuri" });
+export const receiptsLabel = (count: number) => countLabel(count, { one: "{count} bon", few: "{count} bonuri", many: "{count} de bonuri" });
+export const looseLabel = (count: number) => countLabel(count, { one: "{count} cheltuială fără bon", few: "{count} cheltuieli fără bon", many: "{count} de cheltuieli fără bon" });
+export const debtsLabel = (count: number) => countLabel(count, { one: "{count} datorie", few: "{count} datorii", many: "{count} de datorii" });
+export const productsLabel = (count: number) => countLabel(count, { one: "{count} produs", few: "{count} produse", many: "{count} de produse" });
+export const linesLabel = (count: number) => countLabel(count, { one: "{count} rând", few: "{count} rânduri", many: "{count} de rânduri" });
 export const movesLabel = (count: number) => countLabel(count, { one: "{count} mișcare", few: "{count} mișcări", many: "{count} de mișcări" });
 
 /** Formatare de sumă și dată în limba activă. Moneda registrului rămâne leul. */
-export const moneyFormat = (value: number, options: Intl.NumberFormatOptions = { maximumFractionDigits: 0 }) =>
-  new Intl.NumberFormat(getLocale(), { style: "currency", currency: "RON", ...options }).format(Number.isFinite(value) ? value : 0);
+export const moneyFormat = (value: number, options: Intl.NumberFormatOptions = { maximumFractionDigits: 0 }) => {
+  const amount = Number.isFinite(value) ? value : 0;
+  const locale = getLocale();
+  // În română: „1.234 lei”, nu „1.234 RON”.
+  if (locale.startsWith("ro")) { const { style: _s, currency: _c, currencyDisplay: _d, ...rest } = options; return `${new Intl.NumberFormat(locale, rest).format(amount)}\u00a0lei`; }
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "RON", ...options }).format(amount);
+};
 
 export const dateFormat = (iso: string | undefined, options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short" }) => {
   if (!iso) return t("Nespecificat");

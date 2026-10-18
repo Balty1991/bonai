@@ -107,8 +107,8 @@ function vitePluginCsp(): Plugin {
           "default-src 'self'",
           `script-src 'self' 'wasm-unsafe-eval' ${hashes.join(" ")} https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/`,
           "style-src 'self' 'unsafe-inline'",
-          // Din afară vin doar imaginile reCAPTCHA.
-          "img-src 'self' data: blob: https://www.gstatic.com https://www.google.com",
+          // Din afară vin doar imaginile reCAPTCHA și pozele de produs Open Facts (după codul de bare).
+          "img-src 'self' data: blob: https://www.gstatic.com https://www.google.com https://images.openfoodfacts.org https://images.openproductsfacts.org https://images.openpetfoodfacts.org https://images.openbeautyfacts.org https://static.openfoodfacts.org",
           "font-src 'self' data:",
           // Doar serviciile folosite: Firestore, Auth, App Check, funcțiile din europe-central2, reCAPTCHA, Open Food Facts și rapoartele de erori (Sentry, UE).
           `connect-src 'self' data: blob: https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://europe-central2-buget-familie-a6a0d.cloudfunctions.net https://www.google.com https://search.openfoodfacts.org https://world.openfoodfacts.org https://world.openproductsfacts.org https://*.ingest.de.sentry.io`,

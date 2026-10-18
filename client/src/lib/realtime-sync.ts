@@ -104,6 +104,21 @@ export async function authHeader(): Promise<string | undefined> {
   }
 }
 
+/**
+ * Pentru scanare: identitatea e obligatorie. Uită o încercare eșuată recent, așteaptă
+ * autentificarea anonimă cel mult `waitMs` și cere un token proaspăt (forțat la nevoie).
+ */
+export async function freshAuthHeader(force = false, waitMs = 12_000): Promise<string | undefined> {
+  signInFailedAt = 0;
+  const uid = await Promise.race([ensureSignedIn(), new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs))]);
+  if (!uid || !auth?.currentUser) return undefined;
+  try {
+    return `Bearer ${await auth.currentUser.getIdToken(force)}`;
+  } catch {
+    return undefined;
+  }
+}
+
 function db(): Firestore {
   if (isOfflineOnly()) {
     throw new RealtimeSyncError("offline-only", "Modul „doar offline” este activ — sincronizarea cloud este oprită pe acest telefon.");

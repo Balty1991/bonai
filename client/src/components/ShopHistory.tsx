@@ -3,7 +3,7 @@ import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Pencil, Trash2, X } from "lucide-react";
 import type { AppData, Receipt } from "@/lib/finance-data";
-import { t } from "@/lib/i18n";
+import { productsLabel, t } from "@/lib/i18n";
 import { receiptsByMonth, storeHue, storeInitials } from "@/lib/shop-stats";
 import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
@@ -38,7 +38,7 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
   return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs bn-history" role="dialog" aria-modal="true" aria-label={t("Istoric")}>
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={open ? () => setOpen(undefined) : onClose}><ArrowLeft size={20} /></button><b>{open ? open.vendor : tab === "receipts" ? t("Bonuri") : t("Toate costurile")}</b><span /></header>
     {open ? <div className="bn-costs-body">
-      <section className="bn-costs-hero"><small>{dayRo(open.date)}{open.time ? ` · ${open.time}` : ""}{open.city ? ` · ${open.city}` : ""}</small><strong>{lei(open.amount)}</strong><span>{open.lines?.length ? t("{n} produse", { n: open.lines.length }) : t("fără produse detaliate")}</span></section>
+      <section className="bn-costs-hero"><small>{dayRo(open.date)}{open.time ? ` · ${open.time}` : ""}{open.city ? ` · ${open.city}` : ""}</small><strong>{lei(open.amount)}</strong><span>{open.lines?.length ? productsLabel(open.lines.length) : t("fără produse detaliate")}</span></section>
       <DiscountFlags flags={flags} />
       {(onEdit || onDelete) && <div className="bn-history-actions">
         {onEdit && <button type="button" className="bn-btn" onClick={() => onEdit(open)}><Pencil size={16} aria-hidden="true" /> {t("Editează")}</button>}
@@ -50,7 +50,7 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
       {!months.length && <p className="bn-costs-note">{tab === "receipts" ? t("Încă n-ai bonuri. Scanează primul bon și apare aici.") : t("Încă nu ai costuri notate.")}</p>}
       {months.map((month) => <section key={month.month} className="bn-history-month" aria-label={month.title}>
         <header><b>{month.title}</b><span>{lei(month.total)}</span></header>
-        <ul className="bn-costs-list">{month.receipts.map((r) => { const isReceipt = data.receipts.some((x) => x.id === r.id); return <li key={r.id}><button type="button" disabled={!isReceipt} onClick={() => { if (press.current.fired) { press.current.fired = false; return; } setOpen(r); }} onPointerDown={() => isReceipt && startPress(r)} onPointerUp={endPress} onPointerLeave={endPress} onPointerCancel={endPress} onContextMenu={(event) => { if (!isReceipt) return; event.preventDefault(); endPress(); setMenu(r); }} aria-haspopup={isReceipt ? "menu" : undefined}><span className="bn-store-avatar" style={{ background: `hsl(${storeHue(r.vendor)} 62% 46%)` }} aria-hidden="true">{storeInitials(r.vendor)}</span><span className="bn-costs-copy"><b>{r.vendor}</b><small>{dayRo(r.date)}{r.time ? ` · ${r.time}` : ""}{r.lines?.length ? ` · ${t("{n} produse", { n: r.lines.length })}` : isReceipt ? "" : ` · ${t("fără bon")}`}</small></span><span className="bn-costs-amount">{lei(r.amount)}</span></button></li>; })}</ul>
+        <ul className="bn-costs-list">{month.receipts.map((r) => { const isReceipt = data.receipts.some((x) => x.id === r.id); return <li key={r.id}><button type="button" disabled={!isReceipt} onClick={() => { if (press.current.fired) { press.current.fired = false; return; } setOpen(r); }} onPointerDown={() => isReceipt && startPress(r)} onPointerUp={endPress} onPointerLeave={endPress} onPointerCancel={endPress} onContextMenu={(event) => { if (!isReceipt) return; event.preventDefault(); endPress(); setMenu(r); }} aria-haspopup={isReceipt ? "menu" : undefined}><span className="bn-store-avatar" style={{ background: `hsl(${storeHue(r.vendor)} 62% 46%)` }} aria-hidden="true">{storeInitials(r.vendor)}</span><span className="bn-costs-copy"><b>{r.vendor}</b><small>{dayRo(r.date)}{r.time ? ` · ${r.time}` : ""}{r.lines?.length ? ` · ${productsLabel(r.lines.length)}` : isReceipt ? "" : ` · ${t("fără bon")}`}</small></span><span className="bn-costs-amount">{lei(r.amount)}</span></button></li>; })}</ul>
       </section>)}
     </div>}
     {menu && <div className="bn-sheet-backdrop" onClick={() => setMenu(undefined)}><div className="bn-sheet" role="menu" aria-label={t("Bonul de la {store}", { store: menu.vendor })} onClick={(event) => event.stopPropagation()}>

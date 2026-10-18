@@ -245,7 +245,7 @@ export function ProductCatalogPanel({ data, onSaveReceipt, onOpenReceiptForm }: 
       <section className="bf-catalog-basket" aria-label={t("Bonul în lucru")}>
         <div className="bf-catalog-basket-head">
           <p className="bf-kicker">{t("BONUL ÎN LUCRU")}</p>
-          {lines.length ? <strong>{fmtExact.format(basketTotal)} RON</strong> : <span>{t("Gol")}</span>}
+          {lines.length ? <strong>{fmtExact.format(basketTotal)} lei</strong> : <span>{t("Gol")}</span>}
         </div>
         <div className="bf-form-grid">
           <label className="bf-field">

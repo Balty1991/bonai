@@ -3,7 +3,7 @@ import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
 import { isoToday, newId, parseRomanianAmount, type AppData, type Debt, type DebtType } from "@/lib/finance-data";
-import { t } from "@/lib/i18n";
+import { debtsLabel, t } from "@/lib/i18n";
 import { daysUntil } from "@/lib/house-costs";
 import { DEBT_TYPES, debtDueDay, debtNextDue, debtProgress, debtSummary, debtTypeLabel, markInstallmentPaid, paidThisCycle } from "@/lib/debts-tracker";
 
@@ -41,7 +41,7 @@ export function DebtsPanel({ data, onChange, onClose }: { data: AppData; onChang
   return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs" role="dialog" aria-modal="true" aria-label={t("Datorii")}>
     <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={draft ? () => setDraft(undefined) : onClose}><ArrowLeft size={20} /></button><b>{draft ? (draft.id ? t("Modifică datoria") : t("Datorie nouă")) : t("Datorii")}</b><span /></header>
     {!draft ? <div className="bn-costs-body">
-      <section className="bn-costs-hero bn-debt-hero"><small>{t("MAI AI DE DAT")}</small><strong>{lei(sum.remaining)}</strong><span>{sum.count ? t("Rate pe lună: {monthly} · {n} datorii", { monthly: lei(sum.monthly), n: sum.count }) : t("Adaugă rate, împrumuturi sau carduri ca să vezi tot ce ai de dat, într-un loc.")}</span></section>
+      <section className="bn-costs-hero bn-debt-hero"><small>{t("MAI AI DE DAT")}</small><strong>{lei(sum.remaining)}</strong><span>{sum.count ? t("Rate pe lună: {monthly} · {debts}", { monthly: lei(sum.monthly), debts: debtsLabel(sum.count) }) : t("Adaugă rate, împrumuturi sau carduri ca să vezi tot ce ai de dat, într-un loc.")}</span></section>
       <ul className="bn-costs-list bn-debt-list">{rows.map(({ debt, due }) => { const p = debtProgress(debt); const paid = paidThisCycle(debt, today); const left = daysUntil(due, today); const done = debt.remaining <= 0 && !debt.openEnded; return <li key={debt.id} className={done ? "is-done" : undefined}>
         <button type="button" onClick={() => edit(debt)}><span className="bn-costs-day"><b>{Number(due.slice(8))}</b><small>{["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"][Number(due.slice(5, 7)) - 1]}</small></span><span className="bn-costs-copy"><b>{debt.creditor || debt.name}</b><small>{t(debtTypeLabel(debt.debtType))}{debt.monthly ? ` · ${t("rată {amount}", { amount: lei(debt.monthly) })}` : ""}{done ? ` · ${t("achitată")}` : paid ? ` · ${t("rata plătită")}` : ` · ${left === 0 ? t("azi") : left === 1 ? t("mâine") : t("în {n} zile", { n: left })}`}{debt.annualRate ? ` · DAE ${debt.annualRate.toLocaleString("ro-RO")}%` : ""}</small></span><span className="bn-costs-amount">{lei(debt.remaining)}</span></button>
         {p !== undefined && <div className="bn-debt-bar" role="progressbar" aria-label={t("Achitat")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(p * 100)}><i style={{ transform: `scaleX(${p})` }} /><small>{t("{p}% achitat din {initial}", { p: Math.round(p * 100), initial: lei(debt.initial || 0) })}</small></div>}

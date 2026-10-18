@@ -12,7 +12,7 @@ import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/li
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
 import { lei as leiRon } from "@/lib/money-format";
 const lei = (value: number) => leiRon(value).replace(/\s?RON/, "\u00a0lei");
-import { t } from "@/lib/i18n";
+import { looseLabel, productsLabel, receiptsLabel, t } from "@/lib/i18n";
 import { dateText, type MoreView } from "@/pages/home-kit";
 import { visibleShopping } from "@/lib/shopping-list";
 import { idsFromTickReply, listShareLink, listShareText, whatsappShareUrl } from "@/lib/list-share";
@@ -130,7 +130,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     <header className="sh-hero">
       <p className="sh-kicker">{t("CUMPĂRĂTURILE TALE ÎN {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
       <h1 className="sh-big">{lei(month.spent)}</h1>
-      <p className="sh-sub">{month.receipts === 1 ? t("din 1 bon") : month.receipts ? t("din {count} bonuri", { count: month.receipts }) : t("Scanează primul bon al lunii.")}{month.lastMonthSoFar > 0 && <> · <span className={diff > 0 ? "sh-up" : "sh-down"}>{diff > 0 ? t("{amount} mai mult", { amount: lei(diff) }) : t("{amount} mai puțin", { amount: lei(-diff) })}</span> {t("decât luna trecută până azi")}</>}</p>
+      <p className="sh-sub">{month.receipts || month.loose ? t("din {what}", { what: [month.receipts ? receiptsLabel(month.receipts) : "", month.loose ? looseLabel(month.loose) : ""].filter(Boolean).join(t(" și ")) }) : t("Scanează primul bon al lunii.")}{month.lastMonthSoFar > 0 && <> · <span className={diff > 0 ? "sh-up" : "sh-down"}>{diff > 0 ? t("{amount} mai mult", { amount: lei(diff) }) : t("{amount} mai puțin", { amount: lei(-diff) })}</span> {t("decât luna trecută până azi")}</>}</p>
       {avg && month.spent > 0 && <p className="sh-sub">{t("Media pe {count} luni: {amount}", { count: avg.months, amount: lei(avg.average) })}</p>}
       <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
       {onManual && <button type="button" className="sh-link sh-manual" onClick={onManual}><PenLine size={16} aria-hidden="true" /> {t("Fără bon? Notează suma")}</button>}
@@ -143,7 +143,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
       <p className="sh-kicker sh-next-kicker">{t("CE URMEAZĂ")}</p>
       <ul className="sh-list sh-next-steps">
         <li><span><b>{first.repeated > 0 ? t("{count} produse se repetă: vezi-le prețul în Prețuri", { count: first.repeated }) : t("La următorul bon îți arăt ce s-a scumpit")}</b><small>{t("compar aceleași produse, între bonuri și magazine")}</small></span></li>
-        <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>
+        {currentBonutPlan(data, today) === "free" && first.toTrial > 0 && <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>}
       </ul>
       <button type="button" className="sh-link" onClick={first.repeated > 0 ? onOpenProducts : onScan}>{first.repeated > 0 ? t("Vezi prețurile") : t("Scanează următorul bon")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>}
@@ -187,7 +187,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     </Card>}
 
     <Card kicker={t("BONURILE RECENTE")}>
-      {recent.length ? <ul className="sh-list">{recent.map((receipt) => <li key={receipt.id}><span><b>{receipt.vendor || t("Bon")}</b><small>{dateText(receipt.date, true)}{receipt.lines?.length ? ` · ${t("{count} produse", { count: receipt.lines.length })}` : ""}</small></span><b>{lei(receipt.amount)}</b></li>)}</ul>
+      {recent.length ? <ul className="sh-list">{recent.map((receipt) => <li key={receipt.id}><span><b>{receipt.vendor || t("Bon")}</b><small>{dateText(receipt.date, true)}{receipt.lines?.length ? ` · ${productsLabel(receipt.lines.length)}` : ""}</small></span><b>{lei(receipt.amount)}</b></li>)}</ul>
         : <p className="sh-muted">{t("Niciun bon încă. Fă o poză bonului de la magazin: citesc fiecare produs, cu prețul lui.")}</p>}
       <button type="button" className="sh-link" onClick={() => onOpenMore("receipts")}>{t("Toate bonurile")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>
@@ -354,12 +354,12 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, 
 }
 
 /** Prima pornire: lista gratuită, scanarea bonului și verificarea cu codul de bare; fără salariu și plicuri. */
-export function ShopWelcome({ onScan, onList, onJoin, onSkip, onDemo }: { onScan: () => void; onList: () => void; onJoin: () => void; onSkip: () => void; onDemo?: () => void }) {
+export function ShopWelcome({ onScan, onList, onJoin, onSkip, onDemo, trial = true }: { onScan: () => void; onList: () => void; onJoin: () => void; onSkip: () => void; onDemo?: () => void; /** Doar pe planul gratuit: cine are deja Familie/Pro nu primește oferta de probă. */ trial?: boolean }) {
   const steps: Array<[ReactNode, string, string]> = [
     [<ListChecks size={22} key="list" />, t("Lista familiei, gratuit"), t("Comună pe toate telefoanele, cu prețul estimat din bonurile voastre. O trimiți pe WhatsApp și se bifează și fără aplicație.")],
     [<ScanLine size={22} key="scan" />, t("Scanezi bonul"), t("O poză. Citesc fiecare produs, cu marca, gramajul și prețul.")],
     [<Store size={22} key="store" />, t("Verifici prețul în magazin"), t("Scanezi codul de bare și vezi cât ai dat ultima dată și unde a fost mai ieftin.")],
-    [<Sparkles size={22} key="pro" />, t("Inflația ta și cât economisești"), t("După al {n}-lea bon primești {days} zile de BonAI Pro gratuit.", { n: TRIAL_AFTER_RECEIPTS, days: TRIAL_DAYS })],
+    [<Sparkles size={22} key="pro" />, t("Inflația ta și cât economisești"), trial ? t("După al {n}-lea bon primești {days} zile de BonAI Pro gratuit.", { n: TRIAL_AFTER_RECEIPTS, days: TRIAL_DAYS }) : t("Vezi ce s-a scumpit la produsele tale și cât ai economisit.")],
   ];
   return <div className="sh-page sh-welcome">
     <header className="sh-hero">

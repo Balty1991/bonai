@@ -9,6 +9,7 @@
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
 import { productObservations, type ProductObservation } from "./personal-inflation";
 import { receiptVendorName } from "./price-history";
+import { spendEntries } from "./quick-expense";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 const monthOf = (iso: string) => iso.slice(0, 7);
@@ -19,19 +20,21 @@ const prevMonthDay = (iso: string) => {
   return `${first.getUTCFullYear()}-${String(first.getUTCMonth() + 1).padStart(2, "0")}-${String(Math.min(day, last)).padStart(2, "0")}`;
 };
 
-export type MonthShopping = { month: string; spent: number; receipts: number; lastMonthSoFar: number; lastMonthTotal: number; categories: Array<{ category: string; amount: number }> };
+export type MonthShopping = { month: string; spent: number; receipts: number; /** Cheltuieli notate fără bon (taxi, cafea), incluse în `spent`. */ loose: number; lastMonthSoFar: number; lastMonthTotal: number; categories: Array<{ category: string; amount: number }> };
 
-/** Bonurile lunii: total, câte, pe categorii, și luna trecută până în aceeași zi. */
+/** Bonurile și cheltuielile fără bon ale lunii: total, câte, pe categorii, și luna trecută până în aceeași zi. */
 export function monthShopping(data: AppData, today = isoToday()): MonthShopping {
   const month = monthOf(today);
   const prevDay = prevMonthDay(today);
   const prevMonth = monthOf(prevDay);
-  let spent = 0, receipts = 0, lastMonthSoFar = 0, lastMonthTotal = 0;
+  const real = new Set(data.receipts.map((receipt) => receipt.id));
+  let spent = 0, receipts = 0, loose = 0, lastMonthSoFar = 0, lastMonthTotal = 0;
   const byCategory = new Map<string, number>();
-  for (const receipt of data.receipts) {
+  for (const receipt of spendEntries(data)) {
     if (!(receipt.amount > 0)) continue;
     if (monthOf(receipt.date) === month && receipt.date <= today) {
-      spent += receipt.amount; receipts += 1;
+      spent += receipt.amount;
+      if (real.has(receipt.id)) receipts += 1; else loose += 1;
       const lines = receipt.lines?.length ? receipt.lines : [{ category: receipt.category, amount: receipt.amount }];
       for (const line of lines) byCategory.set(line.category, (byCategory.get(line.category) || 0) + line.amount);
     } else if (monthOf(receipt.date) === prevMonth) {
@@ -40,7 +43,7 @@ export function monthShopping(data: AppData, today = isoToday()): MonthShopping 
     }
   }
   const categories = Array.from(byCategory, ([category, amount]) => ({ category, amount: round2(amount) })).sort((a, b) => b.amount - a.amount);
-  return { month, spent: round2(spent), receipts, lastMonthSoFar: round2(lastMonthSoFar), lastMonthTotal: round2(lastMonthTotal), categories };
+  return { month, spent: round2(spent), receipts, loose, lastMonthSoFar: round2(lastMonthSoFar), lastMonthTotal: round2(lastMonthTotal), categories };
 }
 
 /** Produsele pe care s-au dus cei mai mulți bani în ultimele `days` zile. */

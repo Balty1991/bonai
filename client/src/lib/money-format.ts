@@ -5,12 +5,18 @@
  */
 import { getLocale } from "@/lib/i18n";
 
+/** Același formatter, cu „lei” după sumă (spațiu nedespărțitor, ca Intl la „RON”). */
+export const withLei = (base: Intl.NumberFormat): Intl.NumberFormat => ({ format: (value: number) => `${base.format(value)}\u00a0lei` }) as Intl.NumberFormat;
+
 const cache = new Map<string, Intl.NumberFormat>();
 const formatter = (locale: string, cents: boolean) => {
   const key = `${locale}|${cents}`;
   let format = cache.get(key);
   if (!format) {
-    format = new Intl.NumberFormat(locale, { style: "currency", currency: "RON", minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+    // În română scriem „lei”, ca pe bon și în vorbire, nu codul „RON”.
+    format = locale.startsWith("ro")
+      ? withLei(new Intl.NumberFormat(locale, { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }))
+      : new Intl.NumberFormat(locale, { style: "currency", currency: "RON", minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
     cache.set(key, format);
   }
   return format;

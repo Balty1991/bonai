@@ -10,6 +10,11 @@ export function BarcodeScanner({ onCode, onClose }: { onCode: (code: string) => 
   const [error, setError] = useState<ScanFailure>();
   const [native, setNative] = useState<boolean>();
   const [attempt, setAttempt] = useState(0);
+  /** „Scriu cifrele”: câmp pentru cele 8–14 cifre de sub codul de bare, oriunde e deschis scanerul. */
+  const [typing, setTyping] = useState(false);
+  const [digits, setDigits] = useState("");
+  const clean = digits.replace(/\D/g, "");
+  const valid = clean.length >= 8 && clean.length <= 14;
   useEffect(() => {
     let stop: (() => void) | undefined; let live = true;
     setError(undefined);
@@ -28,7 +33,12 @@ export function BarcodeScanner({ onCode, onClose }: { onCode: (code: string) => 
     <div className="bn-barcode-top"><b>{t("Scanează codul de bare")}</b><button type="button" className="bn-barcode-x" aria-label={t("Închide")} onClick={() => onClose()}><X size={22} aria-hidden="true" /></button></div>
     {native !== true && <video ref={video} className="bn-barcode-video" playsInline muted />}
     {native !== true && !error && <div className="bn-barcode-frame" aria-hidden="true" />}
-    {error ? <div className="bn-barcode-msg" role="alert"><p>{t(SCAN_FAILURE_TEXT[error])}</p><div><button type="button" className="sh-scan" onClick={() => setAttempt((n) => n + 1)}>{t("Încearcă din nou")}</button><button type="button" className="sh-link" onClick={() => onClose()}>{t("Scriu cifrele")}</button></div></div>
+    {error ? <div className="bn-barcode-msg" role="alert"><p>{t(SCAN_FAILURE_TEXT[error])}</p><div><button type="button" className="sh-scan" onClick={() => setAttempt((n) => n + 1)}>{t("Încearcă din nou")}</button><button type="button" className="sh-link" onClick={() => setTyping(true)}>{t("Scriu cifrele")}</button></div>
+      {typing && <form className="bn-barcode-digits" onSubmit={(event) => { event.preventDefault(); if (valid) onCode(clean); }}>
+        <label htmlFor="bn-barcode-digits">{t("Cifrele de sub codul de bare")}</label>
+        <input id="bn-barcode-digits" inputMode="numeric" autoComplete="off" autoFocus maxLength={18} placeholder="5941234567890" value={digits} onChange={(event) => setDigits(event.target.value)} />
+        <button type="submit" className="sh-scan" disabled={!valid}>{t("Caută produsul")}</button>
+      </form>}</div>
       : <p className="bn-barcode-hint">{native ? t("Se deschide camera…") : t("Ține codul de bare în cadru. Îl citesc singur.")}</p>}
   </div>, document.body);
 }

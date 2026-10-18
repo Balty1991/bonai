@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
-import { t } from "@/lib/i18n";
+import { linesLabel, productsLabel, t } from "@/lib/i18n";
 
 export type RevealItem = { name: string; amount: number };
 
@@ -45,10 +45,10 @@ export function ReceiptScanAnimation({ thumbs = [], processed = 0, store, second
   const totalShown = items && count > shown;
   const verified = totalShown && total !== undefined && Math.abs(sum - total) < 0.05 && items.length <= SHOWN * 10;
   const log = items
-    ? [<li key="store" className="is-muted"><span>› {store ? t("magazin: {store}", { store }) : t("magazin necunoscut")}</span></li>, <li key="n" className="is-muted"><span>› {t("{count} rânduri citite", { count: items.length })}</span></li>, ...(totalShown && total !== undefined ? [<li key="t"><span>{verified ? t("› suma rândurilor = totalul") : t("› total luat de pe bon")}</span><CountUp value={total} /></li>] : [])]
+    ? [<li key="store" className="is-muted"><span>› {store ? t("magazin: {store}", { store }) : t("magazin necunoscut")}</span></li>, <li key="n" className="is-muted"><span>› {t("{lines} citite", { lines: linesLabel(items.length) })}</span></li>, ...(totalShown && total !== undefined ? [<li key="t"><span>{verified ? t("› suma rândurilor = totalul") : t("› total luat de pe bon")}</span><CountUp value={total} /></li>] : [])]
     : [t("› caut marginile bonului"), t("› îndrept și clarific poza"), t("› recunosc rândurile de text"), t("› potrivesc produsele cu prețurile")].slice(0, Math.min(4, 1 + Math.floor(seconds / 1.5))).slice(-3).map((line) => <li key={line} className="is-muted"><span>{line}</span></li>);
   return <div className="bn-scan" role="status" aria-live="polite" onClick={() => items && doneRef.current?.()}>
-    <p className="bn-scan-title">{items ? <em>{t("Am citit {count} produse", { count: items.length })}</em> : <>{t("Analizez bonul cu")} <em>AI</em></>}</p>
+    <p className="bn-scan-title">{items ? <em>{t("Am citit {products}", { products: productsLabel(items.length) })}</em> : <>{t("Analizez bonul cu")} <em>AI</em></>}</p>
     {thumbs.length > 0 && <ul className="bn-scan-thumbs" aria-label={t("{count} poze", { count: thumbs.length })}>{thumbs.map((src, index) => <li key={src} className={index < processed ? "is-done" : index === processed ? "is-on" : ""}><img src={src} alt="" /><span>{index < processed ? <Check size={11} strokeWidth={3} aria-hidden="true" /> : index + 1}</span></li>)}</ul>}
     <div className="bn-scan-stage" aria-hidden="true">
       <div className="bn-vr">

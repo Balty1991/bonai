@@ -611,9 +611,9 @@ describe("raportul lunii pentru familie", () => {
   it("scrie un text scurt, de trimis familiei", () => {
     const text = formatMonthlyReportShare(monthlyFamilyReport(family(), "2026-09")).replace(/[^\S\n]/g, " ");
     expect(text).toContain("Familia Pop · raportul lunii septembrie 2026");
-    expect(text).toContain("Au rămas 6.889,50 RON (77% din venit)");
-    expect(text).toContain("• Alimente 1.900,50 RON (+300,50 RON)");
-    expect(text).toContain("Cine a cheltuit: Soția 1.900,50 RON · Eu 210 RON");
+    expect(text).toContain("Au rămas 6.889,50 lei (77% din venit)");
+    expect(text).toContain("• Alimente 1.900,50 lei (+300,50 lei)");
+    expect(text).toContain("Cine a cheltuit: Soția 1.900,50 lei · Eu 210 lei");
     expect(text).not.toContain("undefined");
   });
 
@@ -622,7 +622,7 @@ describe("raportul lunii pentru familie", () => {
     expect(report.biggestRise).toBeUndefined();
     const text = formatMonthlyReportShare(report).replace(/[^\S\n]/g, " ");
     expect(text).not.toContain("Față de");
-    expect(text).toContain("• Alimente 1.600 RON\n");
+    expect(text).toContain("• Alimente 1.600 lei\n");
   });
 });
 

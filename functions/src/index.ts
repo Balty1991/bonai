@@ -1404,6 +1404,8 @@ async function readReceiptWithGemini(apiKey: string, images: ReceiptImage[], cat
         contents: [{ role: "user", parts: [...images.map((image) => ({ inline_data: { mime_type: image.mimeType, data: image.data } })), { text: structured ? receiptPrompt(images.length) : `${receiptPrompt(images.length)} ${RECEIPT_JSON_SHAPE}` }] }],
         generationConfig: {
           temperature: 0,
+          // Aceeași poză → același text: numele produselor nu mai variază de la o scanare la alta.
+          seed: 7,
           maxOutputTokens: 8192,
           responseMimeType: "application/json",
           ...(structured ? { responseSchema: receiptSchema } : {}),
@@ -1517,7 +1519,7 @@ async function readReceiptWithClaude(apiKey: string, images: ReceiptImage[], cat
       model,
       max_tokens: 8000,
       // Un bon se citește, nu se rezolvă: fără gândire pe Haiku; pe Sonnet 5.5 (unde „disabled” nu se acceptă), efort mic.
-      ...(model.includes("haiku") ? { thinking: { type: "disabled" as const } } : {}),
+      ...(model.includes("haiku") ? { thinking: { type: "disabled" as const }, temperature: 0 } : {}),
       system: receiptInstruction(categories, images.length),
       messages: [{
         role: "user",

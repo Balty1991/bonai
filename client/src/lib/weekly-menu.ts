@@ -8,10 +8,10 @@ import type { ProductObservation } from "./personal-inflation";
 export type Recipe = { id: string; name: string; ingredients: Array<{ name: string; match: string[] }> };
 
 export const RECIPES: Recipe[] = [
-  { id: "ciorba-legume", name: "Ciorbă de legume", ingredients: [{ name: "cartofi", match: ["cartof"] }, { name: "morcovi", match: ["morcov"] }, { name: "ceapă", match: ["ceapa"] }, { name: "bulion", match: ["bulion", "pasta tomate"] }] },
-  { id: "tocana-cartofi", name: "Tocăniță de cartofi", ingredients: [{ name: "cartofi", match: ["cartof"] }, { name: "ceapă", match: ["ceapa"] }, { name: "ulei", match: ["ulei"] }, { name: "bulion", match: ["bulion", "pasta tomate"] }] },
+  { id: "ciorba-legume", name: "Ciorbă de legume", ingredients: [{ name: "cartofi", match: ["cartof"] }, { name: "morcovi", match: ["morcov"] }, { name: "ceapă", match: ["ceapa"] }, { name: "bulion", match: ["bulion", "pasta tomate", "pasta de tomate"] }] },
+  { id: "tocana-cartofi", name: "Tocăniță de cartofi", ingredients: [{ name: "cartofi", match: ["cartof"] }, { name: "ceapă", match: ["ceapa"] }, { name: "ulei", match: ["ulei"] }, { name: "bulion", match: ["bulion", "pasta tomate", "pasta de tomate"] }] },
   { id: "omleta", name: "Omletă cu legume", ingredients: [{ name: "ouă", match: ["oua", "ou "] }, { name: "ardei", match: ["ardei"] }, { name: "brânză", match: ["branza", "telemea"] }] },
-  { id: "paste-tomate", name: "Paste cu sos de roșii", ingredients: [{ name: "paste", match: ["paste", "spaghete", "penne"] }, { name: "bulion", match: ["bulion", "pasta tomate", "sos tomate"] }, { name: "cașcaval", match: ["cascaval"] }] },
+  { id: "paste-tomate", name: "Paste cu sos de roșii", ingredients: [{ name: "paste", match: ["paste", "spaghete", "penne"] }, { name: "bulion", match: ["bulion", "pasta tomate", "pasta de tomate", "sos tomate", "sos de rosii"] }, { name: "cașcaval", match: ["cascaval"] }] },
   { id: "pui-cuptor", name: "Pulpe de pui la cuptor cu cartofi", ingredients: [{ name: "pulpe de pui", match: ["pulpe", "pui"] }, { name: "cartofi", match: ["cartof"] }, { name: "ulei", match: ["ulei"] }] },
   { id: "fasole", name: "Fasole bătută cu ceapă", ingredients: [{ name: "fasole", match: ["fasole"] }, { name: "ceapă", match: ["ceapa"] }, { name: "ulei", match: ["ulei"] }] },
   { id: "mamaliga", name: "Mămăligă cu brânză și smântână", ingredients: [{ name: "mălai", match: ["malai"] }, { name: "brânză", match: ["branza", "telemea"] }, { name: "smântână", match: ["smantana"] }] },
@@ -29,12 +29,33 @@ const norm = (text: string) => ` ${text.toLocaleLowerCase("ro-RO").normalize("NF
 export type MenuIngredient = { name: string; price?: number; vendor?: string; product?: string; recent: boolean };
 export type MenuDay = { recipe: Recipe; ingredients: MenuIngredient[]; knownCost: number; unknown: number };
 
+/** Cuvinte de început care nu spun ce e produsul: „carne tocată”, „file de pui”, „mix legume”. */
+const GENERIC_HEAD = new Set(["carne", "file", "mix", "set", "pachet", "bax", "produs", "preparat", "de", "din", "cu", "bio", "eco"]);
+
+/**
+ * Substantivul principal al produsului: în română stă la început („Ciocolată cu lapte” e ciocolată,
+ * nu lapte; „Supă de pui” nu e pui). Ingredientul se potrivește doar pe el, nu oriunde în nume.
+ */
+export function ingredientMatches(label: string, match: string[]): boolean {
+  const words = norm(label).trim().split(/[^a-z0-9]+/).filter(Boolean);
+  let i = 0;
+  while (i < words.length - 1 && GENERIC_HEAD.has(words[i])) i += 1;
+  const head = words[i] || "";
+  const phrase = words.slice(i).join(" ");
+  return match.some((raw) => {
+    const m = raw.trim();
+    if (!m) return false;
+    if (m.includes(" ")) return phrase.startsWith(m) || words.join(" ").startsWith(m);
+    // „ou” scurt: doar cuvântul întreg; altfel rădăcina („cartof” → cartofi, „morcov” → morcovi).
+    return m.length <= 2 ? head === m : head.startsWith(m);
+  });
+}
+
 /** Ultimul preț plătit pe un ambalaj, din bonurile tale, pentru primul produs care se potrivește. */
 function priceFor(match: string[], observations: ReadonlyArray<ProductObservation>, since: string) {
   let best: ProductObservation | undefined;
   for (const o of observations) {
-    const label = norm(`${o.brand || ""} ${o.label}`);
-    if (!match.some((m) => label.includes(m))) continue;
+    if (!ingredientMatches(o.label, match)) continue;
     if (!best || o.date > best.date) best = o;
   }
   return best ? { price: best.piecePrice, vendor: best.vendor, product: best.label, recent: best.date >= since } : undefined;

@@ -9,6 +9,8 @@ import { pantryFromReceipts } from "./pantry";
 import { weeklyMenu } from "./weekly-menu";
 import { savingsOpportunity } from "./shop-insights";
 import { splitShoppingText } from "./shopping-list";
+import { spendEntries } from "./quick-expense";
+import { linesLabel, looseLabel, receiptsLabel } from "./i18n";
 
 export type RoleId = "detective" | "prices" | "planner" | "chef" | "savings" | "help";
 export type Screen = "scan" | "list" | "prices" | "pantry" | "menu";
@@ -124,23 +126,26 @@ export function runQuery(query: AssistantQuery, data: AppData, today = isoToday(
     const hit = HOWTO.find(([re]) => re.test(query.topic));
     return { text: hit ? hit[1] : "Te pot ajuta cu scanarea, lista, prețurile, stocul, meniul și familia. Întreabă-mă „cum …”.", actions: hit?.[2] ? [{ label: "Deschide", screen: hit[2] }] : [] };
   }
-  if (!receipts.length) return { text: "Încă nu am bonuri din care să calculez. Scanează primul bon și îți răspund cu cifrele tale.", actions: [{ label: "Scanează", screen: "scan" }] };
+  const entries = spendEntries(data);
+  const realIds = new Set(receipts.map((receipt) => receipt.id));
+  if (!entries.length) return { text: "Încă nu am bonuri din care să calculez. Scanează primul bon și îți răspund cu cifrele tale.", actions: [{ label: "Scanează", screen: "scan" }] };
   if (query.type === "spend") {
-    let total = 0; let count = 0; const stores = new Map<string, number>();
-    for (const receipt of receipts) {
+    let total = 0; let count = 0; let loose = 0; const stores = new Map<string, number>();
+    // Totalul include și cheltuielile notate fără bon (taxi, cafea); produsele se caută doar pe bonuri.
+    for (const receipt of query.terms.length ? receipts : entries) {
       if (!inPeriod(receipt.date, query.period, today)) continue;
       if (query.store && !fold(receipt.vendor).includes(query.store)) continue;
       const lines = receipt.lines?.length ? receipt.lines : [];
-      if (!query.terms.length) { total += receipt.amount; count++; stores.set(receipt.vendor, (stores.get(receipt.vendor) || 0) + receipt.amount); continue; }
+      if (!query.terms.length) { total += receipt.amount; if (realIds.has(receipt.id)) count++; else loose++; stores.set(receipt.vendor, (stores.get(receipt.vendor) || 0) + receipt.amount); continue; }
       for (const line of lines) {
         if (!(line.amount > 0) || !(matches(line.label || "", query.terms) || matches(line.category || "", query.terms))) continue;
         total += line.amount; count++; stores.set(receipt.vendor, (stores.get(receipt.vendor) || 0) + line.amount);
       }
     }
     const what = query.terms.length ? `pe ${query.label || query.terms.slice(0, 3).join(", ")}` : "în total";
-    if (!count) return { text: `Nu găsesc nimic ${what} ${PERIOD_TEXT[query.period]} în bonurile tale.`, actions: [{ label: "Prețuri", screen: "prices" }] };
+    if (!count && !loose) return { text: `Nu găsesc nimic ${what} ${PERIOD_TEXT[query.period]} în bonurile tale.`, actions: [{ label: "Prețuri", screen: "prices" }] };
     const top = Array.from(stores.entries()).sort((a, b) => b[1] - a[1])[0];
-    return { text: `Ai dat ${lei(Math.round(total * 100) / 100)} ${what} ${PERIOD_TEXT[query.period]} (${count} ${query.terms.length ? "rânduri" : "bonuri"}). Cel mai mult la ${top[0]}: ${lei(Math.round(top[1] * 100) / 100)}.`, actions: [{ label: "Prețuri", screen: "prices" }] };
+    return { text: `Ai dat ${lei(Math.round(total * 100) / 100)} ${what} ${PERIOD_TEXT[query.period]} (${query.terms.length ? linesLabel(count) : [count ? receiptsLabel(count) : "", loose ? looseLabel(loose) : ""].filter(Boolean).join(" și ")}). Cel mai mult la ${top[0]}: ${lei(Math.round(top[1] * 100) / 100)}.`, actions: [{ label: "Prețuri", screen: "prices" }] };
   }
   const observations = productObservations(data);
   if (query.type === "cheapest") {
