@@ -62,7 +62,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     ? offline ? t("Citesc bonul pe telefon, fără internet… {seconds} s", { seconds }) : (shots > 1 ? t("Citesc bonul din {count} capturi… {seconds} s", { count: shots, seconds }) : t("Citesc bonul… {seconds} s", { seconds }))
     : seconds < 30
       ? t("Durează mai mult ca de obicei, serverul e aglomerat… {seconds} s", { seconds })
-      : t("Serverul principal nu răspunde, citește rezerva (Claude)… {seconds} s", { seconds });
+      : t("Durează neobișnuit de mult, încă încerc… {seconds} s", { seconds });
 
   const pick = async (which: "camera" | "gallery", local = false) => {
     if (busy) return;
