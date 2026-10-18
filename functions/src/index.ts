@@ -1152,7 +1152,7 @@ export const appFeedback = onRequest(
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const RECEIPT_DAILY_CAP = Number(process.env.RECEIPT_DAILY_CAP || 1500);
-const RECEIPT_PER_PHONE_DAY = Number(process.env.RECEIPT_PER_PHONE_DAY || 25);
+const RECEIPT_PER_PHONE_DAY = Number(process.env.RECEIPT_PER_PHONE_DAY || 50);
 const RECEIPT_IMAGE_MAX = 5_500_000;
 /** Un bon digital lung vine în mai multe capturi de ecran: cel mult 6, cu totul sub 9 MB. */
 const RECEIPT_IMAGES_MAX = 6;
