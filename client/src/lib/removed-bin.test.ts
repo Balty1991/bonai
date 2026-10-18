@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createEmptyAppData, type AppData, type Transaction } from "./finance-data";
-import { readRemovedBin, recordRemovals, removedBetween, repairSplit, restoreRemoved } from "./removed-bin";
-import { brokenSplits, isSplitPartner } from "./split-payment";
+import { readRemovedBin, recordRemovals, removedBetween, restoreRemoved } from "./removed-bin";
 
 const memory = new Map<string, string>();
 beforeEach(() => {
@@ -35,27 +34,3 @@ describe("„Șterse recent”", () => {
   });
 });
 
-describe("repararea bonului pe două surse", () => {
-  it("aduce din coș partea de voucher, cu bonul și articolele ei", () => {
-    const voucher = tx("a", 12, { splitId: "s", splitTotal: 20.36, source: "Voucher SGR", sourceId: "v", receiptId: "detail-a" });
-    const card = tx("b", 8.36, { splitId: "s", splitTotal: 20.36 });
-    const receipt = { id: "detail-a", vendor: "Exflor", amount: 20.36, category: "Dulciuri", date: "2026-10-08", linkedTransactionId: "a", lines: [{ id: "l1", category: "Dulciuri", amount: 20.36, label: "Kinder" }] };
-    recordRemovals(withTx([voucher, card], [receipt]), withTx([card]));
-    const now = withTx([card]);
-    const [broken] = brokenSplits(now.transactions);
-    const repaired = repairSplit(now, broken, isSplitPartner, () => "new")!;
-    expect(repaired.transactions.map((item) => `${item.id}:${item.amount}`).sort()).toEqual(["a:12", "b:8.36"]);
-    expect(repaired.receipts[0].lines).toHaveLength(1);
-    expect(brokenSplits(repaired.transactions)).toEqual([]);
-  });
-
-  it("fără coș, reface partea din nota veche, pe sursa numită acolo", () => {
-    const note = "Bon de 20,36 RON: 12,00 RON din Voucher SGR și 8,36 RON din Card debit.";
-    const data = withTx([tx("b", 8.36, { note, source: "Card debit" })]);
-    data.settings.paymentSources = [...data.settings.paymentSources, { id: "v", name: "Voucher SGR", kind: "voucher", openingBalance: 40 }];
-    const [broken] = brokenSplits(data.transactions);
-    const repaired = repairSplit(data, broken, isSplitPartner, () => "new")!;
-    expect(repaired.transactions.find((item) => item.id === "new")).toMatchObject({ amount: 12, sourceId: "v", splitId: "new" });
-    expect(brokenSplits(repaired.transactions)).toEqual([]);
-  });
-});

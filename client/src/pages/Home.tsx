@@ -3,7 +3,7 @@
  * First paint: doar Astăzi. Restul ecranelor, sync-ul și formularele se încarcă la cerere.
  */
 import { enrichSavedReceipt } from "@/lib/receipt-products";
-import { storedMove } from "@/lib/split-payment";
+
 import { recordRemovals } from "@/lib/removed-bin";
 import { readAutoBackup, writeAutoBackup } from "@/lib/auto-backup";
 import { saveLiveBackup } from "@/lib/app-storage";
@@ -14,16 +14,16 @@ import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, Search, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
+import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
-import { allocationStatus, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, formatDate, isoToday, newId, type AppData, type Debt, type Receipt, type ReceiptLine, type SavingsGoal, type Transaction } from "@/lib/finance-data";
+import { allocationStatus, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, formatDate, isoToday, newId, type AppData, type Receipt, type ReceiptLine, type Transaction } from "@/lib/finance-data";
 
 
 
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 import { queueReceiptForReview, attachReceiptDetail } from "@/lib/receipt-review";
-import { pendingCelebration } from "@/lib/goal-celebration";
+
 import { safeSetItem } from "@/lib/safe-storage";
 import { closeTopDialog } from "@/hooks/use-focus-trap";
 import { BrandMark } from "@/components/BrandMark";
@@ -44,7 +44,6 @@ import {
   money,
   type MainView,
   type MoreView,
-  ANALYSIS_TOOLS,
 } from "@/pages/home-kit";
 import { markWhatsNewSeen, shouldShowWhatsNew } from "@/lib/theme-default";
 import { markFirstWeekTourSeen, shouldOfferFirstWeekTour } from "@/lib/first-week-tour";
@@ -67,12 +66,11 @@ import { FAMILIE_OPEN_EVENT } from "@/lib/entitlements";
 import { isNativeApp } from "@/lib/app-storage";
 import { buildUndoSave } from "@/lib/undo-delete";
 import { formatInvite, parseInvite, takeInviteFromLocation } from "@/lib/family-invite";
-import { openHouseholdGuide } from "@/pages/TodayView";
+const openHouseholdGuide = () => window.dispatchEvent(new CustomEvent("buget-familie:open-guide"));
 
 import { reloadToNewVersion, useUpdateAvailable } from "@/lib/update-check";
 import { labelWithQty } from "@/lib/receipt-review-model";
 
-export { recentActivityMoves } from "@/pages/TodayView";
 
 const ReceiptReview = lazy(safeImport(() => import("@/components/ReceiptReview").then((module) => ({ default: module.ReceiptReview }))));
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
@@ -199,76 +197,26 @@ export default function Home() {
     if (secondaryModule?.isMoreTabWarm(tab)) { moreReady.current = Promise.resolve(); setMoreNow(tab); return; }
     moreReady.current = loadSecondary().then((module) => module.preloadMoreTab(tab)).catch(() => undefined).then(() => { if (seq === moreSeq.current) setMoreNow(tab); });
   }, []);
-  const showTools = useCallback(() => { const seq = ++goSeq.current; void moreReady.current.then(() => { if (seq === goSeq.current) setView("utilities"); }); }, []);
   /** Ecranul de unde s-a deschis un instrument, ca „Înapoi” să ducă tot acolo (testare, #6). */
   const [moreReturn, setMoreReturn] = useState<{ view: MainView; label: string } | null>(null);
-  const [, setQuickActionsOpen] = useState(false);
   const [guideOn, setGuideOn] = useState(false);
+  const openScanRef = useRef<() => void>(() => undefined);
+  const openTxRef = useRef<() => void>(() => undefined);
   const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts" | "receipts" | "costs">();
   const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | null>(null);
-  const [, setQuickTemplateId] = useState<string | undefined>(undefined);
-  const [, setQuickKind] = useState<"income" | undefined>(undefined);
-  const [, setQuickMoving] = useState(false);
-  const [, setQuickVoice] = useState(false);
-  const [, setPaydayOpen] = useState(false);
-  const [, setWeekCloseOpen] = useState(false);
   useEffect(() => {
-    // „Închide săptămâna”: restul plicurilor și soldul, duminică seara sau luni.
-    const openWeekClose = () => setWeekCloseOpen(true);
-    window.addEventListener("buget-familie:open-week-close", openWeekClose);
-    return () => window.removeEventListener("buget-familie:open-week-close", openWeekClose);
-  }, []);
-  useEffect(() => {
-    // „A intrat salariul”: venitul, luna nouă, plicurile și ratele, într-un singur ecran.
-    const openPayday = () => setPaydayOpen(true);
-    window.addEventListener("buget-familie:open-payday", openPayday);
-    return () => window.removeEventListener("buget-familie:open-payday", openPayday);
-  }, []);
-  useEffect(() => {
-    // „Notează salariul” de pe Astăzi: formularul rapid, direct pe Venit.
-    const openIncome = () => { setQuickTemplateId(undefined); setQuickKind("income"); setModal("quick"); };
-    window.addEventListener("buget-familie:open-income", openIncome);
-    return () => window.removeEventListener("buget-familie:open-income", openIncome);
-  }, []);
-  useEffect(() => {
-    // Lista de cumpărături: „Notează plata” deschide formularul rapid pe Alimente (implicit).
-    const openExpense = () => { setQuickTemplateId(undefined); setQuickKind(undefined); setEditTx(undefined); setModal("quick"); };
-    const openTransfer = () => { setQuickTemplateId(undefined); setQuickKind(undefined); setQuickMoving(true); setModal("quick"); };
-    window.addEventListener("buget-familie:open-transfer", openTransfer);
-    const openShopping = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("shopping"); showTools(); };
+    // Legăturile vechi din aplicație (Astăzi, lista) duc acum la echivalentul BonAI.
+    const openExpense = () => window.dispatchEvent(new Event("bonai:open-manual"));
+    const openShopping = () => go("list");
     window.addEventListener("buget-familie:open-expense", openExpense);
-    const openTrip = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("trip"); showTools(); };
     window.addEventListener("buget-familie:open-shopping", openShopping);
-    window.addEventListener("buget-familie:open-trip", openTrip);
-    const openAfford = () => setAffordOpen(true);
-    const openAdvisor = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("advisor"); showTools(); };
-    window.addEventListener("buget-familie:open-advisor", openAdvisor);
-    const openYearPlan = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("year-plan"); showTools(); };
-    window.addEventListener("buget-familie:open-year-plan", openYearPlan);
-    const openCharts = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("charts"); showTools(); };
-    window.addEventListener("buget-familie:open-charts", openCharts);
-    // Din Analiză: raportul lunii, graficele, tendințele, calendarul și planul pe 12 luni; „Înapoi” duce tot în Analiză.
-    const openAnalysisTool = (event: Event) => { const tab = (event as CustomEvent<MoreView>).detail; if (!ANALYSIS_TOOLS.includes(tab)) return; setMoreReturn({ view: "insights", label: t("Înapoi la Analiză") }); setMore(tab); showTools(); };
-    window.addEventListener("buget-familie:open-analysis-tool", openAnalysisTool);
-    window.addEventListener("buget-familie:open-afford", openAfford);
-    return () => { window.removeEventListener("buget-familie:open-expense", openExpense); window.removeEventListener("buget-familie:open-charts", openCharts); window.removeEventListener("buget-familie:open-analysis-tool", openAnalysisTool); window.removeEventListener("buget-familie:open-shopping", openShopping); window.removeEventListener("buget-familie:open-trip", openTrip); window.removeEventListener("buget-familie:open-afford", openAfford); window.removeEventListener("buget-familie:open-transfer", openTransfer); window.removeEventListener("buget-familie:open-advisor", openAdvisor); window.removeEventListener("buget-familie:open-year-plan", openYearPlan); };
+    return () => { window.removeEventListener("buget-familie:open-expense", openExpense); window.removeEventListener("buget-familie:open-shopping", openShopping); };
   }, []);
-  useEffect(() => {
-    const openEvents = () => { setMoreReturn({ view: "today", label: t("Înapoi la Astăzi") }); setMore("events"); showTools(); };
-    window.addEventListener("buget-familie:open-events", openEvents);
-    return () => window.removeEventListener("buget-familie:open-events", openEvents);
-  }, []);
-  useEffect(() => { if (modal !== "quick") { setQuickKind(undefined); setQuickMoving(false); } }, [modal]);
-  const [, setEditTx] = useState<Transaction>();
   const [scanPrefill, setScanPrefill] = useState<ScanPrefill>();
-  const [, setEditGoal] = useState<Debt | SavingsGoal>();
   const receiptStorageNotice = "";
   const legacyReceiptMigrationStarted = useRef(false);
   const setupOffered = useRef(setupOpen);
   // Obiectiv atins: o felicitare pe obiectiv, pe telefonul acesta.
-  const [, setAffordOpen] = useState(false);
-  const [, setCelebrate] = useState<SavingsGoal | undefined>(undefined);
-  useEffect(() => { const goal = pendingCelebration(data.savings, typeof window !== "undefined" ? window.localStorage : undefined); if (goal) setCelebrate(goal); }, [data.savings]);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false); const [firstWeekTourOpen, setFirstWeekTourOpen] = useState(false);
   const {
     activeTheme, setTheme,
@@ -294,7 +242,7 @@ export default function Home() {
   const scrollKey = view === "utilities" ? `utilities:${more}` : view;
   const scrollKeyNow = useRef(scrollKey);
   useLayoutEffect(() => { scrollKeyNow.current = scrollKey; const main = document.getElementById("main-content"); const top = scrollKey === "utilities:overview" ? scrollMemo.current[scrollKey] || 0 : 0; if (main && main.scrollTop !== top) main.scrollTop = top; enterScreen(main); if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, [scrollKey]);
-  useEffect(() => { const main = document.getElementById("main-content"); if (!main) return; const remember = () => { if (scrollKeyNow.current === scrollKey) scrollMemo.current[scrollKey] = main.scrollTop; }; main.addEventListener("scroll", remember, { passive: true }); return () => main.removeEventListener("scroll", remember); }, [scrollKey]); useEffect(() => { const onKeyDown = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setQuickActionsOpen((open) => !open); } if (event.key === "Escape") setQuickActionsOpen(false); }; window.addEventListener("keydown", onKeyDown); return () => window.removeEventListener("keydown", onKeyDown); }, []); useEffect(() => { const replay = () => setOnboardingOpen(true); const replaySetup = () => setSetupOpen(true); const openTutorial = () => { setMore("guide"); go("utilities"); }; window.addEventListener("buget-familie:replay-onboarding", replay); window.addEventListener("buget-familie:replay-setup", replaySetup); window.addEventListener("buget-familie:open-usage-tutorial", openTutorial); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0) || Boolean(data.settings.salaryPlan.nextPayday); if (hasStarted && !window.localStorage.getItem("buget-familie:setup-complete")) safeSetItem(window.localStorage, "buget-familie:setup-complete", "true"); if (storageReady && !window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted && !setupOffered.current) { setupOffered.current = true; safeSetItem(window.localStorage, "buget-familie:onboarding-complete", "true"); setSetupOpen(true); } return () => { window.removeEventListener("buget-familie:replay-onboarding", replay); window.removeEventListener("buget-familie:replay-setup", replaySetup); window.removeEventListener("buget-familie:open-usage-tutorial", openTutorial); }; }, [storageReady, data.transactions.length, data.settings.salaryPlan.allocations.length, data.debts.length, data.savings.length, data.settings.paymentSources, data.settings.salaryPlan.nextPayday]);
+  useEffect(() => { const main = document.getElementById("main-content"); if (!main) return; const remember = () => { if (scrollKeyNow.current === scrollKey) scrollMemo.current[scrollKey] = main.scrollTop; }; main.addEventListener("scroll", remember, { passive: true }); return () => main.removeEventListener("scroll", remember); }, [scrollKey]);  useEffect(() => { const replay = () => setOnboardingOpen(true); const replaySetup = () => setSetupOpen(true); const openTutorial = () => { setMore("guide"); go("utilities"); }; window.addEventListener("buget-familie:replay-onboarding", replay); window.addEventListener("buget-familie:replay-setup", replaySetup); window.addEventListener("buget-familie:open-usage-tutorial", openTutorial); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0) || Boolean(data.settings.salaryPlan.nextPayday); if (hasStarted && !window.localStorage.getItem("buget-familie:setup-complete")) safeSetItem(window.localStorage, "buget-familie:setup-complete", "true"); if (storageReady && !window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted && !setupOffered.current) { setupOffered.current = true; safeSetItem(window.localStorage, "buget-familie:onboarding-complete", "true"); setSetupOpen(true); } return () => { window.removeEventListener("buget-familie:replay-onboarding", replay); window.removeEventListener("buget-familie:replay-setup", replaySetup); window.removeEventListener("buget-familie:open-usage-tutorial", openTutorial); }; }, [storageReady, data.transactions.length, data.settings.salaryPlan.allocations.length, data.debts.length, data.savings.length, data.settings.paymentSources, data.settings.salaryPlan.nextPayday]);
   useEffect(() => {
     if (!storageReady || onboardingOpen || setupOpen || appMode === "shop") return;
     const started = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0;
@@ -553,24 +501,24 @@ export default function Home() {
   };
   const openTx = (item?: Transaction) => {
     // În BonAI, „notează de mână” e același ecran de bon, gol: fără surse, plicuri sau venituri.
-    if (!item && appMode === "shop" && !memberModeActive) { setEditTx(undefined); setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); return; }
-    setEditTx(item ? storedMove(data.transactions, item) : item); setModal(item ? "transaction" : "quick");
+    if (!item && !memberModeActive) { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); return; }
   };
   // Widgetul și dala din Setări rapide deschid direct ecranul cerut, fără pași intermediari.
   useEffect(() => observeQuickActions((action) => {
-    if (action === "receipt") { setModal("receipt"); return; }
-    // Scurtăturile de pe iconița aplicației: „Spune” deschide Notează și pornește microfonul.
-    if (action === "voice") { setQuickTemplateId(undefined); setEditTx(undefined); setQuickVoice(true); setModal("quick"); return; }
-    if (action === "shopping") { window.dispatchEvent(new Event("buget-familie:open-shopping")); return; }
-    if (action === "expense") { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); return; }
-    if (typeof action === "object" && action.kind === "template") {
-      setQuickTemplateId(action.templateId);
-      setEditTx(undefined);
-      setModal("quick");
-      return;
-    }
-    go("today");
+    // Widgetul și dalele din Setări rapide: bon → scanare, notat de mână → bon gol, voce → asistent, listă → Cumpărături.
+    if (action === "receipt") { window.dispatchEvent(new Event("bonai:open-scan")); return; }
+    if (action === "voice") { setGuideOn(true); return; }
+    if (action === "shopping") { go("list"); return; }
+    if (action === "expense" || (typeof action === "object" && action.kind === "template")) { window.dispatchEvent(new Event("bonai:open-manual")); return; }
+    go("shop");
   }), []);
+  useEffect(() => {
+    const scan = () => openScanRef.current();
+    const manual = () => openTxRef.current();
+    window.addEventListener("bonai:open-scan", scan);
+    window.addEventListener("bonai:open-manual", manual);
+    return () => { window.removeEventListener("bonai:open-scan", scan); window.removeEventListener("bonai:open-manual", manual); };
+  }, []);
   // Ecranul protejat (Setări → Securitate) se reaplică la fiecare pornire a aplicației.
   useEffect(() => { void applySecureScreen(); if (readDynamicColor()) void applyDynamicColor(); }, []);
   useEffect(() => {
@@ -666,7 +614,9 @@ export default function Home() {
     setSetupOpen(false);
     go("shop");
   };
-  const openScan = () => { setEditTx(undefined); setScanPrefill(undefined); setModal("scan"); };
+  const openScan = () => { setScanPrefill(undefined); setModal("scan"); };
+  openScanRef.current = openScan;
+  openTxRef.current = () => openTx();
   // Schimbarea aplicației (Casa → Buget vechi și înapoi) duce pe ecranul de start al celei alese.
   useEffect(() => {
     const shopViews: MainView[] = ["shop", "list", "products", "stores", "house"];
@@ -688,7 +638,7 @@ export default function Home() {
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
     if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenCosts={setCostsKind} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
-    if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenDebt={() => { setEditGoal(undefined); setModal("debt"); }} onOpenSaving={() => { setEditGoal(undefined); setModal("saving"); }} onEditDebt={(item) => { setEditGoal(item); setModal("debt"); }} onEditSaving={(item) => { setEditGoal(item); setModal("saving"); }} onPayDebt={(item) => { setEditGoal(item); setModal("debt-payment"); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
+    if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={deleteReceipt} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
     return null;
   };
   return <div className={"bf-app os-shell" + ((setupOpen && !shopMode) || onboardingOpen ? " is-setup" : "")}>
@@ -699,7 +649,7 @@ export default function Home() {
     {!online && <div className="bf-offline-banner" role="status" aria-live="polite"><CloudOff size={15} aria-hidden="true" /><span>{syncPanelProps.connected ? t("Fără conexiune — modificările rămân pe telefon și se trimit la reconectare.") : t("Fără conexiune — lucrezi local pe acest telefon.")}</span></div>}
     {syncPanelProps.stopped && !onSyncScreen && <div className="bf-offline-banner bf-sync-off-banner" role="status" aria-live="polite"><CloudOff size={15} aria-hidden="true" /><span>{t("Sincronizarea familiei e oprită pe acest telefon. Ce notezi nu ajunge la ceilalți.")}</span><button type="button" onClick={() => { setMore("sync"); go("utilities"); }}>{t("Reconectează")}</button></div>}
     {syncPanelProps.needsSelfChoice && syncPanelProps.connected && !onSyncScreen && !memberModeActive && <div className="bf-offline-banner bf-sync-off-banner" role="status"><Users size={15} aria-hidden="true" /><span>{t("Spune-ne cine ești pe acest telefon, ca cheltuielile tale să nu apară pe altcineva.")}</span><button type="button" onClick={() => { setMore("sync"); go("utilities"); }}>{t("Alege")}</button></div>}
-    <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("today")}><BrandMark /><span className="os-brand-copy bn-wordmark"><b>Bon</b><i>AI</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={17} aria-hidden="true" /><span>{t("Notează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools">{!shopMode && <button className="os-tool" aria-label={t("Deschide acțiunile rapide")} title={t("Acțiuni rapide · Ctrl K")} onPointerDown={() => void import("@/pages/QuickActionsPalette")} onClick={() => setQuickActionsOpen(true)}><Search size={17} /></button>}{!shopMode && <button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button>}<button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onClick={() => { setQuickTemplateId(undefined); setEditTx(undefined); setModal("quick"); }}><Plus size={20} aria-hidden="true" /><span>{t("Notează")}</span></button>}
+    <header className="bf-appbar os-appbar"><button className="os-brand" onClick={() => go("shop")}><BrandMark /><span className="os-brand-copy bn-wordmark"><b>Bon</b><i>AI</i></span></button>{!memberModeActive && <button type="button" className="os-desktop-add" onClick={openScan}><ScanLine size={17} aria-hidden="true" /><span>{t("Scanează")}</span></button>}<nav className="os-desktop-nav" aria-label={t("Navigație principală")}>{nav.map((item) => { const Icon = item.icon; return <button key={item.id} className={view === item.id ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerEnter={() => preloadView(item.id)} onPointerDown={() => { preloadView(item.id); void ensureDeferredStyles(); }} onClick={() => go(item.id)}><Icon size={17} aria-hidden="true" /><span>{item.label}</span></button>; })}</nav>{!memberModeActive && <div className="os-tools">{!shopMode && <button className={view === "utilities" ? "os-tool is-on" : "os-tool"} aria-label={data.pendingReview.length ? t("Deschide instrumentele · {count} de verificat", { count: data.pendingReview.length }) : t("Deschide instrumentele")} onPointerDown={() => { preloadView("utilities"); void ensureDeferredStyles(); }} onClick={() => go("utilities")}><MoreHorizontal size={19} />{data.pendingReview.length > 0 && <span className="bf-nav-count" aria-hidden="true">{data.pendingReview.length}</span>}</button>}<button className="os-tool" aria-label={t("Deschide ghidul")} onClick={openHouseholdGuide}><MessagesSquare size={17} /></button></div>}</header>{!memberModeActive && <button type="button" className="os-tablet-add" onClick={openScan}><ScanLine size={20} aria-hidden="true" /><span>{t("Scanează")}</span></button>}
     {demo && !setupOpen && <aside className="bf-demo-banner" role="status"><span><b>{t("Familie exemplu")}</b> · {t("datele sunt inventate")}</span><button type="button" className="bf-primary" onClick={() => void leaveDemo()}>{t("Încep cu datele mele")}</button></aside>}
     <main id="main-content" key={today} className={(setupOpen && !shopMode) || onboardingOpen ? "is-setup-main" : undefined}>{setupOpen ? (shopMode ? <Suspense fallback={null}><ShopWelcome onScan={() => { finishShopWelcome(); openScan(); }} onList={() => { finishShopWelcome(); go("list"); }} onJoin={() => { finishShopWelcome(); setMore("sync"); go("utilities"); }} onSkip={finishShopWelcome} /></Suspense> : null) : memberModeActive ? <MemberModeScreen data={data} memberId={memberMode} onChange={applyData} /> : current()}</main>
     {undo && (
@@ -731,7 +681,7 @@ export default function Home() {
     
     
     
-    {modal === "scan" && !memberModeActive && shopMode && createPortal(<div className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={() => setModal(null)}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll"><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setEditTx(undefined); setScanPrefill(prefill); setModal("review"); }} /></Suspense></div></div>, document.body)}
+    {modal === "scan" && !memberModeActive && shopMode && createPortal(<div className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={() => setModal(null)}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll"><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></div></div>, document.body)}
     
     {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
       // Bonul nou: o cheltuială simplă (fără plic, fără alegerea sursei), cu rândurile verificate. Aceeași formă ca înainte, deci sincronizarea rămâne compatibilă.

@@ -7,7 +7,6 @@
 import { expect, vi } from "vitest";
 import { allocationBudget, allocationSpent, allocationStatus, allocationWeeksStatus, debtsOutsideTrackedMoney, pendingDebtsInPlan, planAllocationMath, planPeriodTransactions, reservedDebtsInPlan, sourceBalance, type AppData } from "../finance-data";
 import { liquidSafeToSpend, todayBrief, weeklyEnvelopeDailyRhythm } from "../household-insights";
-import { buildTodaySummary } from "../today-summary";
 
 /** Ziua verificată, la prânz: plicurile pe săptămâni citesc și ceasul, nu doar data primită. */
 export const atNoon = (day: string) => {
@@ -82,8 +81,5 @@ export const checkInvariants = (data: AppData, day: string) => {
   expect(reserved.filter((id) => outside.includes(id)), where("rată și rezervată, și în afara banilor notați")).toEqual([]);
   expect(reserved.length + outside.length, where("rate pierdute între rezervate și cele din afară")).toBe(pendingDebtsInPlan(data).length);
 
-  // 10. Ecranul Astăzi: suma mare e un număr și nu are semn de minus în față.
-  const summary = buildTodaySummary(data, day);
-  finite(where("heroValue"), summary.heroValue);
   return { brief, rhythm };
 };

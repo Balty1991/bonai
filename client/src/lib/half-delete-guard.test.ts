@@ -60,12 +60,7 @@ describe("telefonul cu o versiune veche", () => {
 });
 
 describe("transferul între surse", () => {
-  it("se șterge cu ambele jumătăți", async () => {
-    const { splitGroupIds } = await import("./split-payment");
-    const out: Transaction = { id: "t-out", title: "Mutat în Card", amount: 14, kind: "expense", category: "Transfer", source: "Cash", person: "Alin", date: "2026-10-09", transferId: "tr" };
-    const into: Transaction = { ...out, id: "t-in", kind: "income", title: "Mutat din Cash", source: "Card" };
-    expect(splitGroupIds([out, into], "t-out").sort()).toEqual(["t-in", "t-out"]);
-  });
+
 
   it("o jumătate ștearsă de pe alt telefon rămâne", () => {
     const out: Transaction = { id: "t-out", title: "Mutat în Card", amount: 14, kind: "expense", category: "Transfer", source: "Cash", person: "Alin", date: "2026-10-09", transferId: "tr", updatedAt: "2026-10-08T21:56:13.771Z" };

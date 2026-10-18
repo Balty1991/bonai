@@ -10,7 +10,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { warmLazy } from "@/lib/lazy-safe";
 import { recapReady, recapYearFor, yearRecap } from "@/lib/year-recap";
 import { ChevronLeft } from "lucide-react";
-import { createEmptyAppData, isoToday, type AppData, type Debt, type Receipt, type SavingsGoal } from "@/lib/finance-data";
+import { createEmptyAppData, isoToday, type AppData, type Receipt } from "@/lib/finance-data";
 import { clearReceiptImageStorage } from "@/lib/receipt-storage";
 
 import {
@@ -46,7 +46,7 @@ export const preloadMoreTab = (tab: MoreView): Promise<void> => warmTabs.has(tab
   : Promise.all((TAB_PANELS[tab] || []).map((panel) => typeof panel === "function" ? panel() : warmLazy(panel))).then(() => { warmTabs.add(tab); }, () => undefined);
 export const MORE_TABS = Object.keys(TAB_PANELS) as MoreView[];
 
-export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, onSaveReceipt, onOpenCalendar: _onOpenCalendar, sync }: { backTo?: { label: string; go: () => void }; tab: MoreView; setTab: (value: MoreView) => void; data: AppData; onChange: (value: AppData) => void; onAddReceipt: () => void; onSaveReceipt: (item: Receipt) => void; onDeleteReceipt: (id: string) => void; onOpenDebt: () => void; onOpenSaving: () => void; onOpenCalendar: () => void; onEditDebt?: (item: Debt) => void; onEditSaving?: (item: SavingsGoal) => void; onPayDebt?: (item: Debt) => void; onGo?: (view: MainView) => void; receiptStorageNotice?: string; sync: SyncPanelProps }) {
+export function MoreView({ backTo, tab, setTab, data, onChange, onAddReceipt, onSaveReceipt, onOpenCalendar: _onOpenCalendar, sync }: { backTo?: { label: string; go: () => void }; tab: MoreView; setTab: (value: MoreView) => void; data: AppData; onChange: (value: AppData) => void; onAddReceipt: () => void; onSaveReceipt: (item: Receipt) => void; onDeleteReceipt: (id: string) => void; onOpenCalendar: () => void; onGo?: (view: MainView) => void; receiptStorageNotice?: string; sync: SyncPanelProps }) {
   if (!["catalog", "review", "warranties", "settings", "feedback", "sync"].includes(tab)) tab = "settings";
   const [simpleMode, setSimpleModeState] = useState(() => {
     try { return window.localStorage.getItem("buget-familie:simple-mode") === "1"; } catch { return false; }

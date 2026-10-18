@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData, allocationStatus } from "./finance-data";
 import { acceptRecurringPrice, ageOfMoney, ageOfMoneyLine, analysisCompareWindow, calendarPace, calendarPaceLine, detectSubscriptions, envelopeBurnPace, extendRunOutMove, formatWeeklyCheckInShare, householdActivity, householdActivityInCycle, lastDaysPulse, mealRunway, mealRunwayLine, monthlyRecap, nextTrueExpense, paydayTrack, pocketSlices, recurringFromDetection, recurringPriceChanges, repeatedOverLine, savingsSuggestion, monthlySurplus, envelopeRunOut, monthlyFamilyReport, formatMonthlyReportShare, subscriptionSpend, safeSpendBreakdown, todayBrief, trackModeHero, weeklyCheckIn, weeklyDigestHeadline, weeklyEnvelopeDailyRhythm, dayStripFigure, stripLei, envelopeUntilPayday, weekVersusLast, weekVersusLastLine } from "./household-insights";
-import { buildTodaySummary } from "./today-summary";
 
 const base = () => {
   const data = createEmptyAppData();
@@ -358,39 +357,6 @@ describe("analize de gospodărie", () => {
     expect(rhythm.days.every((item) => item.left === rhythm.todayShare)).toBe(true);
   });
 
-
-  it("perioada începută miercuri: prima săptămână e miercuri–duminică, apoi luni–duminică", () => {
-    const { data, source } = base();
-    source.openingBalance = 5000;
-    data.settings.salaryPlan.periodStart = "2026-09-23";
-    data.settings.salaryPlan.nextPayday = "2026-10-15";
-    data.settings.salaryPlan.sourceIds = [source.id];
-    data.settings.salaryPlan.allocations = [
-      { id: "food", label: "Alimente", category: "Alimente", amount: 1500, sourceId: source.id, weeklyPace: true },
-    ];
-    const asOf = "2026-09-23";
-    const rhythm = weeklyEnvelopeDailyRhythm(data, asOf);
-    expect(rhythm.days.map((row) => row.day)).toEqual([
-      "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-26", "2026-09-27",
-    ]);
-    expect(rhythm.remainingDays).toBe(5);
-    const summary = buildTodaySummary(data, asOf);
-    expect(summary.rhythmNote).toMatch(/duminică/i);
-
-    data.transactions.push({
-      id: "lidl", title: "Lidl", amount: 250.5, kind: "expense", category: "Alimente",
-      sourceId: source.id, source: source.name, memberId: "member-me", person: "Eu", date: asOf, allocationId: "food",
-    });
-    const after = weeklyEnvelopeDailyRhythm(data, asOf);
-    const afterSummary = buildTodaySummary(data, asOf);
-    const boxes = after.days.reduce((sum, row) => sum + (row.isToday || row.isFuture ? row.left : 0), 0);
-    expect(boxes).toBeCloseTo(after.remaining, 1);
-    expect(after.days.filter((row) => row.day > asOf)).toHaveLength(4);
-    expect(after.days.some((row) => row.day === "2026-09-28")).toBe(false);
-    expect(afterSummary.heroValue).toBeCloseTo(afterSummary.brief.spendable, 2);
-    expect(afterSummary.heroHint).toContain(stripLei(after.remaining, "ro-RO"));
-    expect(afterSummary.rhythmNote).toMatch(/duminică/i);
-  });
 });
 
 describe("fereastra de comparație Analiză", () => {
