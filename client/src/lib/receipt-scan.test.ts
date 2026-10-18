@@ -235,3 +235,38 @@ describe("produs gratuit cu Lidl Plus (14 oct)", () => {
     }
   });
 });
+
+describe("reducerile pe rând separat (regresia 2.0.2)", () => {
+  const base = { store: "Mega Image", date: "2026-10-16", confidence: "high" as const, payments: [] };
+  it("nu scade de două ori când modelul a pus deja reducerea pe articol (Mega Image: lipseau 1,09 lei)", () => {
+    const receipt: ScannedReceipt = { ...base, total: 75.61, items: [
+      { name: "Biscuiți sărați Gold Fish 38 g", quantity: 1, amount: 4.85, category: "Dulciuri" },
+      { name: "Napolitane Joe 40 g", quantity: 1, amount: 5.26, discount: 1.09, category: "Dulciuri" },
+      { name: "My Mega", quantity: 1, amount: -1.09, category: "Altele" },
+      { name: "Iaurt grecesc 10%", quantity: 1, amount: 65.5, category: "Alimente" },
+    ] } as ScannedReceipt;
+    const prefill = scanToPrefill(receipt, family(), "m1", "2026-10-16");
+    expect(prefill.lines.reduce((sum, line) => sum + line.amount, 0)).toBeCloseTo(75.61, 2);
+    expect(prefill.lines[1]).toMatchObject({ amount: 5.26, discount: 1.09 });
+  });
+  it("lipește rândul „-x,xx” de articol când așa iese totalul", () => {
+    const receipt: ScannedReceipt = { ...base, total: 18.5, items: [
+      { name: "Cafea 250 g", quantity: 1, amount: 15.99, category: "Alimente" },
+      { name: "Kaufland Card", quantity: 1, amount: -2.49, category: "Altele" },
+      { name: "Pâine", quantity: 1, amount: 5, category: "Alimente" },
+    ] } as ScannedReceipt;
+    const prefill = scanToPrefill(receipt, family(), "m1", "2026-10-16");
+    expect(prefill.lines.map((line) => line.amount)).toEqual([13.5, 5]);
+    expect(prefill.lines[0].discount).toBe(2.49);
+  });
+  it("blocul „TOTAL REDUCERI” de la final nu mai scade nimic", () => {
+    const receipt: ScannedReceipt = { ...base, total: 20, items: [
+      { name: "Lapte", quantity: 1, amount: 8, discount: 1, category: "Alimente" },
+      { name: "Ouă", quantity: 1, amount: 12, discount: 2, category: "Alimente" },
+      { name: "TOTAL REDUCERI", quantity: 1, amount: -3, category: "Altele" },
+    ] } as ScannedReceipt;
+    const prefill = scanToPrefill(receipt, family(), "m1", "2026-10-16");
+    expect(prefill.lines.map((line) => line.amount)).toEqual([8, 12]);
+    expect(prefill.discount).toBe(3);
+  });
+});

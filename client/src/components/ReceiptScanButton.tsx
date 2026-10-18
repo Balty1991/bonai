@@ -105,8 +105,11 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
         {pending.length < RECEIPT_SHOTS_MAX && <button type="button" className="bf-secondary" onClick={() => cameraRef.current?.click()}><Camera size={16} aria-hidden="true" /> {t("Mai fă o poză")}</button>}
         <button type="button" className="bf-link-button" onClick={() => setPending([])}>{t("Renunță")}</button>
       </div>
-    </div> : reveal ? <ReceiptScanAnimation photo={photo} seconds={0} items={reveal.items} total={reveal.total} onDone={() => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); }} />
-    : busy ? <><ReceiptScanAnimation photo={photo} seconds={seconds} /><p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p></> : hub ? (() => {
+    </div> : (busy || reveal) ? <>
+      {/* O singură animație montată de la poză până la rezultat: raza nu repornește la fiecare secundă. */}
+      <ReceiptScanAnimation key="scan-anim" photo={photo} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); } : undefined} />
+      {busy && !reveal && <p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p>}
+    </> : hub ? (() => {
       const month = isoToday().slice(0, 7);
       const used = data.receipts.filter((receipt) => receipt.date.startsWith(month)).length;
       const free = currentBonutPlan(data, isoToday()) === "free";

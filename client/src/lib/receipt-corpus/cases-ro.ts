@@ -76,4 +76,15 @@ export const corpusRo: CorpusCase[] = [
   // Linii de reducere tipărite separat (negative), pe care modelul le întoarce ca rânduri proprii
   rc("lidl-linie-reducere-negativa", "Lidl", "2026-10-17", [["Brânză Gouda 300g", 1, 15.99, "Alimente"], ["Reducere", 1, -4, "Alimente"], ["Lapte 1L", 1, 6.49, "Alimente"]], 18.48, "card", { count: 2, discount: 4 }),
   rc("kaufland-doua-linii-negative", "Kaufland", "2026-10-17", [["Cafea 500g", 1, 32.99, "Alimente"], ["Discount K-Card", 1, -6.6, "Alimente"], ["Ciocolată", 2, 11.98, "Dulciuri"], ["Reducere", 1, -2, "Dulciuri"]], 36.37, "card", { count: 2, discount: 8.6 }),
+  // Toate formatele de reducere din RO (modelul le dă ca rânduri negative) și dubla raportare
+  rc("mega-my-mega-dublu", "Mega Image", "2026-10-16", [["Biscuiți 38g", 1, 4.85, "Dulciuri"], ["Napolitane 40g", 1, 5.26, "Dulciuri", 1.09], ["My Mega", 1, -1.09, "Altele"], ["Iaurt grecesc", 1, 65.5, "Alimente"]], 75.61, "card", { count: 3, discount: 1.09 }),
+  rc("mega-image-card", "Mega Image", "2026-10-15", [["Ciocolată 100g", 1, 7.49, "Dulciuri"], ["Mega Image Card", 1, -1.5, "Altele"], ["Apă 2L", 1, 3.29, "Băuturi"]], 9.28, "card", { count: 2, discount: 1.5 }),
+  rc("carrefour-card-minus", "Carrefour", "2026-10-15", [["Detergent vase", 1, 12.99, "Casă & facturi"], ["Carrefour Card -2,10", 1, -2.1, "Altele"]], 10.89, "card", { count: 1, discount: 2.1 }),
+  rc("lidl-plus-cupon", "Lidl", "2026-10-15", [["Somon 200g", 1, 24.99, "Alimente"], ["CUPON", 1, -5, "Altele"], ["Lămâi", 1, 3.49, "Alimente"]], 23.48, "card", { count: 2, discount: 5 }),
+  rc("penny-promo-tva-b", "Penny", "2026-10-14", [["Bere 6x0,5L", 1, 29.99, "Băuturi"], ["PROMO B", 1, -6, "Altele"]], 23.99, "cash", { count: 1, discount: 6 }),
+  rc("profi-oferta", "Profi", "2026-10-14", [["Cafea 250g", 1, 19.9, "Alimente"], ["Oferta", 1, -3.9, "Altele"], ["Zahăr 1kg", 1, 4.5, "Alimente"]], 20.5, "card", { count: 2, discount: 3.9 }),
+  rc("auchan-minus-singur", "Auchan", "2026-10-13", [["Ulei măsline 0,5L", 1, 39.9, "Alimente"], ["-8,00", 1, -8, "Altele"]], 31.9, "card", { count: 1, discount: 8 }),
+  rc("kaufland-procent", "Kaufland", "2026-10-13", [["Pulover", 1, 80, "Haine", 16], ["-20%", 1, -16, "Altele"]], 64, "card", { count: 1, discount: 16 }),
+  rc("lidl-total-reduceri-bloc", "Lidl", "2026-10-12", [["Lapte", 1, 8, "Alimente", 1], ["Ouă", 1, 12, "Alimente", 2], ["TOTAL REDUCERI", 1, -3, "Altele"]], 20, "card", { count: 2, discount: 3 }),
+  rc("lidl-pret-vechi-nou", "Lidl", "2026-10-12", [["Unt 200g (Pret vechi 12,99 / Pret nou 9,99)", 1, 9.99, "Alimente", 3]], 9.99, "card", { count: 1, discount: 3 }),
 ];

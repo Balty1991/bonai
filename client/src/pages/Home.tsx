@@ -73,6 +73,7 @@ import { openHouseholdGuide, TodayView as TodayViewRaw } from "@/pages/TodayView
 import { stableView } from "@/lib/stable-view";
 const TodayView = stableView(TodayViewRaw);
 import { reloadToNewVersion, useUpdateAvailable } from "@/lib/update-check";
+import { labelWithQty } from "@/lib/receipt-review-model";
 
 export { recentActivityMoves } from "@/pages/TodayView";
 
@@ -991,8 +992,8 @@ export default function Home() {
       const category = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || scanPrefill.category;
       const now = new Date().toISOString();
       const tx: Transaction = { id: newId("tx"), title: `Bon — ${review.store}`, amount: review.total, kind: "expense", category, sourceId: source?.id, source: source?.name || "", memberId: member?.id, person: member?.name || "", date: review.date, allocationId: "outside", createdAt: now, updatedAt: now };
-      const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: row.label, amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
-      saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: row.label, amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: scanPrefill.store });
+      const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
+      saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: scanPrefill.store });
     }} /></Suspense>}
     {modal === "receipt" && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptForm data={data} onSave={saveReceipt} onClose={() => setModal(null)} /></Suspense>}
     {modal === "debt" && <Suspense fallback={null}><GoalForm data={data} type="debt" item={editGoal} onSave={saveDebt} onClose={() => { setModal(null); setEditGoal(undefined); }} /></Suspense>}

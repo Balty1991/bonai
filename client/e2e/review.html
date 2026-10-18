@@ -1,0 +1,15 @@
+<!doctype html><html lang="ro" data-app="shop"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0"><div id="r"></div>
+<!-- Banc de test pentru e2e/review-scroll.e2e.mjs: ecranul de verificare cu un bon lung. Nu e inclus în build. -->
+<script type="module">
+import "/src/fonts-local.css"; import "/src/pages/shop.css";
+import React from "react"; import { createRoot } from "react-dom/client";
+import { ReceiptReview } from "/src/components/ReceiptReview.tsx";
+import { createEmptyAppData } from "/src/lib/finance-data.ts";
+const p = new URLSearchParams(location.search);
+document.documentElement.className = p.get("theme") === "dark" ? "theme-dark dark" : "theme-white";
+const lines = Array.from({ length: 28 }, (_, i) => ({ label: `PRODUS TEST ${i + 1}`, amount: 2 + i, category: i % 3 ? "Alimente" : "Casă & facturi", qty: 1 }));
+lines[27].label = "ULTIMUL PRODUS";
+const amount = lines.reduce((s, l) => s + l.amount, 0);
+const prefill = { title: "Bon — Lidl", amount, date: "2026-10-17", category: "Alimente", count: lines.length, store: {}, lines };
+createRoot(document.getElementById("r")).render(React.createElement(ReceiptReview, { data: createEmptyAppData(), prefill, onSave: () => { window.__saved = true; }, onCancel: () => {}, onRescan: () => {} }));
+</script></body></html>

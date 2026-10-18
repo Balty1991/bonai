@@ -21,7 +21,7 @@ export function titleCaseProduct(raw: string): string {
 export const round2 = (value: number) => Math.round(value * 100) / 100;
 
 export function rowsFromPrefill(prefill: ScanPrefill): ReviewRow[] {
-  return prefill.lines.map((line, index) => ({ key: `l${index}`, label: titleCaseProduct(line.label), raw: line.label, qty: line.qty && line.qty > 0 ? line.qty : 1, amount: round2(line.amount), discount: round2(line.discount || 0), category: line.category, product: line.product }));
+  return prefill.lines.map((line, index) => ({ key: `l${index}`, label: titleCaseProduct(stripQtySuffix(line.label)), raw: line.label, qty: line.qty && line.qty > 0 ? line.qty : 1, amount: round2(line.amount), discount: round2(line.discount || 0), category: line.category, product: line.product }));
 }
 
 export function rowsTotal(rows: ReviewRow[]): number { return round2(rows.reduce((sum, row) => sum + row.amount, 0)); }
@@ -44,3 +44,12 @@ export function totalGap(printed: number, rows: ReviewRow[]): number {
 const ICONS: Record<string, string> = { Alimente: "🥖", "Consumabile copil": "🍼", Abonamente: "📱", Băuturi: "🥤", Apă: "💧", Dulciuri: "🍫", Transport: "⛽", "Casă & facturi": "🏠", Sănătate: "💊", Educație: "📚", "Timp liber": "🎟️", Haine: "👕", SGR: "♻️", Sacoșe: "🛍️", Altele: "🧾" };
 export const categoryIcon = (category: string) => ICONS[category] || "🧾";
 export const CATEGORY_COLORS = ["#8b5cf6", "#22d3ee", "#f472b6", "#34d399", "#fbbf24", "#60a5fa", "#fb7185", "#a3e635"];
+
+/** „Lapte × 2” → „Lapte”: cantitatea are coloana ei în ecranul de verificare. */
+export function stripQtySuffix(label: string) { return label.replace(/\s×\s[\d.,]+(\s?kg)?$/u, "").trim(); }
+/** Pune la loc „× cantitate” la salvare, ca istoricul de prețuri să compare pe bucată sau pe kg. */
+export function labelWithQty(label: string, qty: number) {
+  const base = stripQtySuffix(label);
+  if (!qty || Math.abs(qty - 1) < 0.0001) return base;
+  return `${base} × ${qty.toLocaleString("ro-RO", { maximumFractionDigits: 3 })}${Number.isInteger(qty) ? "" : " kg"}`;
+}

@@ -12,6 +12,8 @@ on:
       - "e2e/layout.e2e.mjs"
       - "e2e/flows.e2e.mjs"
       - "e2e/split-receipt.e2e.mjs"
+      - "e2e/review-scroll.e2e.mjs"
+      - "client/e2e/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - ".github/workflows/layout-e2e.yml"
@@ -21,6 +23,8 @@ on:
       - "e2e/layout.e2e.mjs"
       - "e2e/flows.e2e.mjs"
       - "e2e/split-receipt.e2e.mjs"
+      - "e2e/review-scroll.e2e.mjs"
+      - "client/e2e/**"
   workflow_dispatch:
 
 permissions:
@@ -54,6 +58,9 @@ jobs:
         # Teme × lățimi plus trecerea cu fontul telefonului la 130%.
         timeout-minutes: 20
         run: pnpm test:layout
+      - name: Verifică derularea ecranului de verificare a bonului
+        timeout-minutes: 5
+        run: pnpm test:review-scroll
       - name: Verifică fluxurile de bază
         timeout-minutes: 10
         run: pnpm test:flows

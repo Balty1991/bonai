@@ -20,6 +20,7 @@
     "test:layout": "node e2e/layout.e2e.mjs",
     "test:flows": "node e2e/flows.e2e.mjs",
     "test:split": "node e2e/split-receipt.e2e.mjs",
+    "test:review-scroll": "node e2e/review-scroll.e2e.mjs",
     "test:sync": "firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\"",
     "test:sync:current": "E2E_RULES=auth firebase emulators:exec --config firebase.e2e.auth.json --only firestore,auth --project buget-familie-a6a0d \"node e2e/sync.e2e.mjs\""
   },

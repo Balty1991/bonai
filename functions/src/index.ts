@@ -1257,6 +1257,8 @@ items: fiecare produs cumpărat, în ordinea de pe bon, fără să sari vreunul.
 - amount: cât s-a plătit pe articol, în lei, cu zecimalele exacte, fără rotunjire: valoarea liniei (după „=”, cantitate × preț) minus reducerea lui. Când denumirea e pe un rând și „1 BUC X 8.19= 8.19” pe rândul următor, sunt același articol.
 - discount: reducerea articolului, ca număr pozitiv („REDUCERE 8.33%  -1.74” sub un articol de 20,88 → discount 1.74 și amount 19.14). 0 când nu are. Reducerile („REDUCERE”, „DISCOUNT”, „Lidl Plus”, „-3.42”) țin de articolul de deasupra lor și nu sunt articole separate.
 - Bonurile digitale (din aplicația magazinului) arată în dreapta rândului suma deja redusă: „CRENVURSTI PUI 100G 4,54”, dedesubt „1 buc @ 6,99” și „Reducere 6,99 −2,45” înseamnă amount 4.54 și discount 2.45; nu scădea reducerea a doua oară. Un „Reducere” sau „Total economisit” fără preț tăiat, după ultimul articol, egal cu reducerile adunate, este totalul economiilor: nu ține de articolul de deasupra.
+- Formatele de reducere de pe bonurile din România, toate legate de articolul de deasupra: „DISCOUNT -2,50”, „REDUCERE -1,20 B”, „Reducere Lidl Plus”, „CUPON -5,00”, „Kaufland Card -0,90”, „Mega Image Card”, „My Mega -1,00”, „Carrefour Card -2,10”, „PROMO -3,00”, „Oferta -1,50”, „-1,09” singur pe rândul următor, „Pret vechi 12,99 / Pret nou 9,99” (discount 3.00, amount 9.99), „-20%” (calculează suma din valoarea articolului). Litera TVA de la capăt („A”, „B”, „C”, „D”) nu face parte din sumă. Pune reducerea în discount și scade-o din amount o singură dată; nu trimite rândul de reducere ca articol separat.
+- Un bloc la final („TOTAL REDUCERI”, „Ai economisit”, „Economii”) doar adună reducerile deja puse pe articole: nu-l scădea încă o dată.
 - Un produs dat gratis („Reducere Lidl Plus”, „DISCOUNT 25.99” sub un articol de 25,99): discount = prețul lui și amount 0; nu-l socoti la plată.
 - Reducerea pe tot bonul, scrisă după SUBTOTAL și înainte de TOTAL („Reducere pentru angajați 25,00%”, „DISCOUNT 23,23”, „Discount card fidelitate”), nu ține de un singur articol: împarte-o pe toate articolele, proporțional cu valoarea lor (la 25%, fiecare articol are discount = 25% din valoarea lui și amount = restul), ca articolele adunate să dea TOTAL. Nu o face articol separat.
 - Garanția de ambalaj („GARANTIE SGR”, „GARANTIE PET SGR”, „GARANTIE STICLA”) este articol separat. Sacoșa sau punga este articol separat. „SGR” scris la capătul denumirii unui produs („APĂ PLATĂ PET 2L SGR”) arată doar că sticla are garanție: produsul rămâne apă, garanția e rândul ei.
@@ -1301,23 +1303,13 @@ const roundLei = (value: unknown) => {
 function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt {
   const body = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const fallback = categories.includes("Altele") ? "Altele" : categories[0] || "Altele";
-  // Reducerile tipărite pe rând separat (sumă negativă) se lipesc de articolul de deasupra.
-  const folded: Array<Record<string, unknown>> = [];
-  for (const entry of (Array.isArray(body.items) ? body.items : []).slice(0, 120)) {
-    const item = (entry && typeof entry === "object" ? { ...(entry as Record<string, unknown>) } : {}) as Record<string, unknown>;
-    const amount = roundLei(item.amount);
-    if (amount < 0) {
-      const prev = folded[folded.length - 1];
-      const prevAmount = prev ? roundLei(prev.amount) : 0;
-      if (prev && prevAmount + amount >= -0.005) { prev.amount = roundLei(prevAmount + amount); prev.discount = roundLei(roundLei(prev.discount) - amount); }
-      continue;
-    }
-    folded.push(item);
-  }
+  // Rândurile negative (reducere pe rând separat) trec mai departe ca atare: telefonul le lipește de articol
+  // doar dacă așa suma se apropie de total. Lipite aici, se scădeau de două ori când modelul pusese deja reducerea pe articol.
+  const folded = (Array.isArray(body.items) ? body.items : []).slice(0, 120).map((entry) => (entry && typeof entry === "object" ? { ...(entry as Record<string, unknown>) } : {}) as Record<string, unknown>);
   const items = folded.flatMap((item) => {
     const amount = roundLei(item.amount);
     const name = clip(item.name, 80) || clip(item.rawName, 80);
-    if (!name || !(amount > 0) || amount > 100_000) return [];
+    if (!name || amount === 0 || Math.abs(amount) > 100_000) return [];
     const category = typeof item.category === "string" && categories.includes(item.category) ? item.category : fallback;
     const quantity = roundLei(item.quantity);
     const discount = roundLei(item.discount);
@@ -1333,7 +1325,7 @@ function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt
   const confidence = body.confidence === "high" || body.confidence === "medium" ? body.confidence : "low";
   return {
     ...cleanStoreFacts(body),
-    isReceipt: body.isReceipt !== false && items.length > 0,
+    isReceipt: body.isReceipt !== false && items.some((item) => item.amount > 0),
     store: clip(body.store, 60),
     date,
     total: Math.max(0, roundLei(body.total)),

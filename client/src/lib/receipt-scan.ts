@@ -71,7 +71,9 @@ export function foldDiscountLines<T extends { amount: number; discount?: number 
     if (item.amount < 0) {
       const target = out.length ? out[out.length - 1] : undefined;
       if (target && target.amount + item.amount >= -0.005) {
-        out[out.length - 1] = { ...target, amount: round(target.amount + item.amount), discount: round((target.discount || 0) - item.amount) };
+        // Reducerea deja trecută pe articol, dar nescăzută din sumă: o scădem, fără s-o mai adunăm o dată.
+        const already = Math.abs((target.discount || 0) + item.amount) < 0.005;
+        out[out.length - 1] = { ...target, amount: round(target.amount + item.amount), discount: already ? target.discount : round((target.discount || 0) - item.amount) };
       }
       continue;
     }
@@ -84,8 +86,13 @@ export function foldDiscountLines<T extends { amount: number; discount?: number 
 export function scanToPrefill(receipt: ScannedReceipt, data: AppData, memberId?: string, today = isoToday()): ScanPrefill {
   const known = new Set<string>([...data.settings.customCategories, ...receiptCategories(data)]);
   const fallback = "Altele";
-  const lines = foldDiscountLines(receipt.items)
-    .filter((item) => item.amount > 0)
+  // Rândurile de reducere se lipesc de articol doar dacă așa suma se apropie de total: altfel modelul
+  // pusese deja reducerea pe articol și am scădea-o de două ori (regresia din 2.0.2).
+  const positive = receipt.items.filter((item) => item.amount > 0);
+  const folded = foldDiscountLines(receipt.items).filter((item) => item.amount > 0);
+  const sumOf = (list: ReadonlyArray<{ amount: number }>) => list.reduce((sum, item) => sum + item.amount, 0);
+  const useFolded = receipt.total > 0 && folded.length > 0 && Math.abs(sumOf(folded) - receipt.total) + 0.005 < Math.abs(sumOf(positive) - receipt.total);
+  const lines = (useFolded ? folded : positive)
     .map((item) => ({
       // Cantitatea rămâne în nume („× 2”, „× 0,456 kg”), ca istoricul de prețuri să compare pe bucată sau pe kg.
       // Reducerea stă separat: suma e cea plătită, iar numele rămâne curat pentru sugestii.
