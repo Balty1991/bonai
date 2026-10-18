@@ -10,7 +10,7 @@ import { writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
 import { contrastOffenders } from "./lib/contrast.mjs";
 
-const URL = process.env.URL || "https://balty1991.github.io/buget-familie/";
+const URL = process.env.URL || "https://balty1991.github.io/bonai/";
 const OUT = process.env.OUT || "/workspace/bonai/test10/shots";
 const R = "/workspace/buget-familie/e2e/receipts";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

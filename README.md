@@ -153,9 +153,9 @@ Configurare unică (nu se repetă la fiecare release):
 
 După configurare: **Actions → Release Android AAB → Run workflow**. Artefactul `buget-familie-release-aab` conține `app-release.aab`, gata de încărcat manual în Play Console (Producție sau testare internă). Înainte de fiecare release nou, crește `versionCode`/`versionName` din `android/app/build.gradle`.
 
-Politică de confidențialitate: https://balty1991.github.io/buget-familie/privacy.html  
-Termeni: https://balty1991.github.io/buget-familie/terms.html  
-Ștergere date: https://balty1991.github.io/buget-familie/delete-data.html  
+Politică de confidențialitate: https://balty1991.github.io/bonai/privacy.html  
+Termeni: https://balty1991.github.io/bonai/terms.html  
+Ștergere date: https://balty1991.github.io/bonai/delete-data.html  
 Listare Play (text gata de lipit): `docs/play-store-listing-ro.md`
 
 [^pages]: [GitHub Docs — GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)

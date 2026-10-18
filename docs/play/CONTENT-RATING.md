@@ -25,4 +25,4 @@ Rezultat așteptat: **PEGI 3 / ESRB Everyone / „Pentru toți”**, cu mențiun
 - **Acces la aplicație:** Toate funcțiile sunt disponibile fără autentificare (nu e nevoie de cont de test). Notă pentru recenzent: „Pe ecranul de bun venit, «Văd întâi un exemplu» încarcă date demonstrative.”
 - **Funcții financiare:** aplicația e doar evidență de cheltuieli/cumpărături; nu oferă credite, plăți, investiții sau servicii bancare → bifează „Aplicația mea nu oferă funcții financiare” sau, dacă există opțiunea, „Gestionarea bugetului personal” fără servicii reglementate.
 - **Aplicație guvernamentală / Știri / Sănătate / COVID:** Nu.
-- **Politica de confidențialitate:** https://balty1991.github.io/buget-familie/privacy.html
+- **Politica de confidențialitate:** https://balty1991.github.io/bonai/privacy.html

@@ -14,9 +14,9 @@ Text gata de lipit în Play Console. **Fără upload fals în store.** Plățile
 | Pachet | `ro.balty1991.bugetfamilie` |
 | Categorie | Finance |
 | Contact | contact.vanzo@gmail.com |
-| Politică | https://balty1991.github.io/buget-familie/privacy.html |
-| Termeni | https://balty1991.github.io/buget-familie/terms.html |
-| Ștergere date | https://balty1991.github.io/buget-familie/delete-data.html |
+| Politică | https://balty1991.github.io/bonai/privacy.html |
+| Termeni | https://balty1991.github.io/bonai/terms.html |
+| Ștergere date | https://balty1991.github.io/bonai/delete-data.html |
 
 ## Descriere scurtă (≤80 caractere)
 

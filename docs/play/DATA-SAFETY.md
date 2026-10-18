@@ -5,7 +5,7 @@ Play Console → Conținutul aplicației → Siguranța datelor.
 ## Întrebări generale
 - Aplicația colectează sau partajează tipuri de date obligatorii? **Da**
 - Toate datele colectate sunt criptate în tranzit? **Da** (HTTPS/TLS)
-- Oferiți o modalitate de a solicita ștergerea datelor? **Da** — URL: https://balty1991.github.io/buget-familie/delete-data.html
+- Oferiți o modalitate de a solicita ștergerea datelor? **Da** — URL: https://balty1991.github.io/bonai/delete-data.html
 - Conturi: aplicația **nu** creează conturi (identitate anonimă Firebase). La „Login” → *Aplicația nu permite crearea de conturi*.
 
 ## Tipuri de date (toate: **colectate**, **nepartajate** — Google, Anthropic, Groq, Sentry sunt furnizori de servicii/procesatori, deci nu „partajare”)

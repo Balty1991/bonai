@@ -14,7 +14,7 @@ function vitePluginPreloadCriticalFonts(): Plugin {
       handler(html, ctx) {
         const bundle = ctx.bundle;
         if (!bundle) return html;
-        const base = process.env.GITHUB_PAGES === "true" ? "/buget-familie/" : "/";
+        const base = process.env.GITHUB_PAGES === "true" ? "/bonai/" : "/";
         const allWoff = Object.values(bundle).filter((item) => "fileName" in item && typeof item.fileName === "string" && /\.woff2$/.test(item.fileName)) as Array<{ fileName: string }>;
         const pick = (re: RegExp) => allWoff.find((item) => re.test(item.fileName));
         const fonts = [
@@ -145,8 +145,8 @@ export default defineConfig(({ command }) => {
   }
 
   return {
-    // GitHub Pages servește acest proiect sub /buget-familie/; buildurile locale și Android rămân la rădăcină.
-    base: process.env.GITHUB_PAGES === "true" ? "/buget-familie/" : "/",
+    // GitHub Pages servește acest proiect sub /bonai/; buildurile locale și Android rămân la rădăcină.
+    base: process.env.GITHUB_PAGES === "true" ? "/bonai/" : "/",
     plugins,
     // Worker-ul de sync (P2-9) împarte module cu aplicația: format ES, cu bucăți comune.
     worker: { format: "es" },

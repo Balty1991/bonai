@@ -21,12 +21,12 @@ Fișierele din acest folder:
 8. **Capturi de ecran telefon:** șterge capturile vechi, apoi încarcă `screenshots/01-acasa.png` … `08-ce-urmeaza.png`, în ordinea numerelor.
 9. Tablete: dacă există capturi vechi de tabletă cu „Buget Familie”, șterge-le (sunt opționale).
 10. **Salvează**. Dacă ai și traducere în engleză a fișei, actualizează și numele de acolo, altfel rămâne vechiul nume în EN.
-11. **Detalii din magazin** (Store settings): Categorie **Cumpărături**; e-mail de contact `contact.vanzo@gmail.com`; site opțional `https://balty1991.github.io/buget-familie/`.
+11. **Detalii din magazin** (Store settings): Categorie **Cumpărături**; e-mail de contact `contact.vanzo@gmail.com`; site opțional `https://balty1991.github.io/bonai/`.
 
 > Schimbarea numelui + iconului + capturilor intră la recenzie împreună cu versiunea. Nu folosi în fișă „cel mai bun”, „#1” sau numele lanțurilor (Lidl, Kaufland…) — motiv de respingere.
 
 ## 2. Conținutul aplicației (Policy → App content)
-1. **Politica de confidențialitate:** `https://balty1991.github.io/buget-familie/privacy.html` (acum BonAI, v2.1.0). Salvează.
+1. **Politica de confidențialitate:** `https://balty1991.github.io/bonai/privacy.html` (acum BonAI, v2.1.0). Salvează.
 2. **Siguranța datelor:** Gestionează → completează după `DATA-SAFETY.md` → Trimite.
 3. **Clasificarea conținutului:** refă chestionarul după `CONTENT-RATING.md` (s-au schimbat funcțiile: cumpărături în aplicație).
 4. **Public țintă, Reclame, Acces la aplicație, Funcții financiare:** verifică după `CONTENT-RATING.md` → „Alte secțiuni”.

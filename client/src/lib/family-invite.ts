@@ -9,7 +9,7 @@
 
 const PREFIX = "bf1";
 /** Site-ul public: linkul de invitație deschide aplicația web direct pe pasul de intrare. */
-export const PUBLIC_SITE_URL = "https://balty1991.github.io/buget-familie/";
+export const PUBLIC_SITE_URL = "https://balty1991.github.io/bonai/";
 export const INVITE_HASH_KEY = "alatura";
 
 export type FamilyInvite = { roomId: string; key: string };

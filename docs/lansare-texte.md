@@ -2,7 +2,7 @@
 
 Gata de lipit. Peste tot spune deschis că tu ai făcut aplicația: grupurile și subreddit-urile șterg reclamele ascunse, iar oamenii au mai multă încredere într-un părinte care și-a făcut singur unealta.
 
-Link de pus peste tot: **https://balty1991.github.io/buget-familie/despre.html** (pagina de prezentare, cu butonul de Play și „Încearcă în browser”). Pe WhatsApp și Facebook apare cu imaginea „Fiecare leu are un loc”.
+Link de pus peste tot: **https://balty1991.github.io/bonai/despre.html** (pagina de prezentare, cu butonul de Play și „Încearcă în browser”). Pe WhatsApp și Facebook apare cu imaginea „Fiecare leu are un loc”.
 
 ## Grup de Facebook pentru părinți
 

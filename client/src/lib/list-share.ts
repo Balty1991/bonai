@@ -15,7 +15,7 @@ export function whatsappShareUrl(text: string): string {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
-export const SHARE_PAGE_URL = "https://balty1991.github.io/buget-familie/l.html";
+export const SHARE_PAGE_URL = "https://balty1991.github.io/bonai/l.html";
 export const SHARE_MAX_ITEMS = 60;
 
 export type SharedList = { v: 1; title?: string; items: string[] };

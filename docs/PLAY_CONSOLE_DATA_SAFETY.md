@@ -14,7 +14,7 @@ Surse: `client/public/privacy.html`, `AndroidManifest.xml` (`allowBackup=false` 
 |---|---|---|
 | Colectează aplicația date despre utilizator? | **Da** | Date financiare introduse de utilizator (mișcări, plicuri etc.) |
 | Datele sunt criptate în tranzit? | **Da** (pentru sync opțional) | HTTPS + pachet AES-GCM înainte de Firestore |
-| Utilizatorii pot cere ștergerea datelor? | **Da** | Resetare in-app + [delete-data.html](https://balty1991.github.io/buget-familie/delete-data.html) |
+| Utilizatorii pot cere ștergerea datelor? | **Da** | Resetare in-app + [delete-data.html](https://balty1991.github.io/bonai/delete-data.html) |
 | Cont obligatoriu? | **Nu** | Core use fără cont / fără login |
 | Publicitate / vânzare date / brokeri? | **Nu** | Fără ads, fără sale, fără sharing comercial |
 | Login bancar / Open Banking? | **Nu** | Doar registru local; CSV opțional, confirmat manual |
@@ -152,7 +152,7 @@ se scot din mesaj; pașii dinaintea erorii nu se trimit. Date găzduite în UE (
 |---|---|
 | Date criptate în tranzit | **Da** (HTTPS; sync: AES-GCM pe payload) |
 | Utilizatorii pot solicita ștergerea | **Da** |
-| Cum | 1) In-app: Setări → Resetare → „Resetează datele locale” · 2) Public: https://balty1991.github.io/buget-familie/delete-data.html · 3) Dezinstalare |
+| Cum | 1) In-app: Setări → Resetare → „Resetează datele locale” · 2) Public: https://balty1991.github.io/bonai/delete-data.html · 3) Dezinstalare |
 | Cont de șters la dezvoltator | **Nu există** cont Buget Familie |
 | Cameră familie | Pe un telefon rămas: Sync → Revocă telefonul pierdut, apoi „Mută familia” (invitație nouă); camera veche e golită |
 | Backup Android | **Dezactivat**: `android:allowBackup="false"` și `dataExtractionRules` exclud backup-ul cloud și transferul pe telefon nou |
@@ -191,6 +191,6 @@ se scot din mesaj; pașii dinaintea erorii nu se trimit. Date găzduite în UE (
 - [ ] allowBackup = false + dataExtractionRules menționate dacă există câmp de note  
 - [ ] Public țintă: **18+** (modul „Telefonul lui X” e pornit de un adult; vezi politica, secțiunea Copii)  
 - [ ] URL ștergere + email `contact.vanzo@gmail.com`  
-- [ ] Privacy publică: https://balty1991.github.io/buget-familie/privacy.html  
+- [ ] Privacy publică: https://balty1991.github.io/bonai/privacy.html  
 
 **Billing:** `BILLING_LIVE = false` — nu declara plăți IAP live în Data safety până la activare.
