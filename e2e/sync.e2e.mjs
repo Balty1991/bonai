@@ -105,19 +105,16 @@ async function openSync(page) {
 }
 
 async function addExpense(page, amount) {
-  // BonAI: „Fără bon” → un produs cu suma → Salvează bonul (aceeași cheltuială ca înainte, sincronizată la fel).
+  // BonAI: „Fără bon” → foaia rapidă: suma, categoria, Salvează (o cheltuială simplă, sincronizată la fel).
   await page.keyboard.press("Escape").catch(() => undefined);
   await page.locator(".os-dock-add").click();
   await page.getByRole("button", { name: /Fără bon/ }).click();
-  await page.getByRole("button", { name: /Adaugă un produs/ }).click();
-  await page.locator(".bn-review input:not([inputmode])").nth(1).fill(`Test ${amount}`);
-  await page.locator(".bn-review input[inputmode=\"decimal\"]").nth(1).fill(String(amount).replace(".", ","));
-  await page.getByRole("button", { name: "Gata" }).click();
-  await page.getByRole("button", { name: /Salvează bonul/ }).click();
-  const saved = page.getByRole("dialog", { name: "Bon salvat" });
-  await saved.waitFor();
-  await saved.getByRole("button", { name: "Gata" }).click();
-  await page.locator(".bn-review").waitFor({ state: "detached" });
+  const sheet = page.getByRole("dialog", { name: "Cheltuială fără bon" });
+  await sheet.waitFor();
+  await sheet.getByLabel("Suma").fill(String(amount).replace(".", ","));
+  await sheet.getByRole("radio", { name: /Altele/ }).click();
+  await sheet.getByRole("button", { name: /^Salvează/ }).click();
+  await sheet.waitFor({ state: "detached" });
   // Înapoi pe Acasă, ca înainte (pe ecranul Familie bannerele de sync se ascund).
   await page.locator(".os-dock-v2 > button").first().click();
 }

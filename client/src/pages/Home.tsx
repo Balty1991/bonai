@@ -73,6 +73,7 @@ import { reloadToNewVersion, useUpdateAvailable } from "@/lib/update-check";
 import { labelWithQty } from "@/lib/receipt-review-model";
 
 
+const QuickExpenseSheet = lazy(safeImport(() => import("@/components/QuickExpenseSheet").then((module) => ({ default: module.QuickExpenseSheet }))));
 const ReceiptReview = lazy(safeImport(() => import("@/components/ReceiptReview").then((module) => ({ default: module.ReceiptReview }))));
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
 const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
@@ -204,7 +205,7 @@ export default function Home() {
   const openScanRef = useRef<() => void>(() => undefined);
   const openTxRef = useRef<() => void>(() => undefined);
   const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts" | "receipts" | "costs">();
-  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | null>(null);
+  const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | "expense" | null>(null);
   useEffect(() => {
     // Legăturile vechi din aplicație (Astăzi, lista) duc acum la echivalentul BonAI.
     const openExpense = () => window.dispatchEvent(new Event("bonai:open-manual"));
@@ -495,7 +496,8 @@ export default function Home() {
   };
   const openTx = (item?: Transaction) => {
     // În BonAI, „notează de mână” e același ecran de bon, gol: fără surse, plicuri sau venituri.
-    if (!item && !memberModeActive) { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); return; }
+    // Fără bon: foaia rapidă (sumă + categorie); „Adaugă produse” deschide bonul pe rânduri.
+    if (!item && !memberModeActive) { setModal("expense"); return; }
   };
   // Widgetul și dala din Setări rapide deschid direct ecranul cerut, fără pași intermediari.
   useEffect(() => observeQuickActions((action) => {
@@ -602,7 +604,7 @@ export default function Home() {
   const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
   /** Prima pornire în aplicația nouă s-a încheiat: nu mai întrebăm de salariu și plicuri. */
   // Orice drum spre „Notează” vechi (widget, scurtătură, tastatură) duce în BonAI la ecranul de bon.
-  useEffect(() => { if (modal === "quick" && shopMode) { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); } }, [modal, shopMode]);
+  useEffect(() => { if (modal === "quick" && shopMode) setModal("expense"); }, [modal, shopMode]);
   const finishShopWelcome = () => {
     try { safeSetItem(window.localStorage, "buget-familie:setup-complete", "true"); safeSetItem(window.localStorage, "buget-familie:onboarding-complete", "true"); } catch { /* fără stocare */ }
     setSetupOpen(false);
@@ -627,7 +629,7 @@ export default function Home() {
   const rawView = view;
   const current = () => {
     const view = (["shop", "list", "products", "stores", "house", "utilities"] as MainView[]).includes(rawView) ? rawView : "shop";
-    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onManual={() => openTx()} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
     if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
@@ -679,6 +681,7 @@ export default function Home() {
     
     {modal === "scan" && !memberModeActive && shopMode && createPortal(<div className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={() => setModal(null)}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll"><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></div></div>, document.body)}
     
+    {modal === "expense" && !memberModeActive && <Suspense fallback={null}><QuickExpenseSheet data={data} onClose={() => setModal((current) => (current === "expense" ? null : current))} onSave={(tx) => saveTx(tx)} onItemize={() => { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); }} /></Suspense>}
     {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
       // Bonul nou: o cheltuială simplă (fără plic, fără alegerea sursei), cu rândurile verificate. Aceeași formă ca înainte, deci sincronizarea rămâne compatibilă.
       const member = data.settings.members.find((item) => item.id === review.memberId) || data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];

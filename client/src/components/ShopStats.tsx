@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
 import { periodStats, type Grain } from "@/lib/shop-stats";
+import { spendEntries } from "@/lib/quick-expense";
 
 const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
 const GRAINS: Array<[Grain, string]> = [["day", "Zi"], ["week", "Săptămână"], ["month", "Lună"], ["year", "An"]];
@@ -11,7 +12,8 @@ const GRAINS: Array<[Grain, string]> = [["day", "Zi"], ["week", "Săptămână"]
 export function ShopStats({ data }: { data: AppData }) {
   const [grain, setGrain] = useState<Grain>("month");
   const [offset, setOffset] = useState(0);
-  const stats = useMemo(() => periodStats(data.receipts, grain, isoToday(), offset), [data.receipts, grain, offset]);
+  // Bonurile și cheltuielile fără bon (taxi, cafea), fiecare cu categoria ei.
+  const stats = useMemo(() => periodStats(spendEntries(data), grain, isoToday(), offset), [data, grain, offset]);
   const max = Math.max(1, ...stats.buckets.map((b) => b.total));
   const delta = stats.previous > 0 ? Math.round(((stats.total - stats.previous) / stats.previous) * 100) : undefined;
   const top = stats.categories.slice(0, 5);

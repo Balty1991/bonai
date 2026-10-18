@@ -1,6 +1,7 @@
 /**
  * Funcțiile BonAI pe aplicația reală, cu bonuri de test (Vite + Chromium), în ambele teme, la 360 px:
  *   1. Economisit cu BonAI pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
+ *   0. Cheltuială fără bon: suma + categoria în 2 atingeri, repetare dintr-o atingere, apare în Toate costurile.
  *   2. Lista cu prețuri: ultimul preț pe bucată, unde și când, totalul estimat și magazinul mai ieftin.
  * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
  * Rulare: node e2e/features.e2e.mjs (CHROMIUM_PATH, THEMES, ONLY=regex, SHOTS=dir opționale).
@@ -62,6 +63,35 @@ const expected = (page) => page.evaluate(async () => { const { savedWithBonAI } 
 const leiRo = (v) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const FEATURES = {
+  /** 0. Foaia rapidă fără bon (taxi, cafea): nu creează bon fals. */
+  async quick(page, theme) {
+    await page.getByRole("button", { name: /Fără bon\? Notează suma/ }).click();
+    const sheet = page.getByRole("dialog", { name: "Cheltuială fără bon" });
+    await waitFor(() => sheet.isVisible(), "foaia fără bon");
+    if (!(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Suma"))) fail("suma nu primește focus");
+    await page.keyboard.type("25");
+    await sheet.getByRole("radio", { name: /Taxi/ }).click();
+    await shot(page, `quick-${theme}`);
+    const cut = await clipped(page, ".bn-qx");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
+    await sheet.getByRole("button", { name: /^Salvează · 25 lei$/ }).click();
+    await waitFor(async () => !(await sheet.isVisible()), "foaia se închide");
+    const after = () => page.evaluate(async () => { const s = await import("/src/lib/app-storage.ts"); const d = await s.readAppData(); return { tx: d.transactions.filter((t) => t.category === "Taxi"), receipts: d.receipts.length }; });
+    await waitFor(async () => (await after()).tx.length === 1, "taxiul salvat");
+    if ((await after()).receipts !== 4) fail("cheltuiala fără bon a creat un bon");
+    // Repetare dintr-o atingere.
+    await page.getByRole("button", { name: /Fără bon\? Notează suma/ }).click();
+    await waitFor(() => sheet.isVisible(), "foaia din nou");
+    await shot(page, `quick-repeat-${theme}`);
+    await sheet.getByRole("button", { name: /Taxi · 25 lei/ }).click();
+    await waitFor(async () => (await after()).tx.length === 2, "repetarea salvată");
+    // Toate costurile o arată, cu categoria.
+    await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(600);
+    await page.getByRole("button", { name: /^Bonuri/ }).first().click();
+    const history = page.getByRole("dialog", { name: "Istoric" });
+    await history.getByRole("tab", { name: "Toate costurile" }).click();
+    await waitFor(async () => /Taxi/.test(await history.innerText()), "taxiul în Toate costurile");
+  },
   /** 1. Contorul de pe Acasă arată exact suma calculată din bonuri și defalcarea ei. */
   async saved(page, theme) {
     const want = await expected(page);
