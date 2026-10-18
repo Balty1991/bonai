@@ -598,14 +598,11 @@ html[data-app="shop"] .bf-sync .bf-sync-local-only ul { display: grid; gap: 6px;
 html[data-app="shop"] .bf-sync .bf-sync-local-only li { position: relative; padding-left: 22px; color: var(--bn-ink); font-size: 14px; }
 html[data-app="shop"] .bf-sync .bf-sync-local-only li::before { content: "✓"; position: absolute; left: 0; color: var(--bn-save); font-weight: 700; }
 html[data-app="shop"] .bf-sync .bf-sync-local-only ul:nth-of-type(2) li::before { content: "–"; color: var(--bn-muted); }
-/* La 360–390 px numele lungi (magazin, produs) se termină cu „…”, nu tăiate brusc. */
+/* La 360–390 px numele lungi (magazin, produs) se rup pe rânduri, întregi: nici tăiate brusc, nici ascunse sub „…”. */
 html[data-app="shop"] .bn-costs-copy, html[data-app="shop"] .sh-list li > span { min-width: 0; }
-html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html[data-app="shop"] .sh-list li > span > b { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+html[data-app="shop"] .sh-list li > span > b { overflow-wrap: anywhere; }
 html[data-app="shop"] .bn-store-pill { min-width: 0; }
 /* Inelul de focus doar la tastatură: după o atingere (tab, buton) nu mai rămâne un chenar rătăcit. */
 html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [role="tab"]:focus:not(:focus-visible), html[data-app="shop"] a:focus:not(:focus-visible) { outline: none; }
 html[data-app="shop"] .sh-tabs:focus-within { outline: none; }
-/* „Sari la conținut”: ascuns complet până la Tab, apoi țintă de 44 px. */
-html[data-app="shop"] .bf-skip-link:not(:focus):not(:focus-visible) { position: absolute !important; left: -10000px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip-path: inset(50%) !important; }
-html[data-app="shop"] .bf-skip-link:is(:focus, :focus-visible) { min-height: 44px; display: inline-flex !important; align-items: center; }
