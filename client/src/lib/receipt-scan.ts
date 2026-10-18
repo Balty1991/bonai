@@ -293,13 +293,27 @@ export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<
 /** Câte capturi primește un singur bon digital (lung, cu ecranul derulat). */
 export const RECEIPT_SHOTS_MAX = 6;
 
+let warmed = 0;
+/**
+ * La deschiderea centrului de scanare: trezește funcția (un OPTIONS de 204, fără AI, fără cost) și
+ * pregătește identitatea și App Check, ca poza să nu aștepte pornirea la rece (~4 s) și tokenii.
+ */
+export function warmReceiptScan() {
+  if (Date.now() - warmed < 5 * 60_000 || (typeof navigator !== "undefined" && navigator.onLine === false)) return;
+  warmed = Date.now();
+  void fetch(ENDPOINT, { method: "OPTIONS" }).catch(() => undefined);
+  void import("./realtime-sync").then(({ appCheckHeader, authHeader }) => Promise.all([appCheckHeader(), authHeader()])).catch(() => undefined);
+}
+
 /** O poză sau capturile aceluiași bon, în ordinea în care le-a ales omul. */
 export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[]): Promise<ScannedReceipt> {
   // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
   const { appCheckHeader, authHeader } = await import("./realtime-sync");
   // Verificarea aplicației poate rămâne agățată fără rețea bună; după 8 s cererea pleacă oricum.
   const capped = <T,>(work: Promise<T>) => Promise.race([work, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 8_000))]);
+  const t0 = performance.now();
   const [token, identity] = await Promise.all([capped(appCheckHeader()), capped(authHeader())]);
+  const t1 = performance.now();
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (token) headers["X-Firebase-AppCheck"] = token;
   if (identity) headers.Authorization = identity;
@@ -309,7 +323,9 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   } catch {
     throw new Error(t("Nu am putut trimite poza. Verifică internetul și mai încearcă o dată."));
   }
-  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt; error?: string; reason?: string };
+  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt & { trail?: string; usage?: { in: number; out: number } }; error?: string; reason?: string };
+  // Unde se duce timpul: tokenii pe telefon, apoi drumul + modelul (fără conținutul bonului).
+  console.info("[BonAI] scanare", JSON.stringify({ tokensMs: Math.round(t1 - t0), serverMs: Math.round(performance.now() - t1), trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
   if (!response.ok || !payload.receipt) {
     // Codul tehnic, scurt, ca omul să-l poată trimite când citirea nu merge.
     const code = payload.reason ? ` (${payload.reason})` : !response.ok ? ` (HTTP ${response.status})` : "";

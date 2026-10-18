@@ -12,7 +12,7 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
 import { warmOcr } from "@/lib/receipt-orientation-ocr";
-import { signDiscountLines, compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, type ScanPrefill } from "@/lib/receipt-scan";
+import { signDiscountLines, compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
@@ -36,7 +36,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const offlineRef = useRef(false);
   const today = isoToday();
   const aiLeft = scansLeft(currentBonutPlan(data, today), readAiScans(), today);
-  useEffect(() => { const id = window.setTimeout(warmOcr, 600); return () => window.clearTimeout(id); }, []);
+  useEffect(() => { const id = window.setTimeout(() => { warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   const thumbsRef = useRef<string[]>([]);
   thumbsRef.current = thumbs;

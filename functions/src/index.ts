@@ -1383,7 +1383,7 @@ function parseModelJson(raw: string): unknown {
   }
 }
 
-async function readReceiptWithGemini(apiKey: string, images: ReceiptImage[], categories: string[], deadline: number): Promise<ScannedReceipt & { model: string; trail: string }> {
+async function readReceiptWithGemini(apiKey: string, images: ReceiptImage[], categories: string[], deadline: number): Promise<ScannedReceipt & { model: string; trail: string; usage?: { in: number; out: number } }> {
   let lastStatus = 0;
   let lastDetail = "";
   const trail: string[] = [];
@@ -1421,14 +1421,16 @@ async function readReceiptWithGemini(apiKey: string, images: ReceiptImage[], cat
         }
         lastStatus = apiResponse.status;
         if (apiResponse.ok) {
-          const body = (await apiResponse.json()) as { candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string; thought?: boolean }> } }>; promptFeedback?: { blockReason?: string } };
+          const body = (await apiResponse.json()) as { candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string; thought?: boolean }> } }>; promptFeedback?: { blockReason?: string }; usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number } };
           const candidate = body.candidates?.[0];
           const raw = candidate?.content?.parts?.filter((part) => !part.thought).map((part) => part.text || "").join("") || "";
           try {
             const receipt = cleanScannedReceipt(parseModelJson(raw), categories);
             trail.push(`${model}/${structured ? "s" : "p"}:ok@${took()}`);
-            console.info("receipt read", trail.join(" "), receipt.items.length);
-            return { ...receipt, model, trail: trail.join(" ") };
+            // Tokenii, ca să știm costul real al unei scanări (fără date din bon).
+            const usage = { in: body.usageMetadata?.promptTokenCount || 0, out: (body.usageMetadata?.candidatesTokenCount || 0) + (body.usageMetadata?.thoughtsTokenCount || 0) };
+            console.info("receipt read", trail.join(" "), receipt.items.length, `tokens ${usage.in}/${usage.out}`);
+            return { ...receipt, model, trail: trail.join(" "), usage };
           } catch {
             lastDetail = `bad json ${model} ${candidate?.finishReason || body.promptFeedback?.blockReason || ""} ${raw.slice(0, 80)}`;
             trail.push(`${model}/${structured ? "s" : "p"}:json-${candidate?.finishReason || body.promptFeedback?.blockReason || "?"}@${took()}`);

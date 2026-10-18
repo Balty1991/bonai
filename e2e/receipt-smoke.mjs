@@ -72,7 +72,7 @@ for (const file of cases) {
     const { receipt } = body;
     const sum = Math.round(receipt.items.reduce((total, item) => total + item.amount, 0) * 100) / 100;
     console.log(`model: ${receipt.model || "?"} · magazin: ${receipt.store} · data: ${receipt.date} · total: ${receipt.total} · articole: ${sum} · încredere: ${receipt.confidence}`);
-    console.log(`încercări: ${receipt.trail || "?"}`);
+    console.log(`încercări: ${receipt.trail || "?"}${receipt.usage ? ` · tokeni ${receipt.usage.in} intrare / ${receipt.usage.out} ieșire · ~$${((receipt.usage.in * 0.3 + receipt.usage.out * 2.5) / 1e6).toFixed(5)}` : ""}`);
     console.log(`plăți: ${receipt.payments.map((payment) => `${payment.method} ${payment.amount}`).join(", ")}`);
     for (const item of receipt.items) console.log(`  ${item.amount.toFixed(2).padStart(7)}  ${item.discount ? `(−${item.discount}) ` : ""}${item.name} [${item.category}] ← ${item.rawName}`);
     const problems = [];
