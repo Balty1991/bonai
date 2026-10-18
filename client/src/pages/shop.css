@@ -606,3 +606,5 @@ html[data-app="shop"] .bn-store-pill { min-width: 0; }
 /* Inelul de focus doar la tastatură: după o atingere (tab, buton) nu mai rămâne un chenar rătăcit. */
 html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [role="tab"]:focus:not(:focus-visible), html[data-app="shop"] a:focus:not(:focus-visible) { outline: none; }
 html[data-app="shop"] .sh-tabs:focus-within { outline: none; }
+html[data-app="shop"] body .bf-app .bf-utilities-workspace > .bf-sync, html[data-app="shop"] body .os-shell .bf-utilities-workspace > .bf-sync { padding: 0 !important; margin: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::after { content: none !important; display: none !important; }
