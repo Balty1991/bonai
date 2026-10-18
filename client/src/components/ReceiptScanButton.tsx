@@ -29,6 +29,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   /** Pozele făcute cu camera până acum: un bon de hârtie lung se fotografiază pe bucăți, apoi se citesc împreună. */
   const [pending, setPending] = useState<File[]>([]);
   const [photo, setPhoto] = useState<string>();
+  const [textLines, setTextLines] = useState<string[]>();
   useEffect(() => { const id = window.setTimeout(warmOcr, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   useEffect(() => () => { if (photo?.startsWith("blob:")) URL.revokeObjectURL(photo); }, [photo]);
@@ -68,16 +69,17 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       return;
     }
     setShots(files.length);
-    // Poza apare în animație abia după ce e pusă drept (EXIF + rotire), nu culcată.
-    setPhoto(undefined);
+    // Poza apare imediat (EXIF aplicat de browser), apoi se înlocuiește lin cu cea pusă drept.
+    const raw = URL.createObjectURL(files[0]);
+    setPhoto(raw);
+    setTextLines(undefined);
     setBusy(true);
     setError("");
     try {
       const images = [];
       for (const file of files) {
-        const { preview, data: photoData, mimeType } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
-        // Animația arată bonul deja îndreptat (EXIF + rotire), nu poza culcată.
-        if (!images.length && preview) setPhoto(preview);
+        const { preview, data: photoData, mimeType, textLines: lines } = await compressReceiptPhoto(file, files.length > 1 ? 1800 : 2000);
+        if (!images.length && preview) { setPhoto(preview); window.setTimeout(() => URL.revokeObjectURL(raw), 1000); if (lines?.length) setTextLines(lines); }
         images.push({ data: photoData, mimeType });
       }
       const receipt = await requestReceiptScan(images, receiptCategories(data));
@@ -115,7 +117,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       </div>
     </div> : (busy || reveal) ? <>
       {/* O singură animație montată de la poză până la rezultat: raza nu repornește la fiecare secundă. */}
-      <ReceiptScanAnimation key="scan-anim" photo={photo} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); } : undefined} />
+      <ReceiptScanAnimation key="scan-anim" photo={photo} textLines={textLines} seconds={seconds} items={reveal?.items} total={reveal?.total} onDone={reveal ? () => { const done = reveal.prefill; setReveal(undefined); setPhoto(undefined); onResult(done); } : undefined} />
       {busy && !reveal && <p className="bf-scan-receipt-busy" role="status"><Loader2 size={18} className="bf-spin" aria-hidden="true" /> {busyText}</p>}
     </> : hub ? (() => {
       const month = isoToday().slice(0, 7);

@@ -32,18 +32,24 @@ function rotatedCopy(source: CanvasImageSource, width: number, height: number, r
   return canvas;
 }
 
-export async function detectRotationByText(source: CanvasImageSource, width: number, height: number, timeoutMs = 7000): Promise<Rotation | undefined> {
+/** Ultimul text citit local, în orientarea aleasă (doar pentru animație; nu intră în bon). */
+export let lastOcrText = "";
+
+export async function detectRotationByText(source: CanvasImageSource, width: number, height: number, timeoutMs = 3000): Promise<Rotation | undefined> {
+  lastOcrText = "";
   const work = (async () => {
     const worker = await getWorker();
-    const scores: Array<{ rotation: Rotation; score: number }> = [];
+    const scores: Array<{ rotation: Rotation; score: number; text?: string }> = [];
     for (const rotation of candidateRotations(width, height)) {
       const canvas = rotatedCopy(source, width, height, rotation);
       const { data } = await worker.recognize(canvas);
       canvas.width = 0;
       canvas.height = 0;
-      scores.push({ rotation, score: ocrScore(data.text, data.confidence) });
+      scores.push({ rotation, score: ocrScore(data.text, data.confidence), text: data.text });
     }
-    return width > height ? chooseLandscape(scores) : chooseByText(scores);
+    const chosen = width > height ? chooseLandscape(scores) : chooseByText(scores);
+    lastOcrText = scores.find((item) => item.rotation === (chosen ?? 0))?.text || "";
+    return chosen;
   })();
   const timeout = new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), timeoutMs));
   try { return await Promise.race([work, timeout]); } catch { return undefined; }

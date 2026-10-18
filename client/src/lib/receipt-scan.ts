@@ -6,7 +6,7 @@
 import { expenseCategories, isoToday, type AppData, type PaymentKind } from "./finance-data";
 import { t } from "./i18n";
 import { pickRotation, type Rotation } from "./receipt-orientation";
-import { detectRotationByText } from "./receipt-orientation-ocr";
+import { detectRotationByText, lastOcrText } from "./receipt-orientation-ocr";
 import { productFactsOf, storeFactsOf, type ProductFacts, type StoreFacts } from "./receipt-products";
 
 const ENDPOINT = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/readReceipt";
@@ -245,7 +245,7 @@ function detectRotation(source: CanvasImageSource, width: number, height: number
 }
 
 /** Poza micșorată pe telefon și pusă drept: bonul rămâne lizibil, dar pleacă repede și costă puțin. */
-export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string }> {
+export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<{ data: string; mimeType: string; rotation: Rotation; preview?: string; textLines?: string[] }> {
   const image = await decodeReceiptPhoto(file);
   try {
     // Orientarea se decide după text (OCR pe 0/180°, plus 90/270° la poze culcate); fără OCR, portretul rămâne neatins.
@@ -266,7 +266,9 @@ export async function compressReceiptPhoto(file: File, maxSide = 2000): Promise<
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     canvas.width = 0;
     canvas.height = 0;
-    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg", rotation, preview: dataUrl };
+    // Doar rândurile de produs (nume + un preț), arătate fără cifre: animația nu afișează sume citite local.
+    const textLines = lastOcrText.split("\n").filter((line) => /\d[.,]\d{2}/.test(line)).map((line) => line.replace(/[^A-Za-zĂÂÎȘȚăâîșț ]+/g, " ").split(/\s+/).filter((word) => word.length >= 3).join(" ")).filter((line) => line.split(" ").length >= 2 && line.length >= 8).slice(0, 14);
+    return { data: dataUrl.replace(/^data:[^,]+,/, ""), mimeType: "image/jpeg", rotation, preview: dataUrl, textLines };
   } finally {
     image.close();
   }
