@@ -6,6 +6,7 @@ import globals from "globals";
 export default tseslint.config(
   {
     ignores: [
+      "client/public/ocr/**",
       "dist/**",
       "android/**",
       "node_modules/**",
