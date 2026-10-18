@@ -9,7 +9,9 @@ type Worker = { recognize: (image: HTMLCanvasElement) => Promise<{ data: { text:
 let workerPromise: Promise<Worker> | undefined;
 
 function getWorker(): Promise<Worker> {
-  workerPromise ??= import("tesseract.js").then(({ createWorker }) => createWorker("eng") as unknown as Promise<Worker>).catch((error) => { workerPromise = undefined; throw error; });
+  // Totul vine din aplicație (public/ocr), nu de pe un CDN: merge offline și pornește repede.
+  const base = `${import.meta.env.BASE_URL || "/"}ocr/`;
+  workerPromise ??= import("tesseract.js").then(({ createWorker }) => createWorker("eng", 1, { workerPath: `${base}worker.min.js`, corePath: base, langPath: base.replace(/\/$/, ""), gzip: true, workerBlobURL: false }) as unknown as Promise<Worker>).catch((error) => { workerPromise = undefined; throw error; });
   return workerPromise;
 }
 
@@ -46,3 +48,6 @@ export async function detectRotationByText(source: CanvasImageSource, width: num
   const timeout = new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), timeoutMs));
   try { return await Promise.race([work, timeout]); } catch { return undefined; }
 }
+
+/** Pornește motorul din timp (la deschiderea centrului de scanare), ca prima poză să nu aștepte. */
+export function warmOcr() { void getWorker().catch(() => undefined); }

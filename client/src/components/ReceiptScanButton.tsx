@@ -11,6 +11,7 @@ import { t } from "@/lib/i18n";
 import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
+import { warmOcr } from "@/lib/receipt-orientation-ocr";
 import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, requestReceiptScan, scanToPrefill, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
@@ -28,6 +29,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   /** Pozele făcute cu camera până acum: un bon de hârtie lung se fotografiază pe bucăți, apoi se citesc împreună. */
   const [pending, setPending] = useState<File[]>([]);
   const [photo, setPhoto] = useState<string>();
+  useEffect(() => { const id = window.setTimeout(warmOcr, 600); return () => window.clearTimeout(id); }, []);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   useEffect(() => () => { if (photo?.startsWith("blob:")) URL.revokeObjectURL(photo); }, [photo]);
   // Cronometrul citirii: omul vede că se lucrează și, când durează, de ce.

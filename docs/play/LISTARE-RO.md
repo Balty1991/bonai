@@ -1,8 +1,7 @@
 # Listare Google Play — BonAI (RO)
 
 ## Nume aplicație (max 30 caractere în Play)
-Dorit: „BonAI: Scanare bonuri și listă de cumpărături” (45 caractere, peste limita de 30 a Play Console).
-Variantă care încape: **BonAI: bonuri și cumpărături** (28). Restul cuvintelor-cheie stau în descrierea scurtă.
+**BonAI: bonuri și cumpărături** (28 caractere). „Scanare” și „listă” stau în descrierea scurtă.
 
 ## Descriere scurtă (max 80)
 Scanezi bonul, vezi unde e mai ieftin și faci lista pentru toată familia.
