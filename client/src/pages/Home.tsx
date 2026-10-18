@@ -13,7 +13,8 @@ import { buildDemoData, isDemoMode, setDemoMode } from "@/lib/demo-data";
 import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { createPortal } from "react-dom";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
@@ -688,7 +689,7 @@ export default function Home() {
     
     
     
-    {modal === "scan" && !memberModeActive && shopMode && createPortal(<div className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={() => setModal(null)}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll"><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></div></div>, document.body)}
+    {modal === "scan" && !memberModeActive && shopMode && createPortal(<ScanHubFrame onClose={() => setModal(null)}><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></ScanHubFrame>, document.body)}
     
     {modal === "expense" && !memberModeActive && <Suspense fallback={null}><QuickExpenseSheet data={data} onClose={() => setModal((current) => (current === "expense" ? null : current))} onSave={(tx) => saveTx(tx)} onItemize={() => { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); }} /></Suspense>}
     {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
@@ -711,4 +712,10 @@ export default function Home() {
     
     {whatsNewOpen && !onboardingOpen && !setupOpen && !firstWeekTourOpen && !modal && more !== "sync" && <WhatsNewSheet onClose={dismissWhatsNew} onOpenTrip={() => { dismissWhatsNew(); window.dispatchEvent(new Event("buget-familie:open-charts")); }} onOpenMore={() => { dismissWhatsNew(); setMore("overview"); go("utilities"); }} />}
   </div>;
+}
+
+/** Ecranul Scanează: dialog cu focusul ținut înăuntru și închidere cu Esc (cerut de tastatură și cititoare de ecran). */
+function ScanHubFrame({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const ref = useFocusTrap<HTMLDivElement>(onClose);
+  return <div ref={ref} className="bn-review bn-scan-hub" role="dialog" aria-modal="true" aria-label={t("Scanează bonul")}><header className="bn-review-top"><button type="button" className="bn-icon-btn" aria-label={t("Închide")} onClick={onClose}><X size={20} /></button><p className="bn-hub-title">{t("Scanează")}</p><span /></header><div className="bn-review-scroll">{children}</div></div>;
 }

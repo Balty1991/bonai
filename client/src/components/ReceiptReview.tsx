@@ -15,7 +15,8 @@ import { CATEGORY_COLORS, categoryIcon, groupRows, round2, rowsFromPrefill, rows
 
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
 const num = (value: string) => { const parsed = Number(String(value).replace(",", ".")); return Number.isFinite(parsed) ? parsed : 0; };
-const chainOf = (vendor: string) => String(vendor || "").trim().split(/\s+/)[0]?.toLowerCase() || "";
+/** Lanțul magazinului: primul cuvânt după „Cumpărături”/„Bon” (titlul bonului scanat e „Cumpărături Profi”). */
+export const chainOf = (vendor: string) => String(vendor || "").trim().replace(/^(cumpărături|cumparaturi|bon)\s+/i, "").split(/\s+/)[0]?.toLowerCase() || "";
 const fmtDate = (iso?: string) => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "long" }) : "";
 
 export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string };
@@ -44,7 +45,9 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   const history = useMemo(() => productObservations(data).filter((o) => o.receiptId !== receiptId), [data, receiptId]);
   const flags = useMemo(() => checkReceiptLines(rows.map((row) => ({ label: row.label, amount: row.amount, qty: row.qty, discount: row.discount })), store, date, history, readShelfSeen()), [rows, store, date, history]);
   const members = data.settings.members.filter((member) => member.kind !== "child");
-  const previous = useMemo(() => data.receipts.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [data.receipts, store, date]);
+  // Bonurile de dinainte de deschiderea ecranului: după salvare, bonul ăsta nu e „ultima dată” față de el însuși.
+  const [before] = useState(() => data.receipts.filter((receipt) => receipt.id !== receiptId));
+  const previous = useMemo(() => before.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [before, store, date]);
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
   const addRow = (row?: Partial<ReviewRow>) => { const key = `m${Date.now()}`; setRows((list) => [...list, { key, label: "", raw: "", qty: 1, amount: 0, discount: 0, category: categories[0] || "Alimente", manual: true, ...row }]); if (!row) setEditing(key); };
   const save = async () => {
