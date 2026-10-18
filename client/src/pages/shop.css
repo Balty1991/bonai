@@ -347,3 +347,11 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 .bn-costs-form .bn-check { display: flex; align-items: center; gap: 10px; } .bn-costs-form .bn-check > span { color: var(--bn-ink); }
 .bn-costs-form .bn-file { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px dashed var(--bn-edge); color: var(--bn-ink); } .bn-costs-form .bn-file > span { color: var(--bn-ink); } .bn-file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .bn-costs-error { margin: 0; color: #e11d48; font-weight: 600; } .bn-costs-actions { display: flex; gap: 10px; justify-content: flex-end; } .bn-costs-actions .bn-btn { min-height: 48px; padding: 0 20px; }
+.bn-debt-list li { display: grid; padding-bottom: 12px; } .bn-debt-list li.is-done { opacity: .62; }
+.bn-debt-bar { position: relative; display: grid; gap: 6px; margin: 0 14px; } .bn-debt-bar::before { content: ""; height: 6px; border-radius: 6px; background: var(--bn-edge); grid-area: 1 / 1; }
+.bn-debt-bar i { grid-area: 1 / 1; height: 6px; border-radius: 6px; transform-origin: left; background: linear-gradient(90deg, #7c3aed, #22d3ee); transition: transform .6s cubic-bezier(.2, .8, .2, 1); } .bn-debt-bar small { color: var(--bn-muted); font-size: 12px; }
+.bn-debt-pay { display: inline-flex; align-items: center; justify-self: start; gap: 6px; min-height: 40px; margin: 10px 14px 0; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(124, 58, 237, .45); color: var(--bn-ink); background: var(--bn-soft); font: 600 13px/1 var(--bn-body); }
+.bn-debt-pay:disabled { opacity: .7; border-style: dashed; }
+.bn-costs .bn-costs-copy small svg { display: inline-block; vertical-align: -1px; }
+.bn-costs .bn-costs-row > label, .bn-costs .bn-costs-form input, .bn-costs .bn-costs-form select { min-width: 0; width: 100%; box-sizing: border-box; }
+.bn-costs .bn-debt-list .bn-debt-pay { display: inline-flex; width: auto; min-height: 40px; grid-template-columns: none; border: 1px solid rgba(124, 58, 237, .45); border-radius: 999px; background: var(--bn-soft); }

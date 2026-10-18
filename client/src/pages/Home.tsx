@@ -103,6 +103,7 @@ const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module)
 const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
 const BonAIAssistant = lazy(safeImport(() => import("@/components/BonAIAssistant")));
 const HouseCostsPanel = lazy(safeImport(() => import("@/components/HouseCostsPanel")));
+const DebtsPanel = lazy(safeImport(() => import("@/components/DebtsPanel")));
 const ListView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ListView }))));
 const PricesView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.PricesView }))));
 const HouseView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.HouseView }))));
@@ -233,7 +234,7 @@ export default function Home() {
   const [moreReturn, setMoreReturn] = useState<{ view: MainView; label: string } | null>(null);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [guideOn, setGuideOn] = useState(false);
-  const [costsKind, setCostsKind] = useState<"sub" | "bill">();
+  const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts">();
   const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | null>(null);
   const [quickTemplateId, setQuickTemplateId] = useState<string | undefined>(undefined);
   const [quickKind, setQuickKind] = useState<"income" | undefined>(undefined);
@@ -979,7 +980,8 @@ export default function Home() {
       const on = view === item.id || (item.id === "utilities" && (view === "obligations" || view === "insights" || view === "goals"));
       return <button key={item.id} className={on ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerDown={() => { preloadView(item.id as MainView); void ensureDeferredStyles(); }} onClick={() => { if (item.id === "utilities") setMore("overview"); go(item.id as MainView); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span>{(item.id === "journal" || item.id === "utilities") && data.pendingReview.length > 0 ? <i className="bf-dock-dot" aria-hidden="true" /> : null}</button>;
     })}</nav>}
-    {shopMode && costsKind && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
+    {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
+    {shopMode && costsKind && costsKind !== "debts" && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && guideOn && <Suspense fallback={null}><BonAIAssistant data={data} onChange={applyData} onClose={() => setGuideOn(false)} onGo={(screen) => { setGuideOn(false); if (screen === "scan") { openScan(); return; } if (screen === "prices") { go("products"); return; } go("list"); if (screen !== "list") window.setTimeout(() => window.dispatchEvent(new CustomEvent("bonai:list-tab", { detail: screen })), 0); }} /></Suspense>}
     {!shopMode && !simpleMode && !memberModeActive && guideOn && <Suspense fallback={null}><AICompanion initiallyOpen data={data} view={view} onAdd={() => openTx()} onGo={go} onNaturalEntry={openNaturalDraft} onFinancialUpdate={applyFinancialUpdate} onRevert={revertGuided} /></Suspense>}
     {themePickerOpen && <Suspense fallback={null}><ThemePicker theme={activeTheme} schedule={themeSchedule} scheduleTimes={scheduleTimes} highContrast={highContrast} background={background} onChange={setTheme} onScheduleChange={setThemeSchedule} onScheduleTimesChange={setScheduleTimes} onContrastChange={setHighContrast} onBackgroundChange={setBackground} onClose={() => setThemePickerOpen(false)} /></Suspense>} {quickActionsOpen && <Suspense fallback={null}><QuickActionsPalette data={data} onClose={() => setQuickActionsOpen(false)} onAdd={() => openTx()} onGo={go} /></Suspense>} {onboardingOpen && <Suspense fallback={null}><CalmOnboarding onClose={() => { setOnboardingOpen(false); const hasStarted = data.transactions.length > 0 || data.settings.salaryPlan.allocations.length > 0 || data.debts.length > 0 || data.savings.length > 0 || data.settings.paymentSources.some((source) => source.openingBalance > 0); if (!window.localStorage.getItem("buget-familie:setup-complete") && !hasStarted) setSetupOpen(true); }} onAdd={() => openTx()} onGo={go} /></Suspense>} {setupOpen && !shopMode && <Suspense fallback={null}><FirstRunSetup data={data} onChange={applyData} onClose={() => { setSetupOpen(false); setDemo(isDemoMode()); }} onGoPlan={() => go("plan")} onAdd={() => openTx()} onOpenSync={() => { setMore("sync"); go("utilities"); }} /></Suspense>}
