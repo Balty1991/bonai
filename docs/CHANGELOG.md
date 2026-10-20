@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.0 (232)
+
+- **Coșul tău la fiecare magazin** (Magazine, și pe Acasă când diferența trece de 5 lei): produsele pe care le iei des, în cantitatea ta obișnuită, puse la prețul fiecărui magazin; cel mai ieftin sus, cât ai da în plus în rest, „Spune-le prietenilor”.
+- **Prețurile din orașul tău** (opțional, oprit implicit): „Particip” trimite anonim produsul, prețul pe unitate, magazinul, orașul și luna; primești prețurile celorlalți, ca să vezi și magazinele unde n-ai fost. Pe server doar medii, arătate după cel puțin 3 trimiteri, șterse după 100 de zile. Politica de confidențialitate are secțiunea 4b.
+- **Notificare „Unde e mai ieftin”**: sâmbătă la 10:00, produsul tău cu cea mai mare diferență de preț între magazine (se oprește din Setări → Notificări).
+- **Recomandă BonAI** în Cont: mesaj gata de trimis pe WhatsApp, cu economia ta reală dacă există.
+
 ## 2.1.5 (231)
 
 - Ratele, creditele, abonamentele și facturile rămân în aplicație, separat de cumpărături: în Cont (Abonamente, Facturi, Datorii), pe Acasă în „Ce urmează” și în Rapoarte la „Plăți fixe”. Totalul lunii arată în continuare doar cumpărăturile.

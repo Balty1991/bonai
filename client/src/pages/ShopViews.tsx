@@ -5,7 +5,7 @@
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowUpRight, BarChart3, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap, Landmark, PenLine, CalendarClock, RotateCcw } from "lucide-react";
+import { ArrowUpRight, BarChart3, Gift, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap, Landmark, PenLine, CalendarClock, RotateCcw } from "lucide-react";
 import { upcoming, upcomingTotal, type UpcomingItem } from "@/lib/upcoming";
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
@@ -27,6 +27,10 @@ import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, h
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
 import { firstReceiptsInsight } from "@/lib/first-receipts";
 import { isDemoMode } from "@/lib/demo-data";
+import { basketCompare } from "@/lib/basket-compare";
+import { communityOutside, readCommunity, readCommunityCache } from "@/lib/community-prices";
+import { BasketCard } from "@/components/BasketCard";
+import { referralText } from "@/lib/referral";
 
 const ShoppingListPanel = lazy(() => import("@/components/ShoppingListPanel").then((module) => ({ default: module.ShoppingListPanel })));
 const BarcodeCheck = lazy(() => import("@/components/BarcodeCheck").then((module) => ({ default: module.BarcodeCheck })));
@@ -123,6 +127,12 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   const savedNow = useMemo(() => savedWithBonAI(data, today), [data, today]);
   const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
   const first = useMemo(() => isDemoMode() ? undefined : firstReceiptsInsight(data), [data]);
+  const basket = useMemo(() => {
+    const pref = readCommunity();
+    const cache = readCommunityCache();
+    const community = pref.on && cache?.city === pref.city ? communityOutside(cache) : { vendors: [] as string[] };
+    return basketCompare(data, today, community.outside, community.vendors);
+  }, [data, today]);
   const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
   const hour = new Date().getHours();
@@ -167,6 +177,11 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     {saving.total > 0 && <Card tone="accent" kicker={t("UNDE POȚI ECONOMISI")} title={t("Ai fi dat cu {amount} mai puțin luna asta", { amount: lei(saving.total) })}>
       <ul className="sh-list">{saving.items.slice(0, 3).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("luat la {vendor}, mai ieftin la {cheaper}", { vendor: item.vendor, cheaper: item.cheaperVendor })}</small></span><b className="sh-down">−{lei(item.saved)}</b></li>)}</ul>
       <button type="button" className="sh-link" onClick={onOpenStores}>{t("Vezi magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>}
+
+    {basket?.cheapest && basket.saving >= 5 && <Card kicker={t("COȘUL TĂU LUNAR")} title={t("La {vendor} ai da cu {amount} mai puțin pe lună", { vendor: basket.cheapest.vendor, amount: lei(basket.saving) })}>
+      <p className="sh-muted">{t("Aceleași produse, în cantitatea ta obișnuită, la prețurile fiecărui magazin.")}</p>
+      <button type="button" className="sh-link" onClick={onOpenStores}>{t("Compară magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>}
 
     <ProGate data={data} feature="myInflation" title={t("Inflația ta")} pitch={t("Cât s-au scumpit exact produsele pe care le cumperi tu, nu media țării.")}>
@@ -296,6 +311,7 @@ export function StoresView({ data }: { data: AppData }) {
       {stores.length ? <ul className="sh-list">{stores.map((item) => <li key={item.vendor}><span><b>{item.vendor}</b><small>{[item.visits === 1 ? t("o vizită") : t("{count} vizite", { count: item.visits }), t("coș mediu {amount}", { amount: lei(item.average) }), item.priceIndex !== undefined ? (item.priceIndex <= 0.5 ? t("cel mai ieftin la produsele comune") : t("{percent} față de cel mai ieftin", { percent: pct(item.priceIndex) })) : ""].filter(Boolean).join(" · ")}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
         : <p className="sh-muted">{t("Scanează bonuri de la magazinele unde mergi: aici vezi unde lași cei mai mulți bani și care e mai scump.")}</p>}
     </Card>
+    <BasketCard data={data} />
     {stores.some((item) => item.priceIndex !== undefined) && <p className="sh-muted sh-note">{t("Comparația ține doar de produsele pe care le-ai cumpărat în cel puțin două magazine, pe kg, litru sau bucată.")}</p>}
   </div>;
 }
@@ -331,7 +347,10 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpen
       <Row icon={<Download size={20} />} title={t("Export și copii de siguranță")} hint={t("fișier pe telefon")} onClick={() => onOpenMore("settings")} />
       <Row icon={<Settings size={20} />} title={t("Setări")} hint={t("limbă, notificări, date și confidențialitate")} onClick={() => onOpenMore("settings")} />
     </div>
-    <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
+    <div className="sh-rows">
+      <Row icon={<Gift size={20} />} title={t("Recomandă BonAI")} hint={t("trimite-le prietenilor, pe WhatsApp sau unde vrei")} onClick={() => shareSaved(referralText(data))} />
+    </div>
+    <p className="sh-muted sh-note"><Store size={14} aria-hidden="true" /> {readCommunity().on ? t("Bonurile rămân pe telefoanele familiei, criptate. Din prețuri pleacă doar media anonimă pe oraș, cu acordul tău (Magazine).") : t("Bonurile și prețurile rămân pe telefoanele familiei, criptate. Nimeni altcineva nu le vede.")}</p>
   </div>;
 }
 

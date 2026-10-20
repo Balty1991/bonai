@@ -1789,3 +1789,136 @@ export const readReceipt = onRequest(
     });
   },
 );
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Prețurile comunității: „unde e mai ieftin azi în orașul tău”.
+ *
+ * Doar cu acordul omului (pornit din Magazine). Pleacă fapte anonime despre prețuri:
+ * produsul (cheia normalizată), unitatea, prețul pe unitate, magazinul, orașul și luna.
+ * Nu pleacă bonul, data exactă, suma totală sau ceva despre familie. Pe server se țin doar
+ * sume și numărători pe (oraș, produs, unitate, lună), fără identitatea celui care a trimis.
+ * Colecția e închisă în reguli: o scrie și o citește doar funcția de mai jos.
+ * Un preț se arată doar după cel puțin 3 trimiteri, ca să nu se vadă cumpărătura cuiva.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+const COMMUNITY_PERS = new Set(["kg", "l", "buc"]);
+const COMMUNITY_MIN_COUNT = 3;
+const communityCity = (value: unknown) => clip(value, 40).toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 -]/g, "").replace(/\s+/g, " ").trim();
+const communityMonth = (offset = 0) => {
+  const now = new Date();
+  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1));
+  return date.toISOString().slice(0, 7);
+};
+const communityDocId = (city: string, key: string, per: string, month: string) => createHash("sha256").update(`community|${city}|${key}|${per}|${month}`).digest("hex").slice(0, 40);
+const communityVendorId = (vendor: string) => createHash("sha256").update(`vendor|${vendor.toLocaleLowerCase("ro-RO")}`).digest("hex").slice(0, 16);
+
+export const communityPrices = onRequest(
+  { region: "europe-central2", invoker: "public", timeoutSeconds: 20, memory: "256MiB", maxInstances: 6 },
+  (request, response) => {
+    allowCors(request, response, async () => {
+      if (request.method === "OPTIONS") {
+        response.status(204).send("");
+        return;
+      }
+      if (request.method !== "POST") {
+        response.status(405).json({ error: "Method not allowed" });
+        return;
+      }
+      const origin = request.get("origin");
+      if (origin && !originAllowed(origin)) {
+        response.status(403).json({ error: "Origin not allowed" });
+        return;
+      }
+      const body = (request.body || {}) as Record<string, unknown>;
+      const city = communityCity(body.city);
+      if (city.length < 2) {
+        response.status(400).json({ error: "Alege orașul." });
+        return;
+      }
+      const ip = clientIp(request);
+      const uid = await callerUid(String(request.get("authorization") || ""));
+      const months = [communityMonth(0), communityMonth(1)];
+      try {
+        if (body.action === "contribute") {
+          if (!(await allowPerCaller("communityQuota", `contribute|${ip}`, uid, 4))) {
+            response.status(429).json({ error: "Prea multe trimiteri într-o oră." });
+            return;
+          }
+          const raw = Array.isArray(body.facts) ? body.facts.slice(0, 80) : [];
+          // O singură valoare pe (produs, unitate, magazin, lună) într-o trimitere: un telefon nu umflă singur media.
+          const facts = new Map<string, { key: string; per: string; vendor: string; price: number; month: string }>();
+          for (const item of raw) {
+            if (!item || typeof item !== "object") continue;
+            const fact = item as Record<string, unknown>;
+            const key = clip(fact.k, 60).toLocaleLowerCase("ro-RO");
+            const per = typeof fact.per === "string" && COMMUNITY_PERS.has(fact.per) ? fact.per : "";
+            const vendor = clip(fact.v, 40);
+            const price = Math.round(Number(fact.p) * 100) / 100;
+            const month = typeof fact.m === "string" && months.includes(fact.m) ? fact.m : "";
+            if (key.length < 2 || !per || vendor.length < 2 || !month || !(price >= 0.05 && price <= 5000)) continue;
+            facts.set(`${key}|${per}|${vendor.toLocaleLowerCase("ro-RO")}|${month}`, { key, per, vendor, price, month });
+          }
+          if (!facts.size) {
+            response.json({ ok: true, saved: 0 });
+            return;
+          }
+          ensureAdmin();
+          const db = getFirestore();
+          const batch = db.batch();
+          const expireAt = Timestamp.fromMillis(Date.now() + 100 * 86_400_000);
+          facts.forEach((fact) => {
+            const ref = db.collection("communityPrices").doc(communityDocId(city, fact.key, fact.per, fact.month));
+            batch.set(ref, { city, k: fact.key, per: fact.per, month: fact.month, expireAt, v: { [communityVendorId(fact.vendor)]: { name: fact.vendor, sum: FieldValue.increment(fact.price), n: FieldValue.increment(1) } } }, { merge: true });
+          });
+          await batch.commit();
+          response.json({ ok: true, saved: facts.size });
+          return;
+        }
+        if (body.action === "query") {
+          if (!(await allowPerCaller("communityQuota", `query|${ip}`, uid, 30))) {
+            response.status(429).json({ error: "Prea multe cereri într-o oră." });
+            return;
+          }
+          const keys = (Array.isArray(body.keys) ? body.keys.slice(0, 40) : [])
+            .map((item) => item && typeof item === "object" ? { key: clip((item as Record<string, unknown>).k, 60).toLocaleLowerCase("ro-RO"), per: String((item as Record<string, unknown>).per || "") } : undefined)
+            .filter((item): item is { key: string; per: string } => !!item && item.key.length >= 2 && COMMUNITY_PERS.has(item.per));
+          if (!keys.length) {
+            response.json({ prices: {} });
+            return;
+          }
+          ensureAdmin();
+          const db = getFirestore();
+          const refs = keys.flatMap((item) => months.map((month) => db.collection("communityPrices").doc(communityDocId(city, item.key, item.per, month))));
+          const snaps = await db.getAll(...refs);
+          const totals = new Map<string, Map<string, { name: string; sum: number; n: number }>>();
+          for (const snap of snaps) {
+            if (!snap.exists) continue;
+            const id = `${snap.get("k")}|${snap.get("per")}`;
+            const vendors = totals.get(id) || new Map<string, { name: string; sum: number; n: number }>();
+            const map = (snap.get("v") || {}) as Record<string, { name?: string; sum?: number; n?: number }>;
+            for (const [vendorId, entry] of Object.entries(map)) {
+              const current = vendors.get(vendorId) || { name: String(entry.name || ""), sum: 0, n: 0 };
+              current.sum += Number(entry.sum) || 0;
+              current.n += Number(entry.n) || 0;
+              vendors.set(vendorId, current);
+            }
+            totals.set(id, vendors);
+          }
+          const prices: Record<string, Record<string, { price: number; n: number }>> = {};
+          totals.forEach((vendors, id) => {
+            vendors.forEach((entry) => {
+              if (entry.n < COMMUNITY_MIN_COUNT || !entry.name) return;
+              (prices[id] ||= {})[entry.name] = { price: Math.round((entry.sum / entry.n) * 100) / 100, n: entry.n };
+            });
+          });
+          response.json({ prices });
+          return;
+        }
+        response.status(400).json({ error: "Cerere necunoscută." });
+      } catch (error) {
+        console.error("communityPrices", error instanceof Error ? error.message.slice(0, 180) : "unknown");
+        response.status(502).json({ error: "Prețurile nu sunt disponibile acum." });
+      }
+    });
+  },
+);

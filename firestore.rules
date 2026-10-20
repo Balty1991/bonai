@@ -63,5 +63,14 @@ service cloud.firestore {
     match /aiGuideQuota/{id} {
       allow read, write: if false;
     }
+
+    // Prețurile comunității (sume anonime pe oraș, produs și lună) și contorul lor de abuz.
+    // Le scrie și le citește doar funcția communityPrices (Admin SDK).
+    match /communityPrices/{id} {
+      allow read, write: if false;
+    }
+    match /communityQuota/{id} {
+      allow read, write: if false;
+    }
   }
 }

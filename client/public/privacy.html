@@ -17,7 +17,7 @@
 </head>
 <body>
   <main>
-    <p class="meta">BonAI · versiunea 2.1.0 · actualizat 18 octombrie 2026</p>
+    <p class="meta">BonAI · versiunea 2.2.0 · actualizat 20 octombrie 2026</p>
     <h1>Politică de confidențialitate</h1>
     <p>BonAI (fostă Buget Familie) este o aplicație pentru bonuri, cumpărături și cheltuielile casei, publicată de dezvoltatorul Balty1991. Contact: <a href="mailto:contact.vanzo@gmail.com">contact.vanzo@gmail.com</a>. Pachet Android: <code>ro.balty1991.bugetfamilie</code>.</p>
     <p>Nu creăm conturi de utilizator, nu cerem date bancare și nu vindem informații. Tu ești operatorul datelor din registrul tău.</p>
@@ -41,6 +41,9 @@
 
     <h2>4. Asistentul AI (opțional)</h2>
     <p>Dacă folosești asistentul, întrebarea ta, ultimele mesaje din conversație și un rezumat cu cifre al cumpărăturilor (totaluri pe categorii, magazine, produse și prețuri din bonurile tale, cheltuieli fără bon, facturi, abonamente, datorii) pleacă prin serverul nostru (Google Cloud Functions, UE) către <b>Google Gemini</b> și, dacă Gemini nu răspunde, către <b>Groq</b> (SUA), ca rezervă. Nu pleacă pozele bonurilor, cheia sau parola camerei. Nu păstrăm conversațiile pe server. Google și Groq prelucrează cererea ca furnizori de servicii, conform termenilor lor pentru API. Nu scrie în asistent date pe care nu vrei să le trimiți (de exemplu numere de card).</p>
+
+    <h2>4b. Prețurile din orașul tău (opțional, oprit implicit)</h2>
+    <p>Doar dacă alegi „Particip” în Magazine, telefonul trimite, cel mult o dată pe zi, fapte anonime despre prețuri din bonurile tale noi, doar pentru alimente, băuturi și produse pentru casă și pentru copil (nu haine, farmacie sau alte produse): produsul (numele normalizat), prețul pe kg, litru sau bucată, magazinul, orașul ales de tine și luna. Nu trimite bonul, poza, ziua, totalul, numele tău sau al familiei, alte cheltuieli ori identificatorul anonim. Pe server (Google Cloud Firestore, UE) rămân doar sume și numărători pe oraș, produs și lună, fără legătură cu telefonul care le-a trimis; se șterg după cel mult 100 de zile. Un preț se arată altora doar după cel puțin 3 trimiteri. Identificatorul anonim și adresa IP se folosesc doar pentru contoarele de abuz din secțiunea 3. Poți opri oricând din Magazine → „Nu mai particip”; ce s-a trimis deja nu mai poate fi legat de tine, deci nu poate fi șters separat.</p>
 
     <h2>5. Feedback (opțional)</h2>
     <p>Formularul „Spune-ne ce nu merge” trimite textul scris de tine, contactul doar dacă îl completezi și, dacă lași bifa, detalii tehnice (versiunea aplicației, ecranul, tipul telefonului, limba, tema, mărimea ecranului), împreună cu identificatorul anonim. Nimic din registru. Mesajele le citește doar dezvoltatorul.</p>

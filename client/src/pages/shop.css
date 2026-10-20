@@ -637,3 +637,11 @@ html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data
 .bn-debt-paid { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 10px 14px 0; }
 .bn-debt-paid > span { display: inline-flex; align-items: center; gap: 6px; color: var(--bn-save); font-weight: 700; font-size: 13.5px; }
 .bn-debt-paid .bn-link { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 4px; border: 0; background: none; color: var(--bn-accent); font: 600 13px/1 var(--bn-body); cursor: pointer; }
+
+/* Coșul la fiecare magazin și prețurile din oraș. */
+html[data-app="shop"] .bn-basket .sh-list li > b { flex-wrap: wrap; justify-content: flex-end; }
+html[data-app="shop"] .bn-community-city { display: grid; gap: 6px; font-weight: 650; }
+html[data-app="shop"] .bn-community-city input { min-height: 48px; padding: 0 14px; border: 1px solid var(--sh-line); border-radius: 14px; background: var(--sh-bg); color: var(--sh-ink); font: inherit; font-weight: 500; }
+html[data-app="shop"] .bn-community-join { margin-top: 2px; }
+html[data-app="shop"] .bn-community-join:disabled { opacity: .55; cursor: not-allowed; }
+html[data-app="shop"] .bn-community-what { display: grid; gap: 6px; margin: 0; padding-left: 18px; font-size: 14px; }
