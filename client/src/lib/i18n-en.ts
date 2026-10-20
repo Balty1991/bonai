@@ -5606,7 +5606,7 @@ export const en: Record<string, string> = {
   "{count} produse pe care le iei des, în cantitatea ta obișnuită: acum dai cam {amount} pe lună pe ele.": "{count} products you buy often, in your usual quantity: you now spend about {amount} a month on them.",
   "{known} din {all} produse cu preț știut": "{known} of {all} products with a known price",
   "toate produsele cu preț știut": "all products with a known price",
-  "Prețul ultimei cumpărări din fiecare magazin; unde lipsește, prețul tău mediu.": "The price of your last purchase at each store; where missing, your average price.",
+  "Prețuri obișnuite, fără promoțiile de pe bon: mijlocul ultimelor 3 cumpărări din fiecare magazin; unde lipsește, prețul tău obișnuit. Promoțiile de azi nu sunt aici.": "Regular prices, without the discounts on your receipts: the middle of your last 3 purchases at each store; where missing, your usual price. Today's promotions are not included.",
   "Din comunitate: doar prețuri trimise de cel puțin 3 ori.": "From the community: only prices sent at least 3 times.",
   "PREȚURILE DIN ORAȘUL TĂU": "PRICES IN YOUR CITY",
   "Participi din {city}": "You're taking part from {city}",

@@ -44,6 +44,18 @@ describe("coșul la fiecare magazin", () => {
   });
 });
 
+describe("promoțiile nu fac un magazin mai ieftin", () => {
+  it("compară la prețul obișnuit, fără reducerea de pe bon", () => {
+    const d = data();
+    // La Kaufland laptele a fost o dată la promoție: 4 lei plătiți, 5 lei reducere (9 lei de obicei).
+    d.receipts.push({ id: "k2", vendor: "Kaufland", amount: 0, category: "Alimente", date: "2026-10-19", lines: [{ ...line("a", "Lapte Zuzu", 4), discount: 5 }] });
+    const basket = basketCompare(d, "2026-10-20")!;
+    expect(basket.cheapest?.vendor).toBe("Lidl");
+    const facts = communityFacts(d, "2026-10-18", "2026-10-20");
+    expect(facts.find((fact) => fact.v === "Kaufland")?.p).toBe(9);
+  });
+});
+
 describe("prețurile comunității", () => {
   it("trimite doar produsul, unitatea, prețul, magazinul și luna, fără SGR și fără ce s-a trimis deja", () => {
     const facts = communityFacts(data(), "2026-10-05", "2026-10-20");

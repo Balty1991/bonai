@@ -1,11 +1,12 @@
 /**
  * „Coșul tău lunar la fiecare magazin.” Produsele pe care le cumperi des (de cel puțin două ori în
- * 90 de zile), cu cantitatea obișnuită pe lună, puse la prețul ultimei cumpărări din fiecare
- * magazin (ultimele 180 de zile). Unde un magazin n-are un produs în bonurile tale, se pune prețul
- * tău mediu și se spune câte produse sunt estimate. Prețurile se compară doar în aceeași unitate.
+ * 90 de zile), cu cantitatea obișnuită pe lună, puse la prețul obișnuit din fiecare magazin: fără
+ * reducerile de pe bon și mijlocul ultimelor 3 cumpărări de acolo, ca o promoție sau o zi
+ * neobișnuită să nu mute clasamentul. Unde un magazin n-are un produs în bonurile tale, se pune
+ * prețul tău obișnuit și se spune câte produse sunt estimate. Prețurile se compară în aceeași unitate.
  */
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
-import { productObservations, type ProductObservation } from "./personal-inflation";
+import { productObservations, regularPrice, type ProductObservation } from "./personal-inflation";
 
 export type BasketItem = { key: string; label: string; per: string; perMonth: number; avgPrice: number };
 export type StoreBasket = { vendor: string; total: number; known: number; estimated: number; diff: number };
@@ -16,6 +17,11 @@ const r2 = (value: number) => Math.round(value * 100) / 100;
 /** Prețul unui produs la un magazin din alte surse (prețurile comunității), când lipsește din bonurile tale. */
 export type OutsidePrice = (key: string, per: string, vendor: string) => number | undefined;
 const SKIP = new Set(["SGR", "Sacoșe"]);
+const median = (values: number[]) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
 
 function collect(data: AppData, today: string) {
   const since90 = addIsoDays(today, -90);
@@ -32,8 +38,9 @@ function collect(data: AppData, today: string) {
     // Cantitatea pe lună: unitățile cumpărate în 90 de zile (kg, l sau bucăți), împărțite la 3.
     const units = recent.reduce((sum, item) => sum + item.paid / item.price, 0);
     const spent = recent.reduce((sum, item) => sum + item.paid, 0);
+    const regular = recent.reduce((sum, item) => sum + (item.paid / item.price) * regularPrice(item), 0);
     const last = list[list.length - 1];
-    items.push({ key: id, label: last.label, per: last.per, perMonth: units / 3, avgPrice: spent / units });
+    items.push({ key: id, label: last.label, per: last.per, perMonth: units / 3, avgPrice: regular / units });
     now += spent / 3;
   });
   return { all, byKey, items, now };
@@ -62,7 +69,7 @@ export function basketCompare(data: AppData, today = isoToday(), outside?: Outsi
       const raw = seen.length ? undefined : outside?.(productKey, per, vendor);
       // De peste 3 ori mai mult sau mai puțin decât plătești tu: altă gramatură sau o greșeală.
       const fromOthers = raw && raw > 0 && raw <= item.avgPrice * 3 && raw >= item.avgPrice / 3 ? raw : undefined;
-      const price = seen.length ? seen[seen.length - 1].price : fromOthers ?? item.avgPrice;
+      const price = seen.length ? median(seen.slice(-3).map(regularPrice)) : fromOthers ?? item.avgPrice;
       if (seen.length || fromOthers !== undefined) known += 1;
       total += price * item.perMonth;
     }

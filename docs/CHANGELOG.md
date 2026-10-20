@@ -3,6 +3,7 @@
 ## 2.2.0 (232)
 
 - **Coșul tău la fiecare magazin** (Magazine, și pe Acasă când diferența trece de 5 lei): produsele pe care le iei des, în cantitatea ta obișnuită, puse la prețul fiecărui magazin; cel mai ieftin sus, cât ai da în plus în rest, „Spune-le prietenilor”.
+- **Promoțiile nu mai strică comparația:** magazinele se compară la prețul obișnuit (fără reducerea de pe bon, mijlocul ultimelor 3 cumpărări), și în „Unde poți economisi”, în notificare și în prețurile trimise comunității.
 - **Prețurile din orașul tău** (opțional, oprit implicit): „Particip” trimite anonim produsul, prețul pe unitate, magazinul, orașul și luna; primești prețurile celorlalți, ca să vezi și magazinele unde n-ai fost. Pe server doar medii, arătate după cel puțin 3 trimiteri, șterse după 100 de zile. Politica de confidențialitate are secțiunea 4b.
 - **Notificare „Unde e mai ieftin”**: sâmbătă la 10:00, produsul tău cu cea mai mare diferență de preț între magazine (se oprește din Setări → Notificări).
 - **Recomandă BonAI** în Cont: mesaj gata de trimis pe WhatsApp, cu economia ta reală dacă există.

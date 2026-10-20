@@ -8,7 +8,7 @@
 import { authHeader } from "@/lib/realtime-sync";
 import { safeSetItem } from "@/lib/safe-storage";
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
-import { productObservations } from "./personal-inflation";
+import { productObservations, regularPrice } from "./personal-inflation";
 import { FOOD_CATEGORIES } from "./product-catalog";
 import type { OutsidePrice } from "./basket-compare";
 
@@ -61,7 +61,7 @@ export function communityFacts(data: AppData, since: string | undefined, today =
     if (item.date <= from || item.date > today || !months.has(item.date.slice(0, 7)) || !(item.price > 0)) continue;
     // Doar coșul de zi cu zi: haine, farmacie sau „Altele” ar spune prea mult despre om și puțin despre magazin.
     if (!SHARED_CATEGORIES.has(item.category) || !item.vendor || item.vendor === "Magazin") continue;
-    out.set(`${item.key}|${item.per}|${item.vendor}|${item.date.slice(0, 7)}`, { k: item.key, per: item.per, v: item.vendor, p: Math.round(item.price * 100) / 100, m: item.date.slice(0, 7) });
+    out.set(`${item.key}|${item.per}|${item.vendor}|${item.date.slice(0, 7)}`, { k: item.key, per: item.per, v: item.vendor, p: regularPrice(item), m: item.date.slice(0, 7) });
   }
   return Array.from(out.values()).slice(-80);
 }

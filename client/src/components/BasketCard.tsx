@@ -59,7 +59,7 @@ export function BasketCard({ data }: { data: AppData }) {
         <b className={store.diff > 0 ? "sh-up" : "sh-down"}>{lei(store.total)}{store.diff > 0 ? ` +${lei(store.diff)}` : ""}</b>
       </li>)}</ul>
       {basket.saving >= 1 && <button type="button" className="sh-link" onClick={() => void share(basketShareText(basket.saving, basket.cheapest!.vendor, PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>}
-      <p className="sh-muted sh-note">{t("Prețul ultimei cumpărări din fiecare magazin; unde lipsește, prețul tău mediu.")}{pref.on ? ` ${t("Din comunitate: doar prețuri trimise de cel puțin 3 ori.")}` : ""}</p>
+      <p className="sh-muted sh-note">{t("Prețuri obișnuite, fără promoțiile de pe bon: mijlocul ultimelor 3 cumpărări din fiecare magazin; unde lipsește, prețul tău obișnuit. Promoțiile de azi nu sunt aici.")}{pref.on ? ` ${t("Din comunitate: doar prețuri trimise de cel puțin 3 ori.")}` : ""}</p>
     </section>}
 
     <section className="sh-card bn-community">
