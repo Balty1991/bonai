@@ -5587,4 +5587,10 @@ export const en: Record<string, string> = {
   "față de luna trecută": "vs last month",
   "față de trimestrul trecut": "vs last quarter",
   "față de anul trecut": "vs last year",
+  "Plăți fixe · nu intră la cumpărături": "Fixed payments · not counted as shopping",
+  "Plăți fixe recente": "Recent fixed payments",
+  "Rată la bancă": "Bank loan payment",
+  "Rată produs": "Product instalment",
+  "Abonament": "Subscription",
+  "Factură": "Bill",
 };

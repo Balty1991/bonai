@@ -9,10 +9,20 @@ export const QUICK_CATEGORIES: Array<{ id: string; icon: string }> = [
   { id: "Restaurant", icon: "🍽️" }, { id: "Fast-food", icon: "🍔" }, { id: "Parcare", icon: "🅿️" }, { id: "Combustibil", icon: "⛽" },
   { id: "Farmacie", icon: "💊" }, { id: "Piață", icon: "🥕" }, { id: "Bacșiș", icon: "🤝" }, { id: "Altele", icon: "🧾" },
 ];
+/**
+ * Plățile fixe notate de mână: rata la bancă, rata unui produs, abonamentul, factura. Intră în
+ * Rapoarte la „Plăți fixe”, nu la cumpărături. Categoriile sunt cele vechi, ca rapoartele și
+ * istoricul să le recunoască.
+ */
+export const FIXED_QUICK: Array<{ id: string; label: string; icon: string }> = [
+  { id: "Credite", label: "Rată la bancă", icon: "🏦" }, { id: "Rate produse", label: "Rată produs", icon: "💳" },
+  { id: "Abonamente", label: "Abonament", icon: "🔁" }, { id: "Casă & facturi", label: "Factură", icon: "🧾" },
+];
+
 /** Iconițele categoriilor vechi, ca orice cheltuială notată înainte să aibă semnul ei, nu o etichetă goală. */
 const CATEGORY_ICONS: Record<string, string> = {
   Alimente: "🛒", Dulciuri: "🍬", Băuturi: "🥤", Apă: "💧", "Consumabile copil": "🧸", Sănătate: "💊", Haine: "👕",
-  "Timp liber": "🎬", Sacoșe: "🛍️", SGR: "♻️", "Casă & facturi": "🏠", Educație: "🎓", Abonamente: "🔁", Pizza: "🍕",
+  "Timp liber": "🎬", Sacoșe: "🛍️", SGR: "♻️", "Casă & facturi": "🧾", Educație: "🎓", Abonamente: "🔁", Pizza: "🍕", Credite: "🏦", "Rate produse": "💳",
 };
 export const quickIcon = (category: string) => QUICK_CATEGORIES.find((item) => item.id === category)?.icon || CATEGORY_ICONS[category] || "🏷️";
 
@@ -80,4 +90,20 @@ export function spendEntries(data: AppData): Receipt[] {
 /** Facturile, ratele și abonamentele notate, în aceeași formă: arătate separat de cumpărături. */
 export function fixedCostEntries(data: AppData): Receipt[] {
   return looseExpenses(data).filter(isFixedCost).map(asEntry);
+}
+
+/** Plățile fixe notate recent („Raiffeisen Alin · 672,96”), ca rata de luna asta să fie o atingere. */
+export function fixedSuggestions(data: AppData, limit = 4): Array<{ category: string; place?: string; amount: number }> {
+  const seen = new Set<string>();
+  const out: Array<{ category: string; place?: string; amount: number }> = [];
+  const recent = looseExpenses(data).filter(isFixedCost).sort((a, b) => (b.createdAt || b.date).localeCompare(a.createdAt || a.date));
+  for (const tx of recent) {
+    const place = tx.title && tx.title !== tx.category ? tx.title.replace(/^Rată(?: achitată integral| plată parțială)? — /, "") : undefined;
+    const key = `${tx.category}|${place || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ category: FIXED_COST_CATEGORIES.has(tx.category) ? tx.category : "Rate produse", place, amount: tx.amount });
+    if (out.length >= limit) break;
+  }
+  return out;
 }

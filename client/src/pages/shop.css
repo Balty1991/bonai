@@ -632,3 +632,4 @@ html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data
 .bn-report-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
 .bn-report-items li span { min-width: 0; overflow-wrap: anywhere; }
 .bn-report-items li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bn-qx-section { margin: 6px 0 -2px; color: var(--bn-muted); font: 700 12px/1.2 var(--bn-head); letter-spacing: .06em; text-transform: uppercase; }

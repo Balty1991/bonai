@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.5 (231)
+
+- Ratele, creditele, abonamentele și facturile rămân în aplicație, separat de cumpărături: în Cont (Abonamente, Facturi, Datorii), pe Acasă în „Ce urmează” și în Rapoarte la „Plăți fixe”. Totalul lunii arată în continuare doar cumpărăturile.
+- **Fără bon? Notează suma** are o secțiune „Plăți fixe”: Rată la bancă, Rată produs, Abonament, Factură și ultimele plăți fixe dintr-o atingere (ex. „Raiffeisen Alin · 672,96”). Nu intră la cumpărături.
+- (2.1.4 le scotea de tot; se renunță la asta.)
+
 ## 2.1.3 (229)
 
 - **Rapoarte** (Prețuri → Rapoarte, Acasă → „Raportul complet”, Cont → Rapoarte): săptămână, lună, trimestru și an, cu navigare înapoi și comparație cu perioada dinainte; cumpărăturile pe zile, categorii, produse și magazine; plățile fixe separat (rate la produse, împrumuturi și credite, abonamente, facturi și taxe); total cheltuit; „Trimite raportul”.
