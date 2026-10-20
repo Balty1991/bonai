@@ -159,7 +159,7 @@ const FLOWS = {
   },
   async prices(page, P, ctx) {
     await dock(page, 3); await sleep(900);
-    for (const tab of ["Produsele mele", "Statistici", "Magazine"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, `Prețuri/${tab}`)); }
+    for (const tab of ["Produsele mele", "Rapoarte", "Magazine"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, `Prețuri/${tab}`)); }
     await page.getByRole("tab", { name: "Produsele mele" }).click(); await sleep(500); await ctx.shot("prices");
   },
   async costs(page, P, ctx) {

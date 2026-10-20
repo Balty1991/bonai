@@ -2,14 +2,19 @@
  * Cheltuiala fără bon (taxi, patiserie, cafea, parcare): o mișcare simplă, cu categorie, fără bon fals.
  * Apare în Toate costurile, Istoric și Statistici alături de bonuri.
  */
-import { newId, type AppData, type Receipt, type Transaction } from "./finance-data";
+import { isBalanceAdjustment, newId, type AppData, type Receipt, type Transaction } from "./finance-data";
 
 export const QUICK_CATEGORIES: Array<{ id: string; icon: string }> = [
   { id: "Taxi", icon: "🚕" }, { id: "Transport", icon: "🚌" }, { id: "Patiserie", icon: "🥐" }, { id: "Cafea", icon: "☕" },
   { id: "Restaurant", icon: "🍽️" }, { id: "Fast-food", icon: "🍔" }, { id: "Parcare", icon: "🅿️" }, { id: "Combustibil", icon: "⛽" },
   { id: "Farmacie", icon: "💊" }, { id: "Piață", icon: "🥕" }, { id: "Bacșiș", icon: "🤝" }, { id: "Altele", icon: "🧾" },
 ];
-export const quickIcon = (category: string) => QUICK_CATEGORIES.find((item) => item.id === category)?.icon || "🏷️";
+/** Iconițele categoriilor vechi, ca orice cheltuială notată înainte să aibă semnul ei, nu o etichetă goală. */
+const CATEGORY_ICONS: Record<string, string> = {
+  Alimente: "🛒", Dulciuri: "🍬", Băuturi: "🥤", Apă: "💧", "Consumabile copil": "🧸", Sănătate: "💊", Haine: "👕",
+  "Timp liber": "🎬", Sacoșe: "🛍️", SGR: "♻️", "Casă & facturi": "🏠", Educație: "🎓", Abonamente: "🔁", Pizza: "🍕",
+};
+export const quickIcon = (category: string) => QUICK_CATEGORIES.find((item) => item.id === category)?.icon || CATEGORY_ICONS[category] || "🏷️";
 
 export type QuickExpense = { amount: number; category: string; place?: string; note?: string; memberId?: string; date: string };
 
@@ -36,8 +41,8 @@ export function quickExpenseTransaction(data: AppData, input: QuickExpense, now 
 
 /** Ce s-a notat recent fără bon: categoriile și „Taxi 25 lei” pentru repetare dintr-o atingere. */
 export function quickSuggestions(data: AppData, limit = 4): { repeats: Array<{ category: string; place?: string; amount: number; count: number }>; categories: string[] } {
-  const linked = new Set(data.receipts.flatMap((r) => [r.linkedTransactionId, ...(r.linkedTransactionIds || [])]).filter(Boolean) as string[]);
-  const loose = data.transactions.filter((tx) => tx.kind === "expense" && !tx.receiptId && !linked.has(tx.id)).sort((a, b) => (b.createdAt || b.date).localeCompare(a.createdAt || a.date)).slice(0, 80);
+  // Fără transferuri, corecții de sold, rate și facturi: în grilă stau doar cumpărăturile fără bon.
+  const loose = looseExpenses(data).filter((tx) => !tx.receiptId && !isFixedCost(tx)).sort((a, b) => (b.createdAt || b.date).localeCompare(a.createdAt || a.date)).slice(0, 80);
   const groups = new Map<string, { category: string; place?: string; amount: number; count: number; last: string }>();
   for (const tx of loose) {
     const place = tx.title && tx.title !== tx.category ? tx.title : undefined;
@@ -52,10 +57,27 @@ export function quickSuggestions(data: AppData, limit = 4): { repeats: Array<{ c
   return { repeats, categories };
 }
 
-/** Bonurile plus cheltuielile fără bon, în aceeași formă (pentru Istoric și Statistici). */
-export function spendEntries(data: AppData): Receipt[] {
+/**
+ * Plățile fixe notate fără bon: ratele și creditele (au și `debtId`), facturile, abonamentele,
+ * taxa de grădiniță. Nu sunt cumpărături: apar separat, ca „facturi și rate”, nu în coșul lunii.
+ */
+export const FIXED_COST_CATEGORIES = new Set(["Rate produse", "Credite", "Casă & facturi", "Abonamente", "Educație"]);
+export const isFixedCost = (tx: Pick<Transaction, "category" | "debtId">) => Boolean(tx.debtId) || FIXED_COST_CATEGORIES.has(tx.category);
+
+/** Cheltuielile fără bon: nici transfer între cardurile familiei, nici corecție de sold. */
+function looseExpenses(data: AppData): Transaction[] {
   const linked = new Set(data.receipts.flatMap((r) => [r.linkedTransactionId, ...(r.linkedTransactionIds || [])]).filter(Boolean) as string[]);
-  const loose = data.transactions.filter((tx) => tx.kind === "expense" && !linked.has(tx.id) && !(tx.receiptId && data.receipts.some((r) => r.id === tx.receiptId)))
-    .map((tx) => ({ id: tx.id, vendor: tx.title || tx.category, amount: tx.amount, category: tx.category, date: tx.date }) as Receipt);
-  return [...data.receipts, ...loose];
+  return data.transactions.filter((tx) => tx.kind === "expense" && !isBalanceAdjustment(tx) && !linked.has(tx.id) && !(tx.receiptId && data.receipts.some((r) => r.id === tx.receiptId)));
+}
+
+const asEntry = (tx: Transaction) => ({ id: tx.id, vendor: tx.title || tx.category, amount: tx.amount, category: tx.category, date: tx.date }) as Receipt;
+
+/** Bonurile plus cumpărăturile fără bon (taxi, cafea, farmacie), în aceeași formă (pentru Istoric și Statistici). */
+export function spendEntries(data: AppData): Receipt[] {
+  return [...data.receipts, ...looseExpenses(data).filter((tx) => !isFixedCost(tx)).map(asEntry)];
+}
+
+/** Facturile, ratele și abonamentele notate, în aceeași formă: arătate separat de cumpărături. */
+export function fixedCostEntries(data: AppData): Receipt[] {
+  return looseExpenses(data).filter(isFixedCost).map(asEntry);
 }

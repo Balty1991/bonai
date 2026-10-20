@@ -14,7 +14,7 @@
 
 .bf-price-trend{display:inline-flex!important;align-items:center!important;gap:3px!important;font:750 11px/1.2 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
 .bf-price-trend.up{color:#b4553f!important}
-.bf-price-trend.down{color:#1f7a5a!important}
+.bf-price-trend.down{color:var(--bn-save, #1f7a5a)!important}
 .bf-price-trend.flat{color:var(--cf-muted)!important}
 
 .bf-price-basket-lines{display:grid!important;gap:8px!important;margin-top:12px!important}
@@ -29,7 +29,7 @@
 .bf-price-chips{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:8px!important}
 .bf-price-chips button{display:inline-flex!important;align-items:center!important;gap:5px!important;width:auto!important;height:auto!important;min-height:36px!important;padding:0 10px!important;border:1px solid var(--cf-line)!important;border-radius:12px !important;color:var(--cf-link)!important;background:var(--cf-surface-alt)!important;font:600 11px/1.2 "IBM Plex Sans",sans-serif!important;text-align:left!important}
 .bf-price-chips button.active{border-color:var(--cf-primary-strong)!important;color:var(--cf-on-forest)!important;background:var(--cf-primary-strong)!important}
-.bf-price-chips small{opacity:.7!important;font-size:12px !important}
+.bf-price-chips small{opacity:.9!important;font-size:12px !important}
 
 .bf-price-list{display:grid!important;gap:10px!important}
 .bf-price-list article{display:grid!important;gap:8px!important;padding:13px!important;border:1px solid var(--cf-line)!important;border-radius:12px!important;background:var(--cf-surface-alt)!important}
@@ -39,9 +39,9 @@
 .bf-price-list article>header strong{flex:0 0 auto!important;color:var(--cf-ink)!important;font:750 14px/1.2 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
 .bf-price-vendors{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
 .bf-price-vendors span{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:4px 9px!important;border:1px solid var(--cf-line)!important;border-radius:99px!important;color:var(--cf-muted)!important;background:var(--cf-surface)!important;font:600 10px/1.4 "IBM Plex Sans",sans-serif!important}
-.bf-price-vendors span.cheapest{border-color:#1f7a5a!important;color:#1f7a5a!important}
+.bf-price-vendors span.cheapest{border-color:var(--bn-save, #1f7a5a)!important;color:var(--bn-save, #1f7a5a)!important}
 .bf-price-vendors b{color:var(--cf-ink)!important;font-weight:750!important}
-.bf-price-vendors span.cheapest b{color:#1f7a5a!important}
+.bf-price-vendors span.cheapest b{color:var(--bn-save, #1f7a5a)!important}
 .bf-price-list article>footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex-wrap:wrap!important}
 .bf-price-list article>footer small{color:var(--cf-muted)!important;font:600 10px/1.4 "IBM Plex Sans",sans-serif!important}
 .bf-price-privacy{margin:14px 0 0!important;color:var(--cf-muted)!important;font:600 10px/1.55 "IBM Plex Sans",sans-serif!important}
