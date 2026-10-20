@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Pencil, Trash2, X } from "lucide-react";
-import type { AppData, Receipt } from "@/lib/finance-data";
+import { isBalanceAdjustment, type AppData, type Receipt } from "@/lib/finance-data";
 import { productsLabel, t } from "@/lib/i18n";
 import { receiptsByMonth, storeHue, storeInitials } from "@/lib/shop-stats";
 import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
@@ -29,7 +29,7 @@ export function ShopHistory({ data, initialTab = "receipts", onClose, onEdit, on
     if (tab === "receipts") return data.receipts;
     // Cheltuielile fără bon (cele vechi, migrate, și cele notate de mână) intră ca rânduri simple.
     const linked = new Set(data.receipts.flatMap((r) => [r.linkedTransactionId, ...(r.linkedTransactionIds || [])]).filter(Boolean) as string[]);
-    const loose = data.transactions.filter((tx) => tx.kind === "expense" && !linked.has(tx.id)).map((tx) => ({ id: tx.id, vendor: tx.title || tx.category, amount: tx.amount, category: tx.category, date: tx.date }) as Receipt);
+    const loose = data.transactions.filter((tx) => tx.kind === "expense" && !isBalanceAdjustment(tx) && !linked.has(tx.id)).map((tx) => ({ id: tx.id, vendor: tx.title || tx.category, amount: tx.amount, category: tx.category, date: tx.date }) as Receipt);
     return [...data.receipts, ...loose];
   }, [data.receipts, data.transactions, tab]);
   const months = useMemo(() => receiptsByMonth(items), [items]);

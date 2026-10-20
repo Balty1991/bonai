@@ -23,3 +23,24 @@ describe("cheltuiala fără bon", () => {
     expect(s.categories[0]).toBe("Taxi");
   });
 });
+
+describe("ce intră la cumpărături", () => {
+  it("transferurile între carduri și corecțiile de sold ies; ratele și facturile stau separat", async () => {
+    const { fixedCostEntries } = await import("./quick-expense");
+    const { monthShopping } = await import("./shop-insights");
+    const data = createEmptyAppData();
+    const tx = (id: string, category: string, amount: number, extra: Record<string, unknown> = {}) => ({ id, title: category, amount, kind: "expense" as const, category, source: "", person: "", date: "2026-10-14", ...extra });
+    data.transactions = [
+      tx("t-taxi", "Transport", 25),
+      tx("transfer-1-out", "Transfer", 624.28, { transferId: "transfer-1" }),
+      tx("balance-check-1", "Altele", 232.99, { adjustment: true }),
+      tx("t-rata", "Rate produse", 175, { debtId: "d1" }),
+      tx("t-lumina", "Casă & facturi", 300),
+      tx("t-abonament", "Abonamente", 55),
+    ];
+    data.receipts = [{ id: "r1", vendor: "Lidl", amount: 100, category: "Alimente", date: "2026-10-12" }];
+    expect(spendEntries(data).map((entry) => entry.id)).toEqual(["r1", "t-taxi"]);
+    expect(fixedCostEntries(data).map((entry) => entry.id)).toEqual(["t-rata", "t-lumina", "t-abonament"]);
+    expect(monthShopping(data, "2026-10-20")).toMatchObject({ spent: 125, receipts: 1, loose: 1, fixed: 530 });
+  });
+});

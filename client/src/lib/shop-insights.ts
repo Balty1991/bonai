@@ -9,7 +9,7 @@
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
 import { productObservations, type ProductObservation } from "./personal-inflation";
 import { receiptVendorName } from "./price-history";
-import { spendEntries } from "./quick-expense";
+import { fixedCostEntries, spendEntries } from "./quick-expense";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 const monthOf = (iso: string) => iso.slice(0, 7);
@@ -20,7 +20,7 @@ const prevMonthDay = (iso: string) => {
   return `${first.getUTCFullYear()}-${String(first.getUTCMonth() + 1).padStart(2, "0")}-${String(Math.min(day, last)).padStart(2, "0")}`;
 };
 
-export type MonthShopping = { month: string; spent: number; receipts: number; /** Cheltuieli notate fără bon (taxi, cafea), incluse în `spent`. */ loose: number; lastMonthSoFar: number; lastMonthTotal: number; categories: Array<{ category: string; amount: number }> };
+export type MonthShopping = { month: string; spent: number; receipts: number; /** Cheltuieli notate fără bon (taxi, cafea), incluse în `spent`. */ loose: number; /** Facturi, rate și abonamente ale lunii, notate separat: nu sunt în `spent`. */ fixed: number; lastMonthSoFar: number; lastMonthTotal: number; categories: Array<{ category: string; amount: number }> };
 
 /** Bonurile și cheltuielile fără bon ale lunii: total, câte, pe categorii, și luna trecută până în aceeași zi. */
 export function monthShopping(data: AppData, today = isoToday()): MonthShopping {
@@ -43,7 +43,8 @@ export function monthShopping(data: AppData, today = isoToday()): MonthShopping 
     }
   }
   const categories = Array.from(byCategory, ([category, amount]) => ({ category, amount: round2(amount) })).sort((a, b) => b.amount - a.amount);
-  return { month, spent: round2(spent), receipts, loose, lastMonthSoFar: round2(lastMonthSoFar), lastMonthTotal: round2(lastMonthTotal), categories };
+  const fixed = fixedCostEntries(data).filter((entry) => monthOf(entry.date) === month && entry.date <= today).reduce((sum, entry) => sum + entry.amount, 0);
+  return { month, spent: round2(spent), receipts, loose, fixed: round2(fixed), lastMonthSoFar: round2(lastMonthSoFar), lastMonthTotal: round2(lastMonthTotal), categories };
 }
 
 /** Produsele pe care s-au dus cei mai mulți bani în ultimele `days` zile. */

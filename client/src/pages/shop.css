@@ -39,6 +39,7 @@ html[data-app="shop"] {
   --cf-line: #dcd8f3;
   --cf-primary: var(--bn-accent);
   --cf-primary-strong: #5b21b6;
+  --bn-strong: #5b21b6;
   color-scheme: light;
 }
 html[data-app="shop"].theme-dark, html[data-app="shop"].theme-navy {
@@ -66,6 +67,7 @@ html[data-app="shop"].theme-dark, html[data-app="shop"].theme-navy {
   --cf-surface-alt: #1d2347;
   --cf-line: #2b3263;
   --cf-primary-strong: #d4c5ff;
+  --bn-strong: #d4c5ff;
   color-scheme: dark;
 }
 html[data-app="shop"] body, html[data-app="shop"] .bf-app {
@@ -153,7 +155,7 @@ html[data-app="shop"] body .bf-app.os-shell .os-brand-copy b { color: var(--bn-i
 html[data-app="shop"] body .bf-app.os-shell .os-brand-copy i { color: var(--bn-accent) !important; }
 html[data-app="shop"] body .bf-app.os-shell .os-mark img { border-radius: 11px; box-shadow: 0 0 18px -6px rgba(139, 92, 246, .8); }
 html[data-app="shop"] body .bf-app.os-shell .os-tool { color: var(--bn-ink) !important; background: transparent !important; }
-html[data-app="shop"] body .bf-app.os-shell .os-dock { background: color-mix(in srgb, var(--bn-bg) 74%, transparent) !important; border-top: 1px solid var(--bn-edge) !important; box-shadow: 0 -12px 32px -24px rgba(124, 58, 237, .6) !important; -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); }
+html[data-app="shop"] body .bf-app.os-shell .os-dock { background: color-mix(in srgb, var(--bn-bg) 97%, transparent) !important; border-top: 1px solid var(--bn-edge) !important; box-shadow: 0 -12px 32px -24px rgba(124, 58, 237, .6) !important; -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); }
 html[data-app="shop"] body .bf-app.os-shell .os-dock button { color: var(--bn-muted) !important; font-family: var(--bn-head) !important; }
 html[data-app="shop"] body .bf-app.os-shell .os-dock button.is-on { background: var(--bn-soft) !important; color: var(--bn-accent) !important; box-shadow: inset 0 0 0 1px var(--bn-edge) !important; }
 html[data-app="shop"] body .bf-app.os-shell .os-dock button.is-on svg { color: var(--bn-accent) !important; }
@@ -171,7 +173,7 @@ html[data-app="shop"] .sh-greet b { font: 700 20px/1.15 var(--bn-head); letter-s
 html[data-app="shop"] .sh-greet-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff; font: 700 18px/1 var(--bn-head); background-color: #5b21b6; background-image: var(--bn-grad); box-shadow: var(--bn-glow); }
 
 /* Panourile refolosite (listă, bonuri, setări) primesc aceleași jetoane. */
-html[data-app="shop"] body .bf-app.os-shell { --os-bg: var(--bn-bg); --os-surface: var(--bn-glass-strong); --os-surface-2: var(--bn-soft); --os-line: var(--bn-edge); --os-line-strong: var(--bn-edge); --os-ink: var(--bn-ink); --os-fg: var(--bn-ink); --os-muted: var(--bn-muted); --os-subtle: var(--bn-muted); --os-mint: var(--bn-accent); --os-mint-fg: #fff; --os-mint-dim: var(--bn-soft); --cf-bg: var(--bn-bg); --cf-ink: var(--bn-ink); --cf-muted: var(--bn-muted); --cf-line: var(--bn-edge); --cf-primary: var(--bn-accent); --cf-on-primary: #fff; }
+html[data-app="shop"] body .bf-app.os-shell { --os-bg: var(--bn-bg); --os-surface: var(--bn-glass-strong); --os-surface-2: var(--bn-soft); --os-line: var(--bn-edge); --os-line-strong: var(--bn-edge); --os-ink: var(--bn-ink); --os-fg: var(--bn-ink); --os-muted: var(--bn-muted); --os-subtle: var(--bn-muted); --os-mint: var(--bn-accent); --os-mint-fg: #fff; --os-mint-dim: var(--bn-soft); --cf-bg: var(--bn-bg); --cf-ink: var(--bn-ink); --cf-muted: var(--bn-muted); --cf-line: var(--bn-edge); --cf-primary: var(--bn-accent); --cf-primary-strong: var(--bn-strong); --cf-link: var(--bn-strong); --cf-on-primary: #fff; }
 html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) :is(h1, h2, h3) { font-family: var(--bn-head) !important; letter-spacing: -0.02em; }
 html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .bf-primary { background-color: #5b21b6 !important; background-image: var(--bn-grad) !important; color: #fff !important; border: 0 !important; box-shadow: var(--bn-glow) !important; }
 html[data-app="shop"] body .bf-app.os-shell :is(main, .bf-modal) .bf-secondary { background: var(--bn-glass) !important; color: var(--bn-ink) !important; border: 1px solid var(--bn-edge) !important; }
