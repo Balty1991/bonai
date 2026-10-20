@@ -44,7 +44,7 @@ const SCREENS = {
   "Cumpărături": dock(1),
   "Scanează": dock(2),
   "Prețuri": dock(3),
-  "Statistici": seq(dock(3), async (page) => { await page.getByRole("tab", { name: /^Statistici$/ }).or(page.getByRole("button", { name: /^Statistici$/ })).first().click(); await page.waitForTimeout(1000); }),
+  "Rapoarte": seq(dock(3), async (page) => { await page.getByRole("tab", { name: /^Rapoarte$/ }).or(page.getByRole("button", { name: /^Rapoarte$/ })).first().click(); await page.waitForTimeout(1000); }),
   "Cont": dock(4),
   "Bonuri": cont(/^Bonuri/),
   "Abonamente": cont(/^Abonamente/),
