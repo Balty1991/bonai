@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.4 (230)
+
+- Bugetul vechi a ieșit din BonAI: Acasă nu mai arată „Ce urmează” cu rate, facturi și abonamente, ci doar retururile și garanțiile din următoarele 30 de zile; din Cont au ieșit Abonamente, Facturi și Datorii. Datele rămân; plățile fixe se văd separat în Rapoarte.
+
 ## 2.1.3 (229)
 
 - **Rapoarte** (Prețuri → Rapoarte, Acasă → „Raportul complet”, Cont → Rapoarte): săptămână, lună, trimestru și an, cu navigare înapoi și comparație cu perioada dinainte; cumpărăturile pe zile, categorii, produse și magazine; plățile fixe separat (rate la produse, împrumuturi și credite, abonamente, facturi și taxe); total cheltuit; „Trimite raportul”.

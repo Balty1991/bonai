@@ -5587,4 +5587,5 @@ export const en: Record<string, string> = {
   "față de luna trecută": "vs last month",
   "față de trimestrul trecut": "vs last quarter",
   "față de anul trecut": "vs last year",
+  "GARANȚII ȘI RETURURI · 30 DE ZILE": "WARRANTIES AND RETURNS · 30 DAYS",
 };
