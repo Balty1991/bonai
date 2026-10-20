@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, ListPlus, Plus, Repeat2, X } from "lucide-react";
 import { isoToday, type AppData, type Transaction } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
-import { QUICK_CATEGORIES, parseAmount, quickExpenseTransaction, quickIcon, quickSuggestions } from "@/lib/quick-expense";
+import { FIXED_QUICK, QUICK_CATEGORIES, fixedSuggestions, parseAmount, quickExpenseTransaction, quickIcon, quickSuggestions } from "@/lib/quick-expense";
 
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} lei`;
 
@@ -20,6 +20,7 @@ export function QuickExpenseSheet({ data, onSave, onClose, onItemize }: { data: 
   const [memberId, setMemberId] = useState(data.settings.selfMemberId);
   const amount = parseAmount(amountText);
   const { repeats, categories: recent } = useMemo(() => quickSuggestions(data), [data]);
+  const fixedRepeats = useMemo(() => fixedSuggestions(data), [data]);
   const members = data.settings.members.filter((member) => member.kind !== "child");
   // Categoriile folosite des vin primele; cele proprii (ex. „Croitorie”) rămân în grilă.
   const grid = useMemo(() => {
@@ -40,6 +41,11 @@ export function QuickExpenseSheet({ data, onSave, onClose, onItemize }: { data: 
         <div className="bn-qx-grid" role="radiogroup" aria-label={t("Categoria")}>
           {grid.map((id) => <button key={id} type="button" role="radio" aria-checked={!addingCustom && category === id} className={!addingCustom && category === id ? "is-on" : ""} onClick={() => { setAddingCustom(false); setCategory(id); }}><span aria-hidden="true">{quickIcon(id)}</span><b>{t(id)}</b></button>)}
           <button type="button" role="radio" aria-checked={addingCustom} className={addingCustom ? "is-on" : ""} onClick={() => setAddingCustom(true)}><span aria-hidden="true"><Plus size={20} /></span><b>{t("Alta")}</b></button>
+        </div>
+        <p className="bn-qx-section">{t("Plăți fixe · nu intră la cumpărături")}</p>
+        {fixedRepeats.length > 0 && <div className="bn-qx-repeats" aria-label={t("Plăți fixe recente")}>{fixedRepeats.map((item) => <button key={`${item.category}-${item.place}`} type="button" className="bn-chip" onClick={() => { setAddingCustom(false); setCategory(item.category); if (item.place) setPlace(item.place); if (!amount) setAmountText(String(item.amount).replace(".", ",")); }}><Repeat2 size={14} aria-hidden="true" /> {quickIcon(item.category)} {item.place || t(item.category)} · {lei(item.amount)}</button>)}</div>}
+        <div className="bn-qx-grid" role="radiogroup" aria-label={t("Plăți fixe")}>
+          {FIXED_QUICK.map((item) => <button key={item.id} type="button" role="radio" aria-checked={!addingCustom && category === item.id} className={!addingCustom && category === item.id ? "is-on" : ""} onClick={() => { setAddingCustom(false); setCategory(item.id); }}><span aria-hidden="true">{item.icon}</span><b>{t(item.label)}</b></button>)}
         </div>
         {addingCustom && <input className="bn-qx-field" autoFocus value={custom} onChange={(event) => setCustom(event.target.value.slice(0, 40))} placeholder={t("Numele categoriei, ex. Croitorie")} aria-label={t("Categorie nouă")} />}
         <button type="button" className="bn-qx-more" aria-expanded={more} onClick={() => setMore((open) => !open)}><ChevronDown size={16} aria-hidden="true" /> {t("Loc, notă, dată")}</button>

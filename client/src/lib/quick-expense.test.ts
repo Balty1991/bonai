@@ -44,3 +44,17 @@ describe("ce intră la cumpărături", () => {
     expect(monthShopping(data, "2026-10-20")).toMatchObject({ spent: 125, receipts: 1, loose: 1, fixed: 530 });
   });
 });
+
+describe("plățile fixe notate de mână", () => {
+  it("ultima rată la bancă se repetă dintr-o atingere și nu intră la cumpărături", async () => {
+    const { fixedSuggestions, quickSuggestions } = await import("./quick-expense");
+    const data = createEmptyAppData();
+    data.transactions = [
+      { id: "r1", title: "Rată — Raiffeisen Alin", amount: 672.96, kind: "expense", category: "Rate produse", debtId: "d1", source: "", person: "", date: "2026-09-30", createdAt: "2026-09-30T08:00:00Z" },
+      { id: "c1", title: "Cafea", amount: 9, kind: "expense", category: "Cafea", source: "", person: "", date: "2026-10-01", createdAt: "2026-10-01T08:00:00Z" },
+    ];
+    expect(fixedSuggestions(data)).toEqual([{ category: "Rate produse", place: "Raiffeisen Alin", amount: 672.96 }]);
+    expect(quickSuggestions(data).repeats.map((item) => item.category)).toEqual(["Cafea"]);
+    expect(spendEntries(data).map((entry) => entry.id)).toEqual(["c1"]);
+  });
+});
