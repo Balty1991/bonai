@@ -607,3 +607,28 @@ html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [r
 html[data-app="shop"] .sh-tabs:focus-within { outline: none; }
 html[data-app="shop"] body .bf-app .bf-utilities-workspace > .bf-sync, html[data-app="shop"] body .os-shell .bf-utilities-workspace > .bf-sync { padding: 0 !important; margin: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
 html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::after { content: none !important; display: none !important; }
+
+/* Rapoarte: săptămână, lună, trimestru, an. */
+.bn-report { display: grid; gap: 12px; }
+.bn-report .sh-card { gap: 12px; }
+.bn-report .sh-seg button { font-size: 13px; padding: 0 4px; }
+.bn-report-sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.bn-report-sum > span { display: grid; gap: 2px; padding: 10px 12px; border-radius: 16px; background: var(--bn-soft); }
+.bn-report-sum > span.is-total { grid-column: 1 / -1; }
+.bn-report-sum small { color: var(--bn-muted); font-size: 12.5px; font-weight: 600; }
+.bn-report-sum b { font: 700 20px/1.15 var(--bn-head); color: var(--bn-ink); font-variant-numeric: tabular-nums; }
+.bn-report-sum .is-total b { font-size: 26px; }
+.bn-report-meta { font-size: 13px; }
+.bn-report-rows li > span { position: relative; padding-bottom: 6px; }
+.bn-report-rows li > span > i { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; transform-origin: left; background: linear-gradient(90deg, #8b5cf6, #22d3ee); opacity: .7; }
+.bn-report-rows li > b { display: grid; justify-items: end; gap: 1px; }
+.bn-report-rows li > b small { font-size: 12px; font-weight: 700; }
+.bn-report-group { display: block !important; }
+.bn-report-group > button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 52px; padding: 0; border: 0; background: none; color: var(--bn-ink); text-align: left; cursor: pointer; }
+.bn-report-group > button > span { display: grid; gap: 2px; }
+.bn-report-group > button > span small { color: var(--bn-muted); }
+.bn-report-group > button > b { display: grid; justify-items: end; gap: 1px; font-variant-numeric: tabular-nums; }
+.bn-report-items { display: grid; gap: 6px; margin: 4px 0 8px; padding: 10px 12px; list-style: none; border-radius: 14px; background: var(--bn-soft); }
+.bn-report-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.bn-report-items li span { min-width: 0; overflow-wrap: anywhere; }
+.bn-report-items li b { white-space: nowrap; font-variant-numeric: tabular-nums; }

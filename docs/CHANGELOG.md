@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.3 (229)
+
+- **Rapoarte** (Prețuri → Rapoarte, Acasă → „Raportul complet”, Cont → Rapoarte): săptămână, lună, trimestru și an, cu navigare înapoi și comparație cu perioada dinainte; cumpărăturile pe zile, categorii, produse și magazine; plățile fixe separat (rate la produse, împrumuturi și credite, abonamente, facturi și taxe); total cheltuit; „Trimite raportul”.
+- **Cumpărăturile lunii** nu mai adună transferurile între cardurile familiei, corecțiile de sold, ratele, facturile și abonamentele (octombrie: 2.808 lei în loc de 6.240).
+- **Raza de scanare** merge iar lent, ca pe telefon: pe Android, tăierea animațiilor o făcea să sară.
+- **Bara de jos** e opacă; **Notează fără bon** are iconițe la toate categoriile și nu mai propune Transfer, Rate sau Corecție de sold.
+- Contrast mai bun pe Prețuri (prețul cel mai mic, numărul de cumpărări).
+
 ## 2.1.0 (226) — BonAI pentru Google Play
 
 - Scanare AI mai rapidă (3–5 s pe server), scanare offline gratuită și nelimitată, bon digital animat la citire.

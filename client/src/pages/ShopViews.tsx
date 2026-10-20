@@ -5,7 +5,7 @@
  * cu toate datele, sub Casa → „Buget (vechi)”.
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap, Landmark, PenLine, CalendarClock, RotateCcw } from "lucide-react";
+import { ArrowUpRight, BarChart3, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap, Landmark, PenLine, CalendarClock, RotateCcw } from "lucide-react";
 import { upcoming, upcomingTotal, type UpcomingItem } from "@/lib/upcoming";
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
@@ -45,7 +45,10 @@ function Row({ icon, title, hint, onClick }: { icon: ReactNode; title: string; h
 const money2 = (value: number) => value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** Paywall în context: arată ce deblochează exact cardul ascuns, cu prețurile și proba. */
-const ShopStats = lazy(() => import("@/components/ShopStats"));
+const ShopReports = lazy(() => import("@/components/ShopReports"));
+/** Fila cu care se deschide Prețuri data viitoare (de pe Acasă sau din Cont: „Rapoarte”). */
+let nextPricesTab: "products" | "stores" | "stats" | undefined;
+export const openPricesTab = (tab: "products" | "stores" | "stats") => { nextPricesTab = tab; };
 
 export function ProGate({ data, feature, title, pitch, children }: { data: AppData; feature: BonutFeature; title: string; pitch: string; children: ReactNode }) {
   const plan = currentBonutPlan(data, isoToday());
@@ -183,6 +186,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
 
     {month.categories.length > 0 && <Card kicker={t("PE CATEGORII")}>
       <div className="sh-bars">{month.categories.slice(0, 5).map((item) => <div key={item.category} className="sh-bar"><span>{t(item.category)}</span><i style={{ width: `${Math.max(4, Math.round((item.amount / month.categories[0].amount) * 100))}%` }} /><b>{lei(item.amount)}</b></div>)}</div>
+      <button type="button" className="sh-link" onClick={() => { openPricesTab("stats"); onOpenProducts(); }}>{t("Raportul complet: săptămână, lună, trimestru, an")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>}
 
     <Card kicker={t("BONURILE RECENTE")}>
@@ -269,11 +273,11 @@ function MenuCard({ data, onAdd }: { data: AppData; onAdd: (texts: string[]) => 
 
 /** Prețuri: produsele mele și magazinele, în taburi. */
 export function PricesView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
-  const [tab, setTab] = useState<"products" | "stores" | "stats">("products");
+  const [tab, setTab] = useState<"products" | "stores" | "stats">(() => { const first = nextPricesTab || "products"; nextPricesTab = undefined; return first; });
   return <div className="sh-page">
-    <div className="sh-tabs" role="tablist">{([["products", t("Produsele mele")], ["stats", t("Statistici")], ["stores", t("Magazine")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
-    <Suspense fallback={null}><BarcodeCheck data={data} onChange={onChange} /></Suspense>
-    {tab === "products" ? <ProductsView data={data} onChange={onChange} /> : tab === "stats" ? <Suspense fallback={null}><ShopStats data={data} /></Suspense> : <StoresView data={data} />}
+    <div className="sh-tabs" role="tablist">{([["products", t("Produsele mele")], ["stats", t("Rapoarte")], ["stores", t("Magazine")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
+    {tab !== "stats" && <Suspense fallback={null}><BarcodeCheck data={data} onChange={onChange} /></Suspense>}
+    {tab === "products" ? <ProductsView data={data} onChange={onChange} /> : tab === "stats" ? <Suspense fallback={null}><ShopReports data={data} /></Suspense> : <StoresView data={data} />}
   </div>;
 }
 
@@ -298,7 +302,7 @@ export function StoresView({ data }: { data: AppData }) {
 
 export type Look = "light" | "dark" | "auto";
 /** Cont: profilul, BonAI Pro, bonurile și costurile casei, familia, setările. Fără unelte din aplicația veche. */
-export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, onLook }: { data: AppData; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "receipts" | "costs") => void; look?: Look; onLook?: (look: Look) => void }) {
+export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpenReports, look, onLook }: { data: AppData; onOpenReports?: () => void; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "receipts" | "costs") => void; look?: Look; onLook?: (look: Look) => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
   const plan = currentBonutPlan(data, isoToday());
   const self = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -314,6 +318,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, look, 
     {plan === "free" && <div className="sh-rows sh-pro-row"><Row icon={<Sparkles size={20} />} title={t("Treci la BonAI Pro")} hint={t("scanări AI nelimitate, inflația ta, meniul săptămânii · {year} lei/an", { year: money2(BONUT_PRICES.pro.year) })} onClick={() => onOpenMore("settings")} /></div>}
     <div className="sh-rows">
       <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => (onOpenCosts ? onOpenCosts("receipts") : onOpenMore("receipts"))} />
+      <Row icon={<BarChart3 size={20} />} title={t("Rapoarte")} hint={t("săptămână, lună, trimestru, an · pe categorii, produse, rate")} onClick={() => { openPricesTab("stats"); onOpenReports?.(); }} />
       <Row icon={<ShoppingBasket size={20} />} title={t("Toate costurile")} hint={t("și cele fără bon")} onClick={() => (onOpenCosts ? onOpenCosts("costs") : onOpenJournal())} />
       <Row icon={<Users size={20} />} title={t("Familie și membri")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
