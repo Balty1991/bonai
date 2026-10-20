@@ -7,7 +7,7 @@
  * Prețurile se compară doar în aceeași unitate (lei/kg cu lei/kg), ca în „Produsele tale”.
  */
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
-import { productObservations, type ProductObservation } from "./personal-inflation";
+import { productObservations, regularPrice, type ProductObservation } from "./personal-inflation";
 import { receiptVendorName } from "./price-history";
 import { fixedCostEntries, spendEntries } from "./quick-expense";
 
@@ -74,7 +74,8 @@ export function savingsOpportunity(data: AppData, today = isoToday(), days = 30)
   for (const item of all) {
     const id = `${item.key}|${item.per}`;
     const vendors = cheapest.get(id) || new Map<string, number>();
-    vendors.set(item.vendor, Math.min(vendors.get(item.vendor) ?? Infinity, item.price));
+    // Celălalt magazin intră cu prețul lui obișnuit: o promoție de o zi nu e un preț pe care îl găsești mereu.
+    vendors.set(item.vendor, Math.min(vendors.get(item.vendor) ?? Infinity, regularPrice(item)));
     cheapest.set(id, vendors);
   }
   const byKey = new Map<string, Saving>();

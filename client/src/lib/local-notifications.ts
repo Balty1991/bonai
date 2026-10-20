@@ -27,6 +27,7 @@ import { loggingStreak } from "@/lib/logging-habits";
 import { partnersLoggedToday, selfLoggedToday } from "@/lib/habit-hold";
 import { notifyKindOf, readNotifyPrefs } from "@/lib/notify-prefs";
 import { warrantyReminders } from "@/lib/warranties";
+import { savingsOpportunity } from "@/lib/shop-insights";
 import { nextDue } from "./house-costs";
 const daysBetweenIso = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
 import { readAutoBackup } from "@/lib/auto-backup";
@@ -660,6 +661,22 @@ function buildAlerts(data: AppData): PlannedAlert[] {
         : t("{name}: garanția ține până pe {date}. Dacă ceva nu merge, du-l acum la service, cu bonul.", { name: reminder.name, date: formatDate(reminder.target) }),
       at,
       tag: `warranty-${reminder.kind}-${reminder.id}`,
+    });
+  }
+
+  // Prețuri: sâmbătă la 10:00, înainte de cumpărăturile mari, produsul tău cu cea mai mare diferență
+  // de preț între magazine din ultima lună. Doar din bonurile tale; fără diferență, nicio notificare.
+  const best = savingsOpportunity(data, today, 30).items[0];
+  if (best && best.saved >= 2) {
+    const toSaturday = (6 - new Date().getDay() + 7) % 7;
+    let at = atLocalHour(toSaturday, 10, 0);
+    if (at.getTime() <= Date.now()) at = atLocalHour(toSaturday + 7, 10, 0);
+    alerts.push({
+      id: id++,
+      title: t("{label} e mai ieftin la {vendor}", { label: best.label, vendor: best.cheaperVendor }),
+      body: t("Din bonurile tale: luna asta l-ai luat de la {was} și puteai da cu {amount} mai puțin.", { was: best.vendor, amount: money(best.saved) }),
+      at,
+      tag: `price-week-${isoDate(at)}`,
     });
   }
 

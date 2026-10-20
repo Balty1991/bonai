@@ -135,6 +135,7 @@ function LocalAlertsSettings({ data, shop = false }: { data: AppData; shop?: boo
     checkin: [t("Amintirea de seară"), t("Dacă tu n-ai notat azi, chiar dacă partenerul a notat.")],
     backup: [t("Copia de siguranță"), t("Dacă n-ai mai salvat o copie de peste 30 de zile.")],
     warranty: [t("Garanții și retururi"), t("Cu o zi înainte de ultima zi de retur și cu 30 de zile înainte să expire garanția.")],
+    prices: [t("Unde e mai ieftin"), t("Sâmbătă dimineața, produsul tău care e mai ieftin în alt magazin.")],
   };
 
   const ping = () => {
@@ -147,7 +148,7 @@ function LocalAlertsSettings({ data, shop = false }: { data: AppData; shop?: boo
       <h2 id="bf-alerts-title">{t("Reamintiri pe telefon")}</h2>
       <p>{t("Rămân pe dispozitiv; nu se trimit pe server. Nu te anunț când tu însuți adaugi o cheltuială — o vezi deja pe ecran.")}</p>
       <div className="bf-alert-kinds" role="group" aria-label={t("Ce vrei să primești")}>
-        {(shop ? NOTIFY_KINDS.filter((kind) => kind === "bills" || kind === "backup" || kind === "warranty") : NOTIFY_KINDS).map((kind) => <label key={kind} className="bf-alert-kind"><span><b>{kindText[kind][0]}</b><small>{kindText[kind][1]}</small></span><input type="checkbox" checked={!notifyPrefs.off.includes(kind)} onChange={(event) => updatePrefs({ ...notifyPrefs, off: event.target.checked ? notifyPrefs.off.filter((item) => item !== kind) : [...notifyPrefs.off, kind] })} /></label>)}
+        {(shop ? NOTIFY_KINDS.filter((kind) => kind === "bills" || kind === "backup" || kind === "warranty" || kind === "prices") : NOTIFY_KINDS).map((kind) => <label key={kind} className="bf-alert-kind"><span><b>{kindText[kind][0]}</b><small>{kindText[kind][1]}</small></span><input type="checkbox" checked={!notifyPrefs.off.includes(kind)} onChange={(event) => updatePrefs({ ...notifyPrefs, off: event.target.checked ? notifyPrefs.off.filter((item) => item !== kind) : [...notifyPrefs.off, kind] })} /></label>)}
         {!shop && <label className="bf-alert-kind"><span><b>{t("Ora amintirii de seară")}</b><small>{t("Doar dacă tu n-ai notat azi.")}</small></span><select value={notifyPrefs.eveningHour} disabled={notifyPrefs.off.includes("checkin")} onChange={(event) => updatePrefs({ ...notifyPrefs, eveningHour: Number(event.target.value) })}>{[18, 19, 20, 21, 22].map((hour) => <option key={hour} value={hour}>{`${hour}:00`}</option>)}</select></label>}
       </div>
       {!shop && <p className="bf-helper">{t("Cheltuielile adăugate de alt membru te anunță când telefoanele sunt sincronizate.")}</p>}

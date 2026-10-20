@@ -39,6 +39,14 @@ const baseSize = (line: ReceiptLine): number | undefined => {
 };
 
 /** Toate rândurile de bon, ca observații de preț comparabile. */
+/**
+ * Prețul obișnuit, fără reducerea de pe bon: cu el se compară magazinele. Un produs luat o dată
+ * la promoție nu face magazinul „mai ieftin” (detergentul cu 60% reducere nu costă mereu așa).
+ */
+export function regularPrice(item: Pick<ProductObservation, "price" | "paid" | "discount">): number {
+  return item.discount && item.discount > 0 && item.paid > 0 ? Math.round(item.price * ((item.paid + item.discount) / item.paid) * 100) / 100 : item.price;
+}
+
 export function productObservations(data: AppData): ProductObservation[] {
   const out: ProductObservation[] = [];
   for (const receipt of data.receipts) {
