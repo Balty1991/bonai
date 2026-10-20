@@ -94,8 +94,11 @@ const flatten = (map: Map<string, { amount: number }>) => new Map(Array.from(map
 function groupOf(data: AppData, entry: Receipt): FixedGroupId {
   const tx = data.transactions.find((item) => item.id === entry.id);
   const debt = tx?.debtId ? data.debts.find((item) => item.id === tx.debtId) : undefined;
-  // Ratele la produse (eMAG, Altex) sunt de obicei pe card; creditul bancar, IFN-ul, banii de la
-  // persoane și dobânda de overdraft sunt împrumuturi.
+  // Tipul ales în BonAI decide primul: rata la un magazin sau plata în rate e „rate la produse”;
+  // creditul bancar, împrumutul, dobânda de card și restul sunt împrumuturi.
+  if (debt?.debtType) return debt.debtType === "rata-card-magazin" || debt.debtType === "plata-rate" ? "rates" : "loans";
+  // Datoriile vechi: ratele la produse (eMAG, Altex) sunt de obicei pe card; creditul bancar, IFN-ul,
+  // banii de la persoane și dobânda de overdraft sunt împrumuturi.
   if (debt?.kind === "card") return "rates";
   if (debt || entry.category === "Credite") return "loans";
   if (entry.category === "Rate produse") return "rates";

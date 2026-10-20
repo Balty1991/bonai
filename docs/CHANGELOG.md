@@ -4,6 +4,8 @@
 
 - Ratele, creditele, abonamentele și facturile rămân în aplicație, separat de cumpărături: în Cont (Abonamente, Facturi, Datorii), pe Acasă în „Ce urmează” și în Rapoarte la „Plăți fixe”. Totalul lunii arată în continuare doar cumpărăturile.
 - **Fără bon? Notează suma** are o secțiune „Plăți fixe”: Rată la bancă, Rată produs, Abonament, Factură și ultimele plăți fixe dintr-o atingere (ex. „Raiffeisen Alin · 672,96”). Nu intră la cumpărături.
+- **Datorii, ca în Buget Familie:** „Marchează rata plătită” scade restul și notează plata la plăți fixe (apare în Rapoarte și în Toate costurile, nu la cumpărături); „Anulează bifa” pune totul la loc; la fiecare datorie: câte rate mai sunt, luna ultimei rate și cât ai plătit până acum; sus: „luna asta: X din Y bifate, mai ai Z lei”.
+- Rapoarte: rata la magazin și plata în rate merg la „Rate la produse”, creditul bancar și împrumutul la „Împrumuturi și credite”.
 - (2.1.4 le scotea de tot; se renunță la asta.)
 
 ## 2.1.3 (229)

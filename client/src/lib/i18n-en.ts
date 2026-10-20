@@ -5593,4 +5593,10 @@ export const en: Record<string, string> = {
   "Rată produs": "Product instalment",
   "Abonament": "Subscription",
   "Factură": "Bill",
+  "luna asta: {done} din {all} bifate, mai ai {amount}": "this month: {done} of {all} ticked, {amount} left",
+  "ultima rată: {month}": "last payment: {month}",
+  "mai ai {n} rate · ultima în {month}": "{n} payments left · last in {month}",
+  "plătit până acum: {amount}": "paid so far: {amount}",
+  "Anulează bifa": "Undo tick",
+  "Doar urmărire: BonAI nu plătește și nu se leagă de bancă. Bifezi tu rata: restul scade, iar plata apare în Rapoarte la plățile fixe, nu la cumpărături.": "Tracking only: BonAI doesn't pay or connect to your bank. You tick the payment: the balance goes down and the payment shows in Reports under fixed payments, not shopping.",
 };

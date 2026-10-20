@@ -633,3 +633,7 @@ html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data
 .bn-report-items li span { min-width: 0; overflow-wrap: anywhere; }
 .bn-report-items li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bn-qx-section { margin: 6px 0 -2px; color: var(--bn-muted); font: 700 12px/1.2 var(--bn-head); letter-spacing: .06em; text-transform: uppercase; }
+.bn-debt-outlook { margin: 6px 14px 0; color: var(--bn-muted); font-size: 13px; line-height: 1.35; }
+.bn-debt-paid { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 10px 14px 0; }
+.bn-debt-paid > span { display: inline-flex; align-items: center; gap: 6px; color: var(--bn-save); font-weight: 700; font-size: 13.5px; }
+.bn-debt-paid .bn-link { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 4px; border: 0; background: none; color: var(--bn-accent); font: 600 13px/1 var(--bn-body); cursor: pointer; }
