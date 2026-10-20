@@ -6,7 +6,7 @@
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowUpRight, BarChart3, ChevronRight, Lock, Plus, Send, Share2, Download, ListChecks, ReceiptText, ScanLine, Settings, ShieldCheck, ShoppingBasket, Sparkles, Store, Users, Repeat, Zap, Landmark, PenLine, CalendarClock, RotateCcw } from "lucide-react";
-import { upcoming, upcomingTotal, type UpcomingItem } from "@/lib/upcoming";
+import { upcoming, type UpcomingItem } from "@/lib/upcoming";
 import { isoToday, newId, type AppData } from "@/lib/finance-data";
 import { monthShopping, savingsOpportunity, storeStats, topProducts } from "@/lib/shop-insights";
 import { monthInflation, shrinkflationAlerts } from "@/lib/personal-inflation";
@@ -93,14 +93,16 @@ function kindText(item: UpcomingItem) {
   return item.kind === "sub" ? t("abonament") : item.estimate ? t("factură, estimată") : t("factură");
 }
 
-/** „Ce urmează” pe 30 de zile: tot ce are o dată, cu un tap spre locul unde se gestionează. */
+/**
+ * Retururile și garanțiile din următoarele 30 de zile. Ratele, facturile și abonamentele (bugetul
+ * vechi) nu mai apar aici; plățile fixe se văd separat în Rapoarte.
+ */
 function UpcomingCard({ data, today, onOpen }: { data: AppData; today: string; onOpen: (item: UpcomingItem) => void }) {
-  const items = useMemo(() => upcoming(data, today, 30), [data, today]);
+  const items = useMemo(() => upcoming(data, today, 30).filter((item) => item.kind === "return" || item.kind === "warranty"), [data, today]);
   const [all, setAll] = useState(false);
   if (!items.length) return null;
-  const total = upcomingTotal(items);
   const shown = all ? items : items.slice(0, 4);
-  return <Card kicker={t("CE URMEAZĂ · 30 DE ZILE")} title={total > 0 ? t("{amount} de plătit", { amount: lei(total) }) : undefined}>
+  return <Card kicker={t("GARANȚII ȘI RETURURI · 30 DE ZILE")}>
     <ul className="sh-next">{shown.map((item) => { const Icon = KIND_ICON[item.kind]; return <li key={item.id}>
       <button type="button" className={`sh-next-row is-${item.kind}${item.days <= 2 ? " is-soon" : ""}`} onClick={() => onOpen(item)}>
         <span className="sh-next-icon" aria-hidden="true"><Icon size={17} /></span>
@@ -112,7 +114,7 @@ function UpcomingCard({ data, today, onOpen }: { data: AppData; today: string; o
   </Card>;
 }
 
-export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores, onOpenMore, onOpenCosts }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts") => void }) {
+export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores, onOpenMore }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts") => void }) {
   const today = isoToday();
   const month = useMemo(() => monthShopping(data, today), [data, today]);
   const top = useMemo(() => topProducts(data, today), [data, today]);
@@ -178,7 +180,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     </Card>
     </ProGate>
 
-    <UpcomingCard data={data} today={today} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
+    <UpcomingCard data={data} today={today} onOpen={() => onOpenMore("warranties")} />
 
     {top.length > 0 && <Card kicker={t("PE CE SE DUC BANII")} title={t("Ultimele 30 de zile")}>
       <ul className="sh-list">{top.map((item) => <li key={item.key}><span><b>{item.label}</b><small>{item.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: item.count })}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
@@ -322,9 +324,6 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpen
       <Row icon={<ShoppingBasket size={20} />} title={t("Toate costurile")} hint={t("și cele fără bon")} onClick={() => (onOpenCosts ? onOpenCosts("costs") : onOpenJournal())} />
       <Row icon={<Users size={20} />} title={t("Familie și membri")} hint={members || t("invită partenerul")} onClick={() => onOpenMore("sync")} />
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
-      <Row icon={<Repeat size={20} />} title={t("Abonamente")} hint={t("Netflix, telefon, sală")} onClick={() => onOpenCosts?.("sub")} />
-      <Row icon={<Zap size={20} />} title={t("Facturi")} hint={t("curent, gaz, internet")} onClick={() => onOpenCosts?.("bill")} />
-      <Row icon={<Landmark size={20} />} title={t("Datorii")} hint={data.debts.length ? t("{n} în evidență", { n: data.debts.length }) : t("rate, împrumuturi, carduri")} onClick={() => onOpenCosts?.("debts")} />
     </div>
     {onLook && <section className="sh-card" aria-label={t("Aspect")}><p className="sh-kicker">{t("ASPECT")}</p><div className="sh-seg" role="group" aria-label={t("Tema aplicației")}>{([["light", t("Luminos")], ["dark", t("Noapte")], ["auto", t("Automat")]] as Array<[Look, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={look === id} onClick={() => onLook(id)}>{label}</button>)}</div><p className="sh-muted sh-note">{t("Automat urmează setarea telefonului.")}</p></section>}
     <div className="sh-rows">

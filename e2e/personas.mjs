@@ -163,17 +163,14 @@ const FLOWS = {
     await page.getByRole("tab", { name: "Produsele mele" }).click(); await sleep(500); await ctx.shot("prices");
   },
   async costs(page, P, ctx) {
+    // Bugetul vechi (Datorii, Abonamente, Facturi) a ieșit din Cont; plățile fixe se văd în Rapoarte.
     await dock(page, 4); await sleep(800);
-    for (const row of [/^Datorii/, /^Abonamente/, /^Facturi/]) {
-      const b = page.getByRole("button", { name: row }).first();
-      if (!(await b.isVisible().catch(() => false))) { ctx.issues.push(`Cont: lipsește rândul ${row}`); continue; }
-      await b.click(); await sleep(900); ctx.issues.push(...await audit(page, `Cont/${row.source}`)); await ctx.shot(`costs-${row.source.replace(/\W/g, "")}`);
-      await page.keyboard.press("Escape"); await sleep(600);
-      const panel = page.locator(".bn-costs[role=dialog]");
-      if (await panel.isVisible().catch(() => false)) { ctx.issues.push(`Cont/${row.source}: panoul nu se închide cu Esc`); await panel.getByRole("button", { name: "Înapoi" }).first().click(); await sleep(500); }
-    }
+    for (const row of [/^Datorii/, /^Abonamente/, /^Facturi/]) if (await page.getByRole("button", { name: row }).first().isVisible().catch(() => false)) ctx.issues.push(`Cont: rândul ${row.source} n-ar mai trebui să apară`);
+    const reports = page.getByRole("button", { name: /^Rapoarte/ }).first();
+    if (!(await reports.isVisible().catch(() => false))) { ctx.issues.push("Cont: lipsește rândul Rapoarte"); return; }
+    await reports.click(); await sleep(1200); ctx.issues.push(...await audit(page, "Cont/Rapoarte")); await ctx.shot("costs-reports");
   },
-  async next(page, P, ctx) { await dock(page, 0); await sleep(800); const card = page.locator(".sh-card", { hasText: "CE URMEAZĂ" }).first(); if (await card.count()) { await card.scrollIntoViewIfNeeded(); await ctx.shot("next"); } else ctx.note("Ce urmează: nimic programat (card ascuns)"); },
+  async next(page, P, ctx) { await dock(page, 0); await sleep(800); const card = page.locator(".sh-card", { hasText: "GARANȚII ȘI RETURURI" }).first(); if (await card.count()) { await card.scrollIntoViewIfNeeded(); await ctx.shot("next"); } else ctx.note("Garanții și retururi: nimic în 30 de zile (card ascuns)"); },
   async theme(page, P, ctx) {
     await dock(page, 4); await sleep(700);
     const other = P.theme === "dark" ? "Luminos" : "Noapte";
