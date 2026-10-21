@@ -5848,4 +5848,8 @@ export const en: Record<string, string> = {
   "În casă": "At home",
   "Apasă pe un produs ca să vezi cum i s-a schimbat prețul și unde l-ai luat cel mai ieftin.": "Tap a product to see how its price changed and where you got it cheapest.",
   "Același coș, la prețurile fiecărui magazin unde ai fost.": "The same basket, at the prices of every store you've been to.",
+  "TELEFON BLOCAT": "PHONE LOCKED",
+  "Introdu codul adultului ca să deschizi BonAI": "Enter the adult's code to open BonAI",
+  "Telefonul era pus în „Modul copil”, care nu mai există. După cod, aplicația se deschide normal.": "This phone was in “Child mode”, which no longer exists. After the code, the app opens normally.",
+  "Deschide BonAI": "Open BonAI",
 };
