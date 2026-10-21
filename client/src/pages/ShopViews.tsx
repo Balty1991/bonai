@@ -21,7 +21,7 @@ import { pantryFromReceipts } from "@/lib/pantry";
 import { weeklyMenu } from "@/lib/weekly-menu";
 import { threeMonthAverage } from "@/lib/savings-summary";
 import { savedShareTextV2, savedWithBonAI } from "@/lib/saved-with-bonai";
-import { currentBonutPlan } from "@/lib/bonut-plan-current";
+import { aiScansLeft, currentBonutPlan } from "@/lib/bonut-plan-current";
 import { BILLING_LIVE } from "@/lib/entitlements";
 import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, hasFeature, yearlySavingPercent, type BonutFeature } from "@/lib/bonut-plans";
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
@@ -161,6 +161,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   const next = useMemo(() => upcoming(data, today, 30), [data, today]);
   const debts = useMemo(() => debtSummary(data.debts || []), [data.debts]);
   const plan = currentBonutPlan(data, today);
+  const scansLeftNow = aiScansLeft(data, today);
   const [assist, setAssist] = useState(false);
   const [spendTab, setSpendTab] = useState<"categories" | "products">("categories");
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -206,6 +207,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
         <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
         {onManual && <button type="button" className="sh-dash-manual" aria-label={t("Fără bon? Notează suma")} onClick={onManual}><PenLine size={18} aria-hidden="true" /><span>{t("Notează suma")}</span></button>}
       </div>
+      {Number.isFinite(scansLeftNow) && <p className={`sh-scans-left${scansLeftNow <= 3 ? " is-low" : ""}`}>{scansLeftNow > 0 ? t("Mai ai {count} scanări AI luna asta · offline, nelimitat", { count: scansLeftNow }) : t("Scanările AI ale lunii s-au terminat · offline, nelimitat")}</p>}
     </header>
 
     <section className="sh-kpis" aria-label={t("Pe scurt")}>{tiles.map((tile) => <button key={tile.id} type="button" className={`sh-kpi is-${tile.id}`} disabled={!tile.onClick} onClick={tile.onClick}>

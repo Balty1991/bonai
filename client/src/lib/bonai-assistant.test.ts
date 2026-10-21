@@ -57,4 +57,23 @@ describe("Asistent BonAI", () => {
     expect(assistantUsage("2026-10", store)).toBe(2);
     expect(assistantUsage("2026-11", store)).toBe(0);
   });
+  it("întrebarea decide, nu rolul: „Pe ce cheltui de obicei banii?” sub Consultant economii", () => {
+    const q = parseQuery("Pe ce cheltui de obicei banii?", "savings");
+    expect(q.type).toBe("breakdown");
+    const a = runQuery(q, data(), TODAY);
+    expect(a.text).toMatch(/^Luna asta ai dat 48,66\u00a0lei\. Cei mai mulți bani merg pe Alimente 48,66\u00a0lei \(100%\)/);
+    expect(a.text).toContain("Cafea Jacobs 250g 21,90\u00a0lei");
+    expect(a.text).toContain("i-ai lăsat la Lidl");
+    expect(parseQuery("cât am dat pe cafea?", "savings").type).toBe("spend");
+    expect(parseQuery("unde se duc banii anul ăsta?", "chef")).toMatchObject({ type: "breakdown", period: "year" });
+  });
+  it("plăți, garanții, sfaturi și azi/ieri", () => {
+    const d = { ...data(), debts: [{ id: "x", name: "Rată mașină", remaining: 9000, monthly: 640, due: "", tone: "coral", kind: "credit", dueDay: 24 }] } as AppData;
+    expect(parseQuery("ce rate am luna asta?").type).toBe("payments");
+    expect(runQuery(parseQuery("ce plăți urmează?"), d, TODAY).text).toMatch(/Rată mașină 640,00\u00a0lei în 6 zile.*Datorii rămase: 9\.000,00\u00a0lei/);
+    expect(parseQuery("am garanții care expiră?").type).toBe("warranties");
+    expect(parseQuery("ce sfat îmi dai?").type).toBe("advice");
+    expect(parseQuery("cât am cheltuit azi?")).toMatchObject({ type: "spend", period: "today" });
+    expect(runQuery(parseQuery("cât am cheltuit ieri?"), data(), "2026-10-11").text).toContain("14,77\u00a0lei");
+  });
 });

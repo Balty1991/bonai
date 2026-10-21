@@ -258,6 +258,56 @@ const FEATURES = {
     if (!/Am bifat din listă: Aspirator/.test(await page.locator(".bn-aha").innerText())) fail("„Bon salvat” nu spune ce a bifat din listă");
     await waitFor(() => page.evaluate(async () => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.shoppingList || []).some((item) => item.id === "asp" && item.done)), "„Aspirator” bifat în listă");
   },
+  /** 6c. Prețuri față de data trecută la verificare, bonul în euro salvat în lei, și listele multiple. */
+  async pricesfx(page, theme) {
+    await page.evaluate(async () => {
+      const d = new Date().toISOString().slice(0, 10); localStorage.setItem("bonai:ai-scans-v1", JSON.stringify(Array(15).fill(d))); localStorage.setItem("buget-familie:receipt-scan-consent", "1");
+      const s = await import("/src/lib/app-storage.ts");
+      const data = await s.readAppData();
+      data.receipts = [...data.receipts, { id: "old-kinder", vendor: "Profi", amount: 3.2, category: "Dulciuri", date: "2026-09-01", lines: [{ id: "k", category: "Dulciuri", amount: 3.2, label: "Kinder Delice 11 396 1B A" }] }];
+      const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(data, later); s.writeLocalStorageSnapshot(JSON.stringify(data), later);
+    });
+    await page.reload(); await page.waitForTimeout(2000);
+    await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
+    const hub = page.locator(".bn-hub");
+    await waitFor(() => hub.isVisible(), "centrul de scanare");
+    const chooser = page.waitForEvent("filechooser");
+    await hub.getByRole("button", { name: /Offline/ }).click();
+    await (await chooser).setFiles("e2e/receipts/vodka-39.76.jpg");
+    await page.getByRole("button", { name: /^Citește bonul$/ }).click();
+    const review = page.getByRole("dialog", { name: "Verifică bonul" });
+    await waitFor(() => review.isVisible(), "verificarea bonului", 90_000);
+    const label = await review.locator(".bn-item-copy b").first().innerText();
+    const prices = review.locator(".bn-prices");
+    if (/Kinder Delice 11 396/i.test(label)) {
+      await waitFor(() => prices.isVisible(), "„Față de data trecută”");
+      if (!/1 mai scumpe/.test(await prices.innerText())) fail(`rezumatul prețurilor: ${await prices.innerText()}`);
+      if (!/▲/.test(await review.locator(".bn-item").first().innerText())) fail("rândul scumpit nu are ▲");
+      await shot(page, `prices-${theme}`, prices);
+    }
+    await review.locator(".bn-review-when").click();
+    await review.getByLabel("Moneda bonului").selectOption("EUR");
+    const total = Number((await review.locator(".bn-bar-total b").innerText()).replace(/[^\d,]/g, "").replace(",", "."));
+    if (!/EUR/.test(await review.locator(".bn-bar-total b").innerText())) fail("totalul nu arată EUR");
+    await review.getByRole("button", { name: /^Gata$/ }).click();
+    await review.getByRole("button", { name: /^Salvează bonul$/ }).click();
+    const sum = page.getByRole("button", { name: /^Salvez / });
+    if (await sum.isVisible({ timeout: 1500 }).catch(() => false)) await sum.click();
+    const twin = page.getByRole("button", { name: /^E alt bon, salvează$/ });
+    if (await twin.isVisible({ timeout: 1000 }).catch(() => false)) await twin.click();
+    const want = Math.round(total * 4.97 * 100) / 100;
+    await waitFor(() => page.evaluate(async (want) => (await (await import("/src/lib/app-storage.ts")).readAppData()).transactions.some((tx) => Math.abs(tx.amount - want) < 0.02 && /Bon în EUR/.test(tx.note || "")), want), `bonul în euro salvat ca ${want} lei, cu nota`);
+    await page.getByRole("button", { name: /^Gata$/ }).click();
+    // Liste: „Petrecere” separat de lista familiei.
+    await page.locator(".os-dock-v2 > button").nth(1).click(); await page.waitForTimeout(800);
+    await page.getByRole("button", { name: /Listă nouă/ }).click();
+    await page.getByLabel("Numele listei noi").fill("Petrecere"); await page.keyboard.press("Enter");
+    await page.getByLabel("Ce trebuie luat").fill("chipsuri, pahare"); await page.keyboard.press("Enter");
+    await waitFor(() => page.evaluate(async () => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.shoppingList || []).filter((item) => item.list === "Petrecere").length === 2), "două produse pe lista „Petrecere”");
+    await page.getByRole("tab", { name: /^Lista familiei/ }).click();
+    if (await page.locator(".bf-shop-list li", { hasText: "Pahare" }).count()) fail("„Pahare” apare și pe lista familiei");
+    await shot(page, `lists-${theme}`, page.locator(".bf-shop-lists"));
+  },
   /** 7. Contrast: fiecare text de pe Acasă, Cumpărături, Prețuri, Cont și Scanează: cel puțin 4,5:1 ziua și 7:1 noaptea (3:1 la text mare). */
   async contrast(page, theme) {
     const bad = [];

@@ -2,9 +2,9 @@ import "../receipt-scan.css";
 import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanAnimation";
 import { useEffect, useRef, useState } from "react";
 import { Camera, FileText, ImagePlus, Info, Loader2, PenLine, WifiOff } from "lucide-react";
-import { currentBonutPlan } from "@/lib/bonut-plan-current";
+import { aiScansLeft, currentBonutPlan } from "@/lib/bonut-plan-current";
 import { getActiveFamilyRoom } from "@/lib/billing";
-import { FREE_SCANS_PER_MONTH, readAiQuota, readAiScans, recordAiScan, scansLeft } from "@/lib/bonut-plans";
+import { FREE_SCANS_PER_MONTH, readAiQuota, readAiScans, recordAiScan } from "@/lib/bonut-plans";
 import { isoToday } from "@/lib/finance-data";
 import type { AppData } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
@@ -42,10 +42,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const offlineRef = useRef(false);
   const today = isoToday();
   // Serverul ține cota (aplicată doar cu plățile pornite); telefonul o arată pe cea primită luna asta, altfel o estimează.
-  const serverQuota = readAiQuota();
-  const aiLeft = serverQuota?.enforced && serverQuota.month === today.slice(0, 7)
-    ? serverQuota.remaining ?? Number.POSITIVE_INFINITY
-    : scansLeft(currentBonutPlan(data, today), readAiScans(), today);
+  const aiLeft = aiScansLeft(data, today);
   // Motorul OCR (câțiva MB) se încarcă doar când e nevoie de el: altfel concura cu poza pe rețea.
   const needOcr = aiLeft <= 0 || (typeof navigator !== "undefined" && navigator.onLine === false);
   useEffect(() => { const id = window.setTimeout(() => { if (needOcr) warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, [needOcr]);
