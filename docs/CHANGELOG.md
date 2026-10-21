@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1 (233)
+
+- Telefoanele cu Android WebView mai vechi (sub Chrome 98): Setările nu mai dau eroare („structuredClone is not defined”), iar copia de siguranță dinaintea trecerii la BonAI se face și acolo.
+
 ## 2.2.0 (232)
 
 - **Coșul tău la fiecare magazin** (Magazine, și pe Acasă când diferența trece de 5 lei): produsele pe care le iei des, în cantitatea ta obișnuită, puse la prețul fiecărui magazin; cel mai ieftin sus, cât ai da în plus în rest, „Spune-le prietenilor”.
