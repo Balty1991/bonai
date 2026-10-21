@@ -219,6 +219,45 @@ const FEATURES = {
     const after = await count();
     if (after !== saved) fail(`„Nu-l salva” a salvat totuși bonul (${saved} → ${after})`);
   },
+  /** 6b. După salvare: produsul scump propune „Adaug garanția” (bifa rămâne vizibilă), iar ce era pe listă se bifează singur. */
+  async warranty(page, theme) {
+    await page.evaluate(() => { const d = new Date().toISOString().slice(0, 10); localStorage.setItem("bonai:ai-scans-v1", JSON.stringify(Array(15).fill(d))); localStorage.setItem("buget-familie:receipt-scan-consent", "1"); });
+    // Pe listă: „Aspirator” se bifează singur când bonul îl conține.
+    await page.evaluate(async () => {
+      const s = await import("/src/lib/app-storage.ts");
+      const d = await s.readAppData();
+      d.settings.shoppingList = [...(d.settings.shoppingList || []), { id: "asp", text: "Aspirator", updatedAt: new Date().toISOString() }];
+      const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(d, later); s.writeLocalStorageSnapshot(JSON.stringify(d), later);
+    });
+    await page.reload(); await page.waitForTimeout(2000);
+    await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
+    const hub = page.locator(".bn-hub");
+    await waitFor(() => hub.isVisible(), "centrul de scanare");
+    const chooser = page.waitForEvent("filechooser");
+    await hub.getByRole("button", { name: /Offline/ }).click();
+    await (await chooser).setFiles("e2e/receipts/vodka-39.76.jpg");
+    await page.getByRole("button", { name: /^Citește bonul$/ }).click();
+    const review = page.getByRole("dialog", { name: "Verifică bonul" });
+    await waitFor(() => review.isVisible(), "verificarea bonului", 90_000);
+    await review.locator(".bn-item").first().click();
+    await review.getByLabel("Produs").fill("Aspirator vertical Dyson V8");
+    await review.getByLabel("Total (lei)").fill("1999");
+    await review.getByLabel("Categorie").selectOption({ label: (await review.getByLabel("Categorie").locator("option").allInnerTexts()).find((o) => /Casă/.test(o)) });
+    await review.getByRole("button", { name: /^Gata$/ }).click();
+    await review.getByRole("button", { name: /^Salvează bonul$/ }).click();
+    const sum = page.getByRole("button", { name: /^Salvez / });
+    if (await sum.isVisible({ timeout: 1500 }).catch(() => false)) await sum.click();
+    const offer = page.locator(".bn-warranty-offer");
+    await waitFor(() => offer.isVisible(), "„Are garanție?” după salvare");
+    if (!/Aspirator vertical Dyson V8/.test(await offer.innerText())) fail(`propunerea nu numește produsul: ${await offer.innerText()}`);
+    await offer.getByRole("button", { name: "Adaug garanția" }).click();
+    await waitFor(() => offer.getByText("Garanție adăugată").isVisible(), "bifa „Garanție adăugată”");
+    await shot(page, `warranty-offer-${theme}`, offer);
+    const stored = () => page.evaluate(async () => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.warranties || []).filter((item) => !item.deleted).map((item) => `${item.name}|${item.months}`));
+    await waitFor(async () => (await stored()).includes("Aspirator vertical Dyson V8|24"), "garanția salvată, 24 de luni");
+    if (!/Am bifat din listă: Aspirator/.test(await page.locator(".bn-aha").innerText())) fail("„Bon salvat” nu spune ce a bifat din listă");
+    await waitFor(() => page.evaluate(async () => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.shoppingList || []).some((item) => item.id === "asp" && item.done)), "„Aspirator” bifat în listă");
+  },
   /** 7. Contrast: fiecare text de pe Acasă, Cumpărături, Prețuri, Cont și Scanează: cel puțin 4,5:1 ziua și 7:1 noaptea (3:1 la text mare). */
   async contrast(page, theme) {
     const bad = [];

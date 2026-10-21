@@ -18,7 +18,9 @@ import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
 import "./shop.css";
-import { allocationStatus, createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, formatDate, isoToday, newId, type AppData, type Receipt, type ReceiptLine, type Transaction } from "@/lib/finance-data";
+import { createEmptyAppData, TOMBSTONE_MAX, rollIncomeHorizon, deviceTimeZone, setFamilyTimeZone, getFamilyTimeZone, adoptOutsideExpenses, commitLedgerEntry, learnMerchantRule, isoToday, newId, type AppData, type Receipt, type ReceiptLine, type Transaction } from "@/lib/finance-data";
+import { upsertWarranty } from "@/lib/warranties";
+import { tickFromReceipt } from "@/lib/shopping-list";
 
 
 
@@ -34,23 +36,21 @@ import { isAppLockEnabled } from "@/lib/app-lock";
 import { useToday } from "@/hooks/useToday";
 import { safeImport, warmLazy } from "@/lib/lazy-safe";
 import { applySecureScreen } from "@/lib/secure-screen";
-import { observeQuickActions, publishEnvelopes, publishShopping, publishSpendToday, publishWeek, publishWidgetTemplates, shoppingWidgetData } from "@/lib/quick-action-bridge";
+import { observeQuickActions, publishMonth, publishShopping, publishWidgetTemplates, shoppingWidgetData } from "@/lib/quick-action-bridge";
 import { visibleShopping } from "@/lib/shopping-list";
-import { weekWidgetData } from "@/lib/week-widget";
+import { monthWidgetData } from "@/lib/month-widget";
 import { hasQueuedFeedback } from "@/lib/feedback-queue";
 import { useMemberMode } from "@/lib/member-mode";
 import { MemberModeScreen } from "@/components/MemberModeScreen";
 import {
   WhatsNewSheet,
-  fmtExact,
   money,
   type MainView,
   type MoreView,
 } from "@/pages/home-kit";
 import { markWhatsNewSeen, shouldShowWhatsNew } from "@/lib/theme-default";
 import { markFirstWeekTourSeen, shouldOfferFirstWeekTour } from "@/lib/first-week-tour";
-import { productsLabel, daysLabel, t } from "@/lib/i18n";
-import { todayBrief } from "@/lib/household-insights";
+import { productsLabel, t } from "@/lib/i18n";
 import { currentBonutPlan } from "@/lib/bonut-plan-current";
 
 
@@ -528,47 +528,11 @@ export default function Home() {
   // Ecranul protejat (Setări → Securitate) se reaplică la fiecare pornire a aplicației.
   useEffect(() => { void applySecureScreen(); if (readDynamicColor()) void applyDynamicColor(); }, []);
   useEffect(() => {
-    // Widgetul „Poți cheltui azi” arată aceeași cifră ca Astăzi; fără punte nativă nu face nimic.
+    // Widgetul „BonAI · luna asta”: suma lunii și următoarea plată. Cu PIN pe aplicație sau pe
+    // telefonul unui copil, sumele nu stau pe ecranul principal.
     const today = isoToday();
-    // Cu PIN pe aplicație sau pe telefonul unui copil, suma nu stă pe ecranul principal.
-    if (isAppLockEnabled() || memberModeActive) {
-      publishSpendToday({ amount: "", caption: "", date: today, stale: "" });
-      return;
-    }
-    const brief = todayBrief(data);
-    publishSpendToday({
-      amount: fmtExact.format(brief.spendable),
-      caption: brief.hasPayday && !brief.expired ? t("până la salariu: {days}", { days: daysLabel(brief.remainingDays) }) : t("Setează data salariului în Plicuri."),
-      date: today,
-      zone: getFamilyTimeZone(),
-      stale: t("Cifra e de pe {date} — deschide aplicația pentru azi", { date: formatDate(today, { day: "numeric", month: "long" }) }),
-    });
-  }, [data, memberModeActive, today]);
-  useEffect(() => {
-    // Widgetul „Plicurile mele”: primele trei plicuri cu buget, cele mai apăsate întâi.
-    const today = isoToday();
-    if (isAppLockEnabled() || memberModeActive) {
-      publishEnvelopes({ rows: [], date: today, stale: "" });
-      return;
-    }
-    const rows = data.settings.salaryPlan.allocations
-      .map((item) => ({ item, status: allocationStatus(data, item) }))
-      .filter((row) => row.status && row.status.budget > 0 && !(row.status.fixed && row.status.remaining <= 0.5))
-      .sort((a, b) => (b.status!.usage - a.status!.usage))
-      .slice(0, 3)
-      .map(({ item, status }) => ({ label: item.label, left: status!.remaining < 0 ? `−${fmtExact.format(-status!.remaining)}` : fmtExact.format(status!.remaining), used: Math.round(Math.min(1, Math.max(0, status!.usage)) * 100) }));
-    publishEnvelopes({ rows, date: today, zone: getFamilyTimeZone(), stale: t("Sumele sunt de pe {date} — deschide aplicația", { date: formatDate(today, { day: "numeric", month: "long" }) }) });
-  }, [data, memberModeActive, today]);
-  useEffect(() => {
-    // Widgetul „Săptămâna banilor”: ultimele 7 zile; cu blocarea aplicației, fără sume.
-    const today = isoToday();
-    if (isAppLockEnabled() || memberModeActive) {
-      publishWeek({ days: [], total: "", caption: "", date: today, stale: "" });
-      return;
-    }
-    const week = weekWidgetData(data, today);
-    const caption = week.change === undefined ? t("în ultimele 7 zile") : week.change > 0 ? t("+{change}% față de săptămâna dinainte", { change: week.change }) : week.change < 0 ? t("{change}% față de săptămâna dinainte", { change: week.change }) : t("ca săptămâna dinainte");
-    publishWeek({ days: week.days, total: fmtExact.format(Math.round(week.total)), caption, date: today, zone: getFamilyTimeZone(), stale: t("Sumele sunt de pe {date} — deschide aplicația", { date: formatDate(today, { day: "numeric", month: "long" }) }) });
+    if (isAppLockEnabled() || memberModeActive) { publishMonth({ title: "", amount: "", caption: "", next: "", date: today, stale: "" }); return; }
+    publishMonth({ ...monthWidgetData(data, today), zone: getFamilyTimeZone() });
   }, [data, memberModeActive, today]);
   // Widgetul BonAI: lista de cumpărături (doar nume de produse) și scanarea dintr-o atingere.
   useEffect(() => {
@@ -702,7 +666,7 @@ export default function Home() {
     {modal === "scan" && !memberModeActive && shopMode && createPortal(<ScanHubFrame onClose={() => setModal(null)}><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></ScanHubFrame>, document.body)}
     
     {modal === "expense" && !memberModeActive && <Suspense fallback={null}><QuickExpenseSheet data={data} onClose={() => setModal((current) => (current === "expense" ? null : current))} onSave={(tx) => saveTx(tx)} onItemize={() => { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); }} /></Suspense>}
-    {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
+    {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onWarranty={(warranty) => update((current) => upsertWarranty(current, warranty))} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
       // Bonul nou: o cheltuială simplă (fără plic, fără alegerea sursei), cu rândurile verificate. Aceeași formă ca înainte, deci sincronizarea rămâne compatibilă.
       const member = data.settings.members.find((item) => item.id === review.memberId) || data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
       const source = data.settings.paymentSources.find((item) => item.id === scanPrefill.sourceId) || data.settings.paymentSources.find((item) => item.memberId === member?.id) || data.settings.paymentSources[0];
@@ -713,6 +677,8 @@ export default function Home() {
       const tx: Transaction = { id: newId("tx"), title: `Bon — ${review.store}`, amount: review.total, kind: "expense", category, sourceId: source?.id, source: source?.name || "", memberId: member?.id, person: member?.name || "", date: review.date, allocationId: "outside", createdAt: now, updatedAt: now };
       const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
       saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: { ...scanPrefill.store, ...(review.time !== undefined ? { time: review.time || undefined } : {}), ...(review.city !== undefined ? { city: review.city || undefined } : {}) } });
+      // Ce era pe listă și s-a cumpărat acum se bifează singur (ecranul „Bon salvat” spune ce).
+      update((current) => { const list = current.settings.shoppingList || []; const next = tickFromReceipt(list, review.rows.map((row) => row.label), now); return next.some((item, index) => item !== list[index]) ? { ...current, settings: { ...current.settings, shoppingList: next } } : current; });
     }} /></Suspense>}
     
     

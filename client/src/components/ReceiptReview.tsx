@@ -1,10 +1,10 @@
 import { askConfirm } from "@/lib/confirm-dialog";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 /** Peste tot ecranul: un strămoș cu transform ar prinde altfel `position: fixed`. */
 const Layer = ({ children }: { children: ReactNode }) => typeof document === "undefined" ? <>{children}</> : createPortal(children, document.body);
-import { Check, ChevronLeft, Copy, Plus, RotateCcw, Sparkles, Trash2, X, Pencil } from "lucide-react";
+import { Check, ChevronLeft, Copy, Plus, ShieldCheck, RotateCcw, Sparkles, Trash2, X, Pencil } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
 import { productsLabel, t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
@@ -12,6 +12,9 @@ import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
 import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
+import { DEFAULT_WARRANTY_MONTHS, dismissedCandidate, warrantyCandidates, warrantyFromCandidate, type WarrantyCandidate } from "@/lib/warranties";
+import type { Warranty } from "@/lib/warranty-data";
+import { listItemsOnReceipt, visibleShopping } from "@/lib/shopping-list";
 import { CATEGORY_COLORS, categoryIcon, groupRows, round2, rowsFromPrefill, rowsTotal, totalGap, type ReviewRow } from "@/lib/receipt-review-model";
 
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
@@ -28,13 +31,15 @@ export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date
  */
 
 
-export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode = "new", receiptId }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; mode?: "new" | "edit"; receiptId?: string }) {
+export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWarranty, mode = "new", receiptId }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; /** Garanția propusă din bonul abia salvat (adăugată sau „Nu are garanție”). */ onWarranty?: (warranty: Warranty) => void; mode?: "new" | "edit"; receiptId?: string }) {
   const editMode = mode === "edit";
   const [rows, setRows] = useState<ReviewRow[]>(() => rowsFromPrefill(prefill));
   const [store, setStore] = useState(() => prefill.title.replace(/^Bon\s*[—-]\s*/, ""));
   const [editing, setEditing] = useState<string>();
   const [memberId, setMemberId] = useState<string | undefined>(data.settings.selfMemberId);
   const [saved, setSaved] = useState<ReviewSave>();
+  /** Produsele din lista de cumpărături găsite pe bonul salvat (Home le bifează). */
+  const [ticked, setTicked] = useState<string[]>([]);
   const [date, setDate] = useState(() => prefill.date || new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState(() => prefill.store?.time || "");
   const [city, setCity] = useState(() => prefill.store?.city || "");
@@ -56,6 +61,18 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   const [notTwin, setNotTwin] = useState<string>();
   const twin = useMemo(() => editMode ? undefined : findDuplicateReceipt(before, { vendor: store, date, amount: printed > 0 ? printed : total, time, storeCui: prefill.store?.storeCui, labels: rows.map((row) => row.label) }), [editMode, before, store, date, printed, total, time, prefill.store?.storeCui, rows]);
   const twinShown = twin && twin.id !== notTwin ? twin : undefined;
+  // După salvare: produsele din bonul ăsta care par să aibă garanție (electronice, electrocasnice, scumpe).
+  const warrantyOffers = useMemo(() => {
+    if (!saved || !onWarranty) return [];
+    const old = new Set(before.map((receipt) => receipt.id));
+    // Bonul nou e singurul care n-a existat la deschiderea ecranului, cu data aleasă aici.
+    return warrantyCandidates(data).filter((item) => item.receiptId && !old.has(item.receiptId) && item.purchaseDate === saved.date);
+  }, [saved, onWarranty, before, data]);
+  // Lista se fixează la prima apariție: după „Adaug” rândul rămâne, cu bifa, nu dispare.
+  const [offers, setOffers] = useState<WarrantyCandidate[]>();
+  const [answered, setAnswered] = useState<Record<string, "added" | "no">>({});
+  useEffect(() => { if (!offers && warrantyOffers.length) setOffers(warrantyOffers.slice(0, 3)); }, [offers, warrantyOffers]);
+  const answer = (item: WarrantyCandidate, added: boolean) => { onWarranty?.(added ? warrantyFromCandidate(item, DEFAULT_WARRANTY_MONTHS) : dismissedCandidate(item)); setAnswered((map) => ({ ...map, [item.id]: added ? "added" : "no" })); };
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
   const addRow = (row?: Partial<ReviewRow>) => { const key = `m${Date.now()}`; setRows((list) => [...list, { key, label: "", raw: "", qty: 1, amount: 0, discount: 0, category: categories[0] || "Alimente", manual: true, ...row }]); if (!row) setEditing(key); };
   const save = async () => {
@@ -68,7 +85,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
       const ok = await askConfirm(t("Produsele fac {sum}, dar pe bon scrie {printed}. Salvez {sum}? Poți corecta rândurile înainte.", { sum: lei(total), printed: lei(printed) }), { title: t("Totalul nu se potrivește"), confirmLabel: t("Salvez {sum}", { sum: lei(total) }) });
       if (!ok) return;
     }
-    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId, time: /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : "", city: city.trim().slice(0, 60) }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
+    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId, time: /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : "", city: city.trim().slice(0, 60) }; if (!editMode) setTicked(listItemsOnReceipt(visibleShopping(data.settings.shoppingList || []).todo, clean.map((row) => row.label)).map((item) => item.text)); onSave(result); if (editMode) onCancel(); else setSaved(result); };
 
   if (saved) {
     const split = groupRows(saved.rows);
@@ -82,6 +99,19 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
         <ul className="bn-aha-list">{split.map((group, index) => <li key={group.category}><span className="bn-dot" style={{ background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} /><span>{categoryIcon(group.category)} {group.category}</span><b>{lei(group.total)}</b></li>)}</ul>
         {discount > 0 && <p className="bn-aha-save"><Sparkles size={16} aria-hidden="true" /> {t("Ai prins reduceri de {amount} pe bonul ăsta.", { amount: lei(discount) })}</p>}
         {previous && <p className="sh-muted">{t("Ultima dată la {store}: {amount}, {date}.", { store: previous.vendor, amount: lei(previous.amount), date: fmtDate(previous.date) })}</p>}
+        {ticked.length > 0 && <p className="bn-aha-save" role="status"><Check size={16} aria-hidden="true" /> {ticked.length === 1 ? t("Am bifat din listă: {items}", { items: ticked[0] }) : t("Am bifat {count} produse din listă: {items}", { count: ticked.length, items: ticked.slice(0, 4).join(", ") + (ticked.length > 4 ? "…" : "") })}</p>}
+        {offers && offers.length > 0 && <section className="bn-warranty-offer" aria-label={t("Garanții din bonul ăsta")}>
+          <p className="sh-kicker"><ShieldCheck size={15} aria-hidden="true" /> {t("ARE GARANȚIE?")}</p>
+          <ul>{offers.map((item) => <li key={item.id}>
+            <span><b>{item.name}</b><small>{item.returnDays ? t("{price} · 2 ani garanție · {days} zile de retur", { price: lei(item.price), days: item.returnDays }) : t("{price} · 2 ani garanție", { price: lei(item.price) })}</small></span>
+            {answered[item.id] ? <span className={`bn-chip ${answered[item.id] === "added" ? "is-ok" : ""}`} role="status">{answered[item.id] === "added" ? <><Check size={14} aria-hidden="true" /> {t("Garanție adăugată")}</> : t("Fără garanție")}</span>
+              : <span className="bn-warranty-offer-actions">
+                <button type="button" className="bn-btn is-primary" onClick={() => answer(item, true)}>{t("Adaug garanția")}</button>
+                <button type="button" className="bn-btn" onClick={() => answer(item, false)}>{t("Nu are")}</button>
+              </span>}
+          </li>)}</ul>
+          <p className="sh-muted sh-note">{t("Îți amintesc cu 30 de zile înainte să expire și păstrez bonul ca dovadă, în Cont → Garanții.")}</p>
+        </section>}
       </div>
       <div className="bn-review-bar"><button type="button" className="bn-btn is-primary" onClick={onCancel}>{t("Gata")}</button></div>
     </div></Layer>;

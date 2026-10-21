@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.0 (239)
+
+- **Garanția pornește din bon**: pe ecranul „Bon salvat”, produsele cu garanție (electronice, electrocasnice, cele scumpe) apar cu „Adaug garanția” (2 ani, plus 14 zile de retur la magazinele online) sau „Nu are”. Bifa „Garanție adăugată” rămâne vizibilă; amintirea vine cu 30 de zile înainte să expire.
+- **Lista se bifează singură din bon**: ce era pe lista de cumpărături și apare pe bonul scanat se bifează la salvare („Am bifat din listă: lapte, pâine…”), fără diacritice și fără cantități.
+- **Widget nou „BonAI · luna asta”**: suma lunii, din câte bonuri, diferența față de luna trecută, următoarea plată și „Scanează”. Ascuns cu PIN pe aplicație sau pe telefonul unui copil.
+- **Widgeturile bugetului vechi au fost scoase** („Poți cheltui azi”, „Plicurile mele”, „Săptămâna banilor”), cu datele lor de pe telefon. Rămân widgetul rapid și lista de cumpărături. Cine avea unul dintre cele vechi pe ecran îl înlocuiește cu „BonAI · luna asta”.
+
 ## 2.4.2 (238)
 
 - **Bonul scanat de două ori**: la „Verifică bonul” apare cardul „Ai mai înregistrat bonul ăsta”, cu data, ora, magazinul și suma bonului salvat, și butoanele „Nu-l salva” / „E alt bon”. Se recunoaște după magazin, zi și total (cu ora, dacă o au amândouă) și, când totalul a fost citit altfel, după produse (aceleași în proporție de peste 80%). Se verifică din nou când schimbi data, ora sau totalul. „Salvează bonul” mai întreabă o dată înainte să-l pună de două ori.

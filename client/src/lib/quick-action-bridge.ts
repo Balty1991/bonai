@@ -8,6 +8,7 @@
  * Șabloanele pe widget: doar id + etichetă (fără sume). JS publică ultimele 3
  * cheltuieli locale; nativul le arată pe widget și le întoarce ca „template:&lt;id&gt;”.
  */
+import type { MonthWidget } from "./month-widget";
 export type QuickAction =
   | "expense"
   | "receipt"
@@ -21,9 +22,7 @@ const KNOWN = new Set(["expense", "receipt", "today", "voice", "shopping"]);
 type NativeBridge = {
   consume?: () => string;
   publishTemplates?: (json: string) => void;
-  publishSpendToday?: (json: string) => void;
-  publishEnvelopes?: (json: string) => void;
-  publishWeek?: (json: string) => void;
+  publishMonth?: (json: string) => void;
   publishShopping?: (json: string) => void;
 };
 
@@ -129,43 +128,14 @@ export function observeQuickActions(handle: (action: QuickAction) => void): () =
   };
 }
 
-/** `zone`: fusul familiei, ca widgetul să schimbe ziua odată cu aplicația, nu cu ceasul telefonului. */
-export type SpendTodayWidget = { amount: string; caption: string; date: string; stale: string; zone?: string };
-
 /**
- * Cifra zilei pentru widgetul „Poți cheltui azi”. Widgetul nu calculează nimic: arată ce
- * publică aplicația, iar dacă data nu mai e azi, afișează `stale` în locul explicației.
- * Pe web sau fără punte nativă nu face nimic.
+ * Widgetul „BonAI · luna asta”: suma lunii, câte bonuri și următoarea plată, gata formate
+ * (`month-widget`). Pe web sau fără punte nativă nu face nimic.
  */
-export function publishSpendToday(payload: SpendTodayWidget): void {
+export function publishMonth(payload: MonthWidget): void {
   try {
-    if (!bridge()?.publishSpendToday) return;
-    publishLater("spend-today", JSON.stringify(payload), (value) => bridge()?.publishSpendToday?.(value));
-  } catch {
-    /* widgetul e opțional */
-  }
-}
-
-/** Rândurile widgetului „Plicurile mele”: nume, cât a rămas (text gata format) și procentul consumat. */
-export type EnvelopesWidget = { rows: Array<{ label: string; left: string; used: number }>; date: string; stale: string; zone?: string };
-
-/** Ca la „Poți cheltui azi”: widgetul doar arată; fără punte nativă, nu face nimic. */
-export function publishEnvelopes(payload: EnvelopesWidget): void {
-  try {
-    if (!bridge()?.publishEnvelopes) return;
-    publishLater("envelopes", JSON.stringify(payload), (value) => bridge()?.publishEnvelopes?.(value));
-  } catch {
-    /* widgetul e opțional */
-  }
-}
-
-/** Widgetul „Săptămâna banilor”: zilele (desenate de Android ca bare), totalul și o frază. */
-export type WeekWidget = { days: Array<{ label: string; amount: number; short: string; heat: number; today: boolean }>; total: string; caption: string; date: string; stale: string; zone?: string };
-
-export function publishWeek(payload: WeekWidget): void {
-  try {
-    if (!bridge()?.publishWeek) return;
-    publishLater("week", JSON.stringify(payload), (value) => bridge()?.publishWeek?.(value));
+    if (!bridge()?.publishMonth) return;
+    publishLater("month", JSON.stringify(payload), (value) => bridge()?.publishMonth?.(value));
   } catch {
     /* widgetul e opțional */
   }
