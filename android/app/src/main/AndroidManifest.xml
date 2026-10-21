@@ -64,40 +64,16 @@
                 android:resource="@xml/widget_quick_add_info" />
         </receiver>
 
-        <!-- Widget separat, cu suma zilei: îl adaugă doar cine vrea o sumă pe ecranul principal. -->
+        <!-- Widget separat, cu suma lunii și următoarea plată: îl adaugă doar cine vrea o sumă pe ecranul principal. -->
         <receiver
-            android:name=".SpendTodayWidgetProvider"
+            android:name=".MonthWidgetProvider"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_spend_today_info" />
-        </receiver>
-
-        <!-- Widget separat, cu plicurile și sumele lor: tot opțional, ca cel cu suma zilei. -->
-        <receiver
-            android:name=".EnvelopesWidgetProvider"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_envelopes_info" />
-        </receiver>
-
-        <!-- Widget separat, cu ultimele 7 zile desenate ca bare: tot opțional. -->
-        <receiver
-            android:name=".WeekWidgetProvider"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_week_info" />
+                android:resource="@xml/widget_month_info" />
         </receiver>
 
         <receiver

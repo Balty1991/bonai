@@ -457,11 +457,11 @@ public class MainActivity extends BridgeActivity {
     }
 
     @JavascriptInterface
-    public void publishSpendToday(String json) {
+    public void publishMonth(String json) {
       final android.content.Context app = MainActivity.this.getApplicationContext();
       WIDGET_WORK.execute(() -> {
-        SpendTodayWidgetProvider.save(app, json);
-        SpendTodayWidgetProvider.updateAll(app);
+        MonthWidgetProvider.save(app, json);
+        MonthWidgetProvider.updateAll(app);
       });
     }
 
@@ -474,23 +474,6 @@ public class MainActivity extends BridgeActivity {
       });
     }
 
-    @JavascriptInterface
-    public void publishWeek(String json) {
-      final android.content.Context app = MainActivity.this.getApplicationContext();
-      WIDGET_WORK.execute(() -> {
-        WeekWidgetProvider.save(app, json);
-        WeekWidgetProvider.updateAll(app);
-      });
-    }
-
-    @JavascriptInterface
-    public void publishEnvelopes(String json) {
-      final android.content.Context app = MainActivity.this.getApplicationContext();
-      WIDGET_WORK.execute(() -> {
-        EnvelopesWidgetProvider.save(app, json);
-        EnvelopesWidgetProvider.updateAll(app);
-      });
-    }
   }
 
   private void injectSafeArea(WebView webView, Insets bars) {
