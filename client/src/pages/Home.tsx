@@ -83,6 +83,7 @@ const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((modul
 const BonAIAssistant = lazy(safeImport(() => import("@/components/BonAIAssistant")));
 const HouseCostsPanel = lazy(safeImport(() => import("@/components/HouseCostsPanel")));
 const DebtsPanel = lazy(safeImport(() => import("@/components/DebtsPanel")));
+const PaymentCalendar = lazy(safeImport(() => import("@/components/PaymentCalendar")));
 const ShopHistory = lazy(safeImport(() => import("@/components/ShopHistory")));
 const ListView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ListView }))));
 const PricesView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.PricesView }))));
@@ -206,7 +207,7 @@ export default function Home() {
   const [guideOn, setGuideOn] = useState(false);
   const openScanRef = useRef<() => void>(() => undefined);
   const openTxRef = useRef<() => void>(() => undefined);
-  const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts" | "receipts" | "costs">();
+  const [costsKind, setCostsKind] = useState<"sub" | "bill" | "debts" | "receipts" | "costs" | "calendar">();
   const [modal, setModal] = useState<"quick" | "transaction" | "receipt" | "debt" | "saving" | "debt-payment" | "scan" | "review" | "expense" | null>(null);
   useEffect(() => {
     // Legăturile vechi din aplicație (Astăzi, lista) duc acum la echivalentul BonAI.
@@ -679,7 +680,8 @@ export default function Home() {
       const on = view === item.id || (item.id === "utilities" && (view === "obligations" || view === "insights" || view === "goals"));
       return <button key={item.id} className={on ? "is-on" : ""} aria-current={view === item.id ? "page" : undefined} onPointerDown={() => { preloadView(item.id as MainView); void ensureDeferredStyles(); }} onClick={() => { if (item.id === "utilities") setMore("overview"); go(item.id as MainView); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span>{(item.id === "journal" || item.id === "utilities") && data.pendingReview.length > 0 ? <i className="bf-dock-dot" aria-hidden="true" /> : null}</button>;
     })}</nav>}
-    {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
+    {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} onOpenCalendar={() => setCostsKind("calendar")} /></Suspense>}
+    {shopMode && costsKind === "calendar" && <Suspense fallback={null}><PaymentCalendar data={data} onClose={() => setCostsKind(undefined)} onOpen={setCostsKind} /></Suspense>}
     {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} onEdit={setEditReceipt} onDelete={deleteReceipt} /></Suspense>}
     {shopMode && editReceipt && <Suspense fallback={null}><ReceiptReview key={editReceipt.id} mode="edit" receiptId={editReceipt.id} data={data} prefill={prefillFromReceipt(editReceipt)} onCancel={() => setEditReceipt(undefined)} onSave={(review) => update((current) => applyReceiptEdit(current, editReceipt.id, review))} /></Suspense>}
     {shopMode && (costsKind === "sub" || costsKind === "bill") && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
@@ -703,7 +705,7 @@ export default function Home() {
       const now = new Date().toISOString();
       const tx: Transaction = { id: newId("tx"), title: `Bon — ${review.store}`, amount: review.total, kind: "expense", category, sourceId: source?.id, source: source?.name || "", memberId: member?.id, person: member?.name || "", date: review.date, allocationId: "outside", createdAt: now, updatedAt: now };
       const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
-      saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: scanPrefill.store });
+      saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: { ...scanPrefill.store, ...(review.time !== undefined ? { time: review.time || undefined } : {}), ...(review.city !== undefined ? { city: review.city || undefined } : {}) } });
     }} /></Suspense>}
     
     

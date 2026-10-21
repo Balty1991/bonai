@@ -18,7 +18,7 @@ export function upcoming(data: AppData, today: string, horizon = 30): UpcomingIt
   for (const debt of data.debts || []) {
     if (!(debt.remaining > 0 || debt.openEnded) || !(debt.monthly > 0)) continue;
     let date = debtNextDue(debt, today);
-    if (paidThisCycle(debt, today) && daysUntil(date, today) < 25) date = debtNextDue(debt, addDays(date, 1));
+    if (paidThisCycle(debt, today, data) && daysUntil(date, today) < 25) date = debtNextDue(debt, addDays(date, 1));
     out.push({ id: `d:${debt.id}`, kind: "debt", name: debt.name, date, days: daysUntil(date, today), amount: Math.min(debt.monthly, debt.openEnded ? debt.monthly : debt.remaining) });
   }
   for (const { warranty, status } of liveWarranties(data, today)) {

@@ -9,7 +9,7 @@ import { carryProductFacts } from "./receipt-products";
 import type { ScanPrefill } from "./receipt-scan";
 import { labelWithQty, round2, stripQtySuffix, type ReviewRow } from "./receipt-review-model";
 
-export type ReceiptEdit = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string };
+export type ReceiptEdit = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string; time?: string; city?: string };
 
 const qtyOf = (line: ReceiptLine) => {
   if (line.qty && line.qty > 0) return line.qty;
@@ -55,7 +55,7 @@ export function applyReceiptEdit(data: AppData, receiptId: string, edit: Receipt
   const lines = carryProductFacts(old, fresh);
   const total = round2(edit.total);
   const category = dominant(rows, receipt.category);
-  const nextReceipt: Receipt = { ...receipt, vendor: edit.store.trim() || receipt.vendor, date: edit.date || receipt.date, amount: total, category, lines, ...(edit.memberId ? { memberId: edit.memberId } : {}), updatedAt: now };
+  const nextReceipt: Receipt = { ...receipt, vendor: edit.store.trim() || receipt.vendor, date: edit.date || receipt.date, amount: total, category, lines, ...(edit.memberId ? { memberId: edit.memberId } : {}), ...(edit.time !== undefined ? { time: edit.time || undefined } : {}), ...(edit.city !== undefined ? { city: edit.city || undefined } : {}), updatedAt: now };
   const txIds = receiptTransactionIds(data, receipt);
   const others = round2(data.transactions.filter((tx) => txIds.slice(1).includes(tx.id)).reduce((sum, tx) => sum + tx.amount, 0));
   const transactions = data.transactions.map((tx): Transaction => {

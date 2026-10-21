@@ -645,3 +645,107 @@ html[data-app="shop"] .bn-community-city input { min-height: 48px; padding: 0 14
 html[data-app="shop"] .bn-community-join { margin-top: 2px; }
 html[data-app="shop"] .bn-community-join:disabled { opacity: .55; cursor: not-allowed; }
 html[data-app="shop"] .bn-community-what { display: grid; gap: 6px; margin: 0; padding-left: 18px; font-size: 14px; }
+
+/* ── 2.3: scadențar, plan de datorii, costuri bancare, inel pe categorii, asistent, detalii bon ── */
+@keyframes bn-draw { from { stroke-dashoffset: var(--bn-draw-from, 260); } }
+@keyframes bn-seg-in { from { stroke-dasharray: 0 260; } }
+@keyframes bn-rise-in { from { opacity: 0; transform: translateY(6px); } }
+
+.bn-ring { width: 104px; height: 104px; flex: none; }
+.bn-ring circle { fill: none; stroke-width: 9; }
+.bn-ring-track { stroke: var(--bn-soft); }
+.bn-ring-fill { stroke: var(--bn-save); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; animation: bn-seg-in .9s cubic-bezier(.2, .8, .2, 1) both; }
+.bn-ring-big { fill: var(--bn-ink); font: 700 20px/1 var(--bn-head); }
+.bn-ring-small { fill: var(--bn-muted); font: 600 10px/1 var(--bn-body); }
+
+.bn-cal-hero { display: flex; gap: 16px; align-items: center; padding: 18px; border-radius: 24px; border: 1px solid var(--bn-edge); background: linear-gradient(150deg, var(--bn-soft), transparent 70%), var(--bn-glass); }
+.bn-cal-hero > div { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.bn-cal-hero p { margin: 0; display: grid; gap: 2px; }
+.bn-cal-hero small { color: var(--bn-muted); font-size: 12px; }
+.bn-cal-hero strong { font: 700 26px/1.1 var(--bn-head); }
+.bn-cal-hero .bn-stats-nav b { text-transform: capitalize; }
+.bn-cal-hero .bn-cal-split { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--bn-muted); }
+.bn-cal-split .is-paid { color: var(--bn-save); font-weight: 700; }
+
+.bn-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.bn-cal-wd { text-align: center; font: 700 11px/1 var(--bn-body); color: var(--bn-muted); padding: 4px 0; }
+.bn-cal-day { position: relative; display: grid; place-items: center; align-content: center; gap: 1px; aspect-ratio: 1 / 1.12; min-height: 44px; padding: 2px; border: 1px solid transparent; border-radius: 12px; background: var(--bn-glass); color: var(--bn-ink); overflow: hidden; cursor: pointer; }
+.bn-cal-day b { position: relative; font: 700 14px/1 var(--bn-head); }
+.bn-cal-day small { position: relative; font: 700 10px/1 var(--bn-body); color: var(--bn-ink); }
+.bn-cal-heat { position: absolute; inset: 0; background: var(--bn-grad); border-radius: inherit; }
+.bn-cal-day.is-today { border-color: var(--bn-accent); }
+.bn-cal-day.is-picked { box-shadow: 0 0 0 2px var(--bn-accent); }
+.bn-cal-day.is-paid .bn-cal-heat { background: var(--bn-save); }
+.bn-cal-day.is-late { border-color: var(--bn-rise); }
+.bn-cal-dots { position: relative; display: flex; gap: 2px; }
+.bn-cal-dots em, .bn-cal-legend em { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+.is-debt > em, em.is-debt { background: #7c5cff; } em.is-bank { background: #ff6fa8; } em.is-sub { background: #2ec5d3; } em.is-bill { background: #ffb547; }
+.bn-cal-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 2px 0; font-size: 12px; color: var(--bn-muted); }
+.bn-cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.bn-cal-dayview .sh-kicker { text-transform: none; }
+.bn-cal-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.bn-cal-list li { animation: bn-rise-in .35s ease both; }
+.bn-cal-list button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 56px; padding: 10px 12px; border: 1px solid var(--bn-edge); border-left: 4px solid #7c5cff; border-radius: 16px; background: var(--bn-glass); color: var(--bn-ink); text-align: left; cursor: pointer; }
+.bn-cal-list .is-bank button { border-left-color: #ff6fa8; } .bn-cal-list .is-sub button { border-left-color: #2ec5d3; } .bn-cal-list .is-bill button { border-left-color: #ffb547; }
+.bn-cal-list span { display: grid; gap: 2px; min-width: 0; }
+.bn-cal-list small { color: var(--bn-muted); }
+.bn-cal-list .is-paid b:last-child { color: var(--bn-save); }
+.bn-cal-mark { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--bn-edge); color: #fff; }
+.bn-cal-list .is-paid .bn-cal-mark { background: var(--bn-save); border-color: var(--bn-save); }
+.bn-cal-weeks { display: grid; gap: 8px; }
+.bn-cal-weeks div { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.bn-cal-weeks i { display: block; height: 10px; border-radius: 6px; background: var(--bn-soft); overflow: hidden; }
+.bn-cal-weeks em { display: block; height: 100%; background: var(--bn-grad); border-radius: inherit; transform-origin: left; transition: transform .6s ease; }
+.bn-cal-weeks b { font-variant-numeric: tabular-nums; }
+
+.bn-plan { gap: 10px; }
+.bn-plan-chart { width: 100%; height: 130px; color: var(--bn-accent); overflow: visible; }
+.bn-plan-chart .is-asis { stroke: var(--bn-muted); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .7; }
+.bn-plan-chart .is-plan path:last-child { stroke: var(--bn-accent); stroke-width: 2.5; stroke-linejoin: round; stroke-dasharray: 1; --bn-draw-from: 1; animation: bn-draw 1.1s cubic-bezier(.2, .8, .2, 1) both; }
+.bn-plan-chart .is-plan path:first-child { animation: bn-rise-in .8s ease both; }
+.bn-plan-legend { display: flex; gap: 14px; margin: 0; font-size: 12px; color: var(--bn-muted); }
+.bn-plan-legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; border-radius: 2px; background: var(--bn-accent); }
+.bn-plan-legend .is-asis::before { background: repeating-linear-gradient(90deg, var(--bn-muted) 0 4px, transparent 4px 7px); }
+.bn-plan-tip, .bn-plan-win { margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--bn-soft); line-height: 1.4; }
+.bn-plan-win { color: var(--bn-ink); border: 1px solid var(--bn-save); }
+.bn-plan-extra { flex-wrap: wrap; }
+
+.bn-bank { display: grid; gap: 10px; margin-top: 6px; }
+.bn-bank-sum { margin: 0; } .bn-bank-sum strong { font: 700 24px/1.1 var(--bn-head); color: var(--bn-rise); } .bn-bank-sum span { color: var(--bn-muted); }
+.bn-debt-cal { justify-self: start; margin-top: 6px; }
+.bn-debt-guess { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--bn-soft); font-size: 14px; }
+
+.bn-donut { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; align-items: center; }
+.bn-donut svg { width: 132px; height: 132px; }
+.bn-donut circle { fill: none; stroke-width: 13; }
+.bn-donut-track { stroke: var(--bn-soft); }
+.bn-donut-seg { transform: rotate(-90deg); transform-origin: 50% 50%; animation: bn-seg-in .8s cubic-bezier(.2, .8, .2, 1) both; }
+.bn-donut-big { fill: var(--bn-ink); font: 700 17px/1 var(--bn-head); }
+.bn-donut-small { fill: var(--bn-muted); font: 600 10px/1 var(--bn-body); }
+.bn-donut-legend { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.bn-donut-legend li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.bn-donut-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.bn-donut-legend span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 360px) { .bn-donut { grid-template-columns: 1fr; justify-items: center; } }
+
+.bn-insights { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.bn-insights li { animation: bn-rise-in .4s ease both; }
+.bn-insights li:nth-child(2) { animation-delay: .08s; } .bn-insights li:nth-child(3) { animation-delay: .16s; }
+.bn-insights button, .bn-insights.is-static li > div { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 12px; border: 1px solid var(--bn-edge); border-radius: 16px; background: var(--bn-glass); color: var(--bn-ink); text-align: left; }
+.bn-insights button { cursor: pointer; }
+.bn-insights.is-static li > div { grid-template-columns: auto minmax(0, 1fr); }
+.bn-insights span:not(.bn-insight-icon) { display: grid; gap: 3px; min-width: 0; }
+.bn-insights small { color: var(--bn-muted); line-height: 1.4; }
+.bn-insight-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--bn-soft); font-size: 20px; }
+
+.bn-review-when { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--bn-accent); cursor: pointer; text-align: left; }
+.bn-review-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 4px 0 8px; padding: 12px; border-radius: 16px; border: 1px solid var(--bn-edge); background: var(--bn-glass); }
+.bn-review-details label { display: grid; gap: 4px; font-size: 13px; color: var(--bn-muted); }
+.bn-review-details input { min-height: 44px; padding: 0 10px; border: 1px solid var(--bn-edge); border-radius: 12px; background: var(--bn-bg); color: var(--bn-ink); font: inherit; }
+.bn-review-details .bn-btn { grid-column: 1 / -1; }
+.bn-review-hint { margin: 6px 4px 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bn-ring-fill, .bn-donut-seg, .bn-plan-chart path, .bn-insights li, .bn-cal-list li { animation: none; }
+  .bn-cal-weeks em { transition: none; }
+}

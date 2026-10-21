@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.3.0 (234)
+
+- **Scadențar** (Cont → Scadențar, Datorii, Acasă → „Ce urmează”): calendarul lunii cu fiecare plată în ziua ei (rate, credite, dobânzi și comisioane, abonamente, facturi), inelul „plătit din total”, totalul pe săptămâni și ziua cea mai încărcată.
+- **Planul de ieșire din datorii** (Datorii): luna în care termini, graficul restului pe luni, cât mai dai în total și cât e dobândă, câștigul dacă muți rata unei datorii stinse la următoarea și dacă dai +100/+200/+500 pe lună. Dobânda: cea scrisă de tine sau estimată din rest, rată și ultima rată, doar la creditele bancare lungi (ratele fără dobândă de la magazine rămân fără dobândă); „Folosește estimarea” o trece în datorie.
+- **Dobânzi și comisioane bancare**: tip nou „Comision bancar (card, cont)”, overdraftul și comisioanele separat în Datorii, cu totalul pe an, și grup separat în Rapoarte; „Comision / dobândă bancă” la notarea fără bon.
+- **Asistentul tău** (Acasă și Rapoarte): observații calculate pe telefon, fără să plece nimic: ziua în care cheltui cel mai mult, cumpărăturile mici și dese, categoria care crește, cât din bani merg pe plăți fixe, cât te costă banca, cum termini datoriile mai repede, ziua cu multe plăți.
+- **Rapoarte**: inel animat pe categorii.
+- **Bonul scanat se corectează mai ușor**: data, ora, orașul și totalul tipărit se schimbă chiar la scanare (apeși pe dată); un rând de ajutor arată că produsele se corectează apăsând pe ele.
+- Ratele plătite înainte de bifă (notate cu plata) apar ca plătite luna asta, ca să nu fie bifate de două ori; datoriile vechi de la eMAG se deschid la editare ca „Rată card de cumpărături”, nu ca dobândă.
+
 ## 2.2.1 (233)
 
 - Telefoanele cu Android WebView mai vechi (sub Chrome 98): Setările nu mai dau eroare („structuredClone is not defined”), iar copia de siguranță dinaintea trecerii la BonAI se face și acolo.

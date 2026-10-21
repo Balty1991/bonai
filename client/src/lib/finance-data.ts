@@ -78,7 +78,7 @@ export type Transaction = {
 };
 
 export type Debt = { id: string; name: string; remaining: number; monthly: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; updatedAt?: string; /** Dobânda anuală, în procente (DAE sau dobânda din contract). */ annualRate?: number; /** Credit bancar, card de credit, IFN sau bani de la persoane. */ kind?: "credit" | "card" | "ifn" | "persoane"; /** Data ultimei rate din contract, dacă e știută. */ endDate?: string; /** Fără dată de final (dobânda de overdraft): se plătește lunar, iar plata nu scade soldul. */ openEnded?: boolean; /** BonAI (doar urmărire): felul datoriei, creditorul, suma inițială, ziua ratei, notițe, ultima rată bifată. */ debtType?: DebtType; creditor?: string; initial?: number; dueDay?: number; note?: string; lastPaid?: string };
-export type DebtType = "imprumut" | "rata-banca" | "rata-card-magazin" | "dobanda-card" | "plata-rate" | "altele";
+export type DebtType = "imprumut" | "rata-banca" | "rata-card-magazin" | "dobanda-card" | "comision-bancar" | "plata-rate" | "altele";
 export type SavingsGoal = { id: string; name: string; current: number; target: number; due: string; tone: "forest" | "honey" | "coral"; dueDate?: string; memberId?: string; /** „Scrisoare pentru viitor”: se arată abia când obiectivul e atins. */ message?: string; updatedAt?: string };
 export type RecurringFrequency = "monthly" | "quarterly" | "yearly";
 export type RecurringPayment = { id: string; name: string; amount: number; category: string; sourceId: string; memberId: string; dueDay: number; active: boolean; /** Lipsă = lunar. Trimestrial/anual: RCA, impozit, abonamente anuale. */ frequency?: RecurringFrequency; /** Luna (1–12) a unei scadențe, pentru trimestrial și anual. */ month?: number; /** Suma e o estimare (curent, gaz): valoarea reală se scrie la plată și nu se adaugă automat. */ variable?: boolean; /** Creează local plata la prima deschidere din ziua scadenței sau după aceasta. */ autoPost?: boolean; note?: string; /** BonAI: amintire cu atâtea zile înainte de scadență (0 = fără). */ remindDays?: number; /** BonAI: factura/contractul atașat, păstrat local (IndexedDB), nu în sync. */ attachment?: { name: string; type: string }; updatedAt?: string };
@@ -252,7 +252,7 @@ export type AppData = { version: 9; transactions: Transaction[]; debts: Debt[]; 
 
 /** „SGR și sacoșe” (1.1.184–1.1.186) s-a despărțit în două: sacoșa merge la Sacoșe, restul la SGR. */
 export const splitLegacySgrCategory = (category: string, text = "") => category === "SGR și sacoșe" ? (/sacos|sacoș|pung/i.test(text) ? "Sacoșe" : "SGR") : category;
-export const expenseCategories = ["Alimente", "Consumabile copil", "Abonamente", "Băuturi", "Apă", "Dulciuri", "Transport", "Casă & facturi", "Sănătate", "Educație", "Timp liber", "Haine", "Credite", "Rate produse", "SGR", "Sacoșe", "Altele"];
+export const expenseCategories = ["Alimente", "Consumabile copil", "Abonamente", "Băuturi", "Apă", "Dulciuri", "Transport", "Casă & facturi", "Sănătate", "Educație", "Timp liber", "Haine", "Credite", "Rate produse", "Comisioane bancare", "SGR", "Sacoșe", "Altele"];
 /**
  * Culorile categoriilor: nuanțe separate (înainte Alimente, Casă și Sănătate erau trei verzi
  * aproape identici). Verificate pe fundal deschis și închis, inclusiv pentru daltonism; „Altele”
@@ -1216,7 +1216,7 @@ export const allocationSpent = (data: AppData, allocation: BudgetAllocation) => 
 
 export const allocationBudget = (data: AppData, allocation: BudgetAllocation) => allocation.amount + data.settings.salaryPlan.transfers.reduce((sum, transfer) => sum + (transfer.toAllocationId === allocation.id ? transfer.amount : 0) - (transfer.fromAllocationId === allocation.id ? transfer.amount : 0), 0);
 /** Categoriile care, într-un plic lunar, înseamnă o plată fixă: se plătește o dată, nu se cheltuie pe zile. */
-const FIXED_CATEGORIES = new Set(["Casă & facturi", "Rate produse", "Credite", "Abonamente", "Educație"]);
+const FIXED_CATEGORIES = new Set(["Casă & facturi", "Rate produse", "Credite", "Comisioane bancare", "Abonamente", "Educație"]);
 
 /**
  * Plicul unei plăți fixe (factură, rată, chirie, abonament): lunar, fără ritm pe săptămâni,

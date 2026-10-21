@@ -6,12 +6,13 @@
  * Transferurile între cardurile familiei și corecțiile de sold nu intră nicăieri.
  */
 import { foldRomanian, type AppData, type Receipt } from "./finance-data";
+import { isBankCost } from "./debts-tracker";
 import { productObservations } from "./personal-inflation";
 import { receiptVendorName } from "./price-history";
 import { fixedCostEntries, spendEntries } from "./quick-expense";
 
 export type ReportGrain = "week" | "month" | "quarter" | "year";
-export type FixedGroupId = "rates" | "loans" | "subscriptions" | "bills";
+export type FixedGroupId = "rates" | "loans" | "bank" | "subscriptions" | "bills";
 export type ReportRow = { key: string; label: string; amount: number; previous: number; count: number };
 export type FixedItem = { id: string; title: string; amount: number; date: string };
 export type FixedGroup = { id: FixedGroupId; total: number; previous: number; items: FixedItem[] };
@@ -96,6 +97,8 @@ function groupOf(data: AppData, entry: Receipt): FixedGroupId {
   const debt = tx?.debtId ? data.debts.find((item) => item.id === tx.debtId) : undefined;
   // Tipul ales în BonAI decide primul: rata la un magazin sau plata în rate e „rate la produse”;
   // creditul bancar, împrumutul, dobânda de card și restul sunt împrumuturi.
+  // Dobânzile de card/overdraft și comisioanele băncii: separat, ca să se vadă cât te costă banca.
+  if ((debt && isBankCost(debt)) || entry.category === "Comisioane bancare") return "bank";
   if (debt?.debtType) return debt.debtType === "rata-card-magazin" || debt.debtType === "plata-rate" ? "rates" : "loans";
   // Datoriile vechi: ratele la produse (eMAG, Altex) sunt de obicei pe card; creditul bancar, IFN-ul,
   // banii de la persoane și dobânda de overdraft sunt împrumuturi.
@@ -143,7 +146,7 @@ export function buildReport(data: AppData, grain: ReportGrain, anchor: string, o
   const fixedAll = fixedCostEntries(data);
   const fixedNow = inRange(fixedAll, from, to);
   const fixedBefore = inRange(fixedAll, prev.from, prev.to);
-  const groups: FixedGroup[] = (["rates", "loans", "subscriptions", "bills"] as FixedGroupId[]).map((id) => {
+  const groups: FixedGroup[] = (["rates", "loans", "bank", "subscriptions", "bills"] as FixedGroupId[]).map((id) => {
     const items = fixedNow.filter((entry) => groupOf(data, entry) === id).map((entry) => ({ id: entry.id, title: entry.vendor, amount: r2(entry.amount), date: entry.date })).sort((a, b) => b.amount - a.amount);
     return { id, items, total: r2(items.reduce((s, item) => s + item.amount, 0)), previous: r2(fixedBefore.filter((entry) => groupOf(data, entry) === id).reduce((s, entry) => s + entry.amount, 0)) };
   }).filter((group) => group.items.length || group.previous > 0);
