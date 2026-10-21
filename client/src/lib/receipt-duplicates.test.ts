@@ -22,4 +22,11 @@ describe("bonul scanat de două ori", () => {
     expect(findDuplicateReceipt(saved, { vendor: "Lidl", date: "2026-10-14", amount: 26.45 })).toBeUndefined();
     expect(findDuplicateReceipt(saved, { vendor: "Lidl", amount: 26.44 })).toBeUndefined();
   });
+  it("același bon cu totalul citit altfel: aceleași produse, aceeași zi și magazin", () => {
+    const lines = ["Lapte Zuzu 1,5%", "Paine feliata", "Oua M 10 buc", "Banane"].map((label, index) => ({ id: String(index), category: "Alimente", amount: 5, label }));
+    const old = [{ ...r("d", "Mega Image", "2026-10-18", 16.98), lines } as Receipt];
+    expect(findDuplicateReceipt(old, { vendor: "Mega Image", date: "2026-10-18", amount: 61.98, labels: lines.map((line) => line.label) })?.id).toBe("d");
+    expect(findDuplicateReceipt(old, { vendor: "Mega Image", date: "2026-10-19", amount: 61.98, labels: lines.map((line) => line.label) })).toBeUndefined();
+    expect(findDuplicateReceipt(old, { vendor: "Mega Image", date: "2026-10-18", amount: 61.98, labels: ["Lapte Zuzu 1,5%", "Cafea", "Zahar", "Ulei"] })).toBeUndefined();
+  });
 });
