@@ -14,7 +14,7 @@ export type InsightAction = "reports" | "debts" | "calendar" | "stores";
 export type Insight = { id: string; icon: string; title: string; body: string; action?: InsightAction; weight: number };
 
 const r2 = (value: number) => Math.round(value * 100) / 100;
-const lei = (value: number) => `${Math.round(value).toLocaleString("ro-RO")} lei`;
+const lei = (value: number) => `${Math.round(value).toLocaleString("ro-RO")}\u00a0lei`;
 const WEEKDAYS = ["duminica", "lunea", "marțea", "miercurea", "joia", "vinerea", "sâmbăta"];
 const monthOf = (iso: string) => iso.slice(0, 7);
 const duration = (months: number) => {

@@ -18,11 +18,11 @@ describe("Asistent BonAI", () => {
     const q = parseQuery("cât am dat pe cafea luna asta?");
     expect(q).toMatchObject({ type: "spend", period: "month" });
     const a = runQuery(q, data(), TODAY);
-    expect(a.text).toContain("21,90 lei");
+    expect(a.text).toContain("21,90\u00a0lei");
     expect(a.text).not.toContain("23,50");
   });
   it("„cât am cheltuit pe lactate luna asta?” adună laptele și iaurtul", () => {
-    expect(runQuery(parseQuery("cât am cheltuit pe lactate luna asta?"), data(), TODAY).text).toContain("22,26 lei");
+    expect(runQuery(parseQuery("cât am cheltuit pe lactate luna asta?"), data(), TODAY).text).toContain("22,26\u00a0lei");
   });
   it("„unde am cumpărat lapte cel mai ieftin?”", () => {
     const a = runQuery(parseQuery("unde am cumpărat lapte cel mai ieftin?"), data(), TODAY);

@@ -19,7 +19,7 @@
 
 .bf-price-basket-lines{display:grid!important;gap:8px!important;margin-top:12px!important}
 .bf-price-basket-lines article{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:4px 10px!important;padding:11px!important;border:1px solid var(--cf-line)!important;border-radius:12px !important;background:var(--cf-surface-alt)!important}
-.bf-price-basket-lines b{display:block!important;color:var(--cf-ink)!important;font:750 12px/1.3 "IBM Plex Sans",sans-serif!important;overflow-wrap:anywhere!important}
+.bf-price-basket-lines b{display:block!important;color:var(--cf-ink)!important;font:750 12px/1.3 "IBM Plex Sans",sans-serif!important;overflow-wrap:break-word!important}
 .bf-price-basket-lines small{display:block!important;margin-top:2px!important;color:var(--cf-muted)!important;font:600 9px/1.4 "IBM Plex Sans",sans-serif!important}
 .bf-price-basket-lines>article>span{color:var(--cf-muted)!important;font:600 11px/1.3 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
 
@@ -34,7 +34,7 @@
 .bf-price-list{display:grid!important;gap:10px!important}
 .bf-price-list article{display:grid!important;gap:8px!important;padding:13px!important;border:1px solid var(--cf-line)!important;border-radius:12px!important;background:var(--cf-surface-alt)!important}
 .bf-price-list article>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
-.bf-price-list article>header b{display:block!important;color:var(--cf-ink)!important;font:750 13px/1.35 "IBM Plex Sans",sans-serif!important;overflow-wrap:anywhere!important}
+.bf-price-list article>header b{display:block!important;color:var(--cf-ink)!important;font:750 13px/1.35 "IBM Plex Sans",sans-serif!important;overflow-wrap:break-word!important}
 .bf-price-list article>header small{display:block!important;margin-top:2px!important;color:var(--cf-muted)!important;font:600 10px/1.4 "IBM Plex Sans",sans-serif!important}
 .bf-price-list article>header strong{flex:0 0 auto!important;color:var(--cf-ink)!important;font:750 14px/1.2 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
 .bf-price-vendors{display:flex!important;flex-wrap:wrap!important;gap:6px!important}

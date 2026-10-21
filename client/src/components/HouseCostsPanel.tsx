@@ -7,7 +7,7 @@ import { t } from "@/lib/i18n";
 import { BILL_CATEGORY, daysUntil, kindOf, monthlyTotal, nextDue, SUB_CATEGORY, type CostKind } from "@/lib/house-costs";
 import { compressPhoto, deleteWarrantyPhoto, saveWarrantyPhoto } from "@/lib/warranty-photos";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const dateRo = (d: string) => d.split("-").reverse().join(".");
 type Draft = { id?: string; name: string; amount: string; variable: boolean; dueDay: string; frequency: "monthly" | "quarterly" | "yearly"; month: string; memberId: string; remindDays: string; attachment?: { name: string; type: string }; file?: File };
 

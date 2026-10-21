@@ -9,7 +9,7 @@ import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const dayRo = (d: string) => { const [y, m, day] = d.split("-"); return `${Number(day)} ${["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "nov", "dec"][Number(m) - 1]} ${y}`; };
 
 /** Istoric: bonurile pe luni, cu inițialele magazinului; „Toate costurile” adaugă și cheltuielile fără bon. */

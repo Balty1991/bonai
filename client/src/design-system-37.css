@@ -142,7 +142,7 @@ button.danger,
 /* Numele mișcării se rupe pe rânduri în loc să se taie: „Farmacie Catena” se vede întreg. */
 .bf-movement-copy b,
 .bf-movement-copy small {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .bf-movement-copy small {
   font-size:14px;

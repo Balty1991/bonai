@@ -44,7 +44,7 @@ html.dark .bf-receipts-search input {
   background: #ffffff; color: #12201b;
   box-shadow: 0 0 0 1px #b7c4be;
 }
-.bf-receipts-products button b { display: block; overflow-wrap: anywhere; font: 750 13px "IBM Plex Sans", sans-serif; }
+.bf-receipts-products button b { display: block; overflow-wrap: break-word; font: 750 13px "IBM Plex Sans", sans-serif; }
 .bf-receipts-products button small { display: block; color: #3a4a44; font: 600 10px "IBM Plex Sans", sans-serif; }
 .bf-receipts-products button strong { color: #12201b; font: 750 13px "IBM Plex Sans", sans-serif; }
 .bf-receipts-products button.is-on {
@@ -201,7 +201,7 @@ html.dark .bf-catalog-lines li {
 }
 .bf-catalog-lines b {
   display: block;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   font: 750 13px/1.3 "IBM Plex Sans", sans-serif;
   color: var(--os-fg, #12201b);
 }
@@ -289,5 +289,5 @@ html.dark .bf-catalog-lines li {
   min-height: 40px;
   padding: 6px 0;
 }
-.bf-receipts-verdict { overflow-wrap: anywhere; }
+.bf-receipts-verdict { overflow-wrap: break-word; }
 .bf-receipts-studio .bf-helper { max-width: 40em; }

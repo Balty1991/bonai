@@ -19,7 +19,7 @@
 .bf-review-list article{display:grid!important;gap:8px!important;padding:13px!important;border:1px solid var(--cf-line)!important;border-left:3px solid var(--cf-primary-strong)!important;border-radius:12px!important;background:var(--cf-surface-alt)!important}
 .bf-review-list article.income{border-left-color:var(--cf-positive,#1f7a5a)!important}
 .bf-review-list article>header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important}
-.bf-review-list article>header b{display:block!important;color:var(--cf-ink)!important;font:750 13px/1.35 "IBM Plex Sans",sans-serif!important;overflow-wrap:anywhere!important}
+.bf-review-list article>header b{display:block!important;color:var(--cf-ink)!important;font:750 13px/1.35 "IBM Plex Sans",sans-serif!important;overflow-wrap:break-word!important}
 .bf-review-list article>header small{display:block!important;margin-top:2px!important;color:var(--cf-muted)!important;font:600 10px/1.4 "IBM Plex Sans",sans-serif!important}
 .bf-review-list article>header strong{flex:0 0 auto!important;color:var(--cf-ink)!important;font:750 14px/1.2 "IBM Plex Sans",sans-serif!important;white-space:nowrap!important}
 .bf-review-reason{margin:0!important;color:var(--cf-muted)!important;font:600 10px/1.5 "IBM Plex Sans",sans-serif!important}

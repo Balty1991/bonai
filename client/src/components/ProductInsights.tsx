@@ -45,7 +45,7 @@ function ProductRow({ card, open, onToggle }: { card: ProductCard; open: boolean
     <li style={{ display: "block", borderTop: "1px solid var(--cf-line)" }}>
       <button type="button" onClick={onToggle} aria-expanded={open} style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8, alignItems: "center", padding: "10px 0", background: "none", border: 0, textAlign: "left", color: "var(--cf-ink)" }}>
         <span style={{ minWidth: 0 }}>
-          <b style={{ display: "block", overflowWrap: "anywhere" }}>{card.label}</b>
+          <b style={{ display: "block", overflowWrap: "break-word" }}>{card.label}</b>
           <small style={{ color: "var(--cf-muted)" }}>{[card.brand, card.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: card.count }), card.latest.vendor].filter(Boolean).join(" · ")}</small>
         </span>
         <span style={{ textAlign: "right", whiteSpace: "nowrap" }}>
@@ -92,7 +92,7 @@ export function ProductInsights({ data }: { data: AppData }) {
         </div>
         {month && month.products > 0 ? <>
           <p className="bf-helper">{t("Cât s-au scumpit cele {count} produse pe care le-ai cumpărat și luna asta, și în cele trei dinainte, ponderat după cât dai pe ele ({basket} lei luna asta).", { count: month.products, basket: lei(month.basket) })}</p>
-          {month.risers.length > 0 && <div><b>{t("S-au scumpit cel mai mult")}</b><ul style={{ margin: "6px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 4 }}>{month.risers.slice(0, 3).map((row) => <li key={row.label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><span style={{ overflowWrap: "anywhere" }}>{row.label}</span><Trend value={row.percent} /></li>)}</ul></div>}
+          {month.risers.length > 0 && <div><b>{t("S-au scumpit cel mai mult")}</b><ul style={{ margin: "6px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 4 }}>{month.risers.slice(0, 3).map((row) => <li key={row.label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><span style={{ overflowWrap: "break-word" }}>{row.label}</span><Trend value={row.percent} /></li>)}</ul></div>}
           {month.categories.length > 0 && <p className="bf-helper" style={{ marginBottom: 0 }}>{t("Dai mai mult decât de obicei pe: {list}.", { list: month.categories.map((row) => `${t(row.category)} (${pct(row.percent)})`).join(", ") })}</p>}
         </> : <p className="bf-helper" style={{ marginBottom: 0 }}>{t("Urmăresc deja {count} produse din bonurile tale ({repeat} cumpărate de mai multe ori). De luna viitoare îți arăt aici cât s-au scumpit exact produsele pe care le cumperi tu, nu media țării.", { count: cards.length, repeat })}</p>}
       </section>

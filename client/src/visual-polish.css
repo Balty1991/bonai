@@ -520,7 +520,7 @@ body {
 }
 
 .bf-plan-workspace .bf-plan-simulator h2 {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .bf-plan-workspace .bf-plan-simulator > button,

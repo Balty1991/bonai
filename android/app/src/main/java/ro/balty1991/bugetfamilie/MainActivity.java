@@ -81,7 +81,8 @@ public class MainActivity extends BridgeActivity {
     if (Build.VERSION.SDK_INT >= 33) {
       setRecentsScreenshotEnabled(false);
     }
-    applyChrome(Color.parseColor(launchDark ? "#12161C" : "#EEF1EF"), !launchDark);
+    // Până la prima pictare, barele sunt negre ca splash-ul; apoi JS pune culorile temei (setChrome).
+    applyChrome(ContextCompat.getColor(this, R.color.splash_background), false);
     pendingQuickAction = readQuickAction(getIntent());
     if (getBridge() != null) attachNativeBridges(getBridge().getWebView());
     new Handler(Looper.getMainLooper()).postDelayed(this::hideSplashOverlay, 1600);
@@ -187,7 +188,8 @@ public class MainActivity extends BridgeActivity {
   }
 
   /**
-   * Plic nativ, 240dp — aceeași mărime ca icoana splash de sistem.
+   * Același icon, la aceeași mărime (288dp, ca icoana splash de sistem fără fundal) și pe același
+   * negru: trecerea de la splash-ul de sistem la stratul ăsta și apoi la #bf-boot nu se vede.
    * Pe unele telefoane (Deschide din Fișiere) splash-ul de sistem e doar mint.
    * Stratul ăsta e deasupra WebView-ului până JS spune că First Run / Astăzi e gata.
    */
@@ -195,12 +197,12 @@ public class MainActivity extends BridgeActivity {
     if (splashCover != null || webView == null) return;
     if (!(webView.getParent() instanceof ViewGroup)) return;
     final FrameLayout cover = new FrameLayout(this);
-    cover.setBackgroundColor(Color.parseColor(launchDark ? "#0B0F0E" : "#E4E9E6"));
+    cover.setBackgroundColor(ContextCompat.getColor(this, R.color.splash_background));
     cover.setClickable(true);
     final ImageView icon = new ImageView(this);
     icon.setImageResource(R.mipmap.ic_launcher_foreground);
     icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-    final int size = Math.round(240f * getResources().getDisplayMetrics().density);
+    final int size = Math.round(288f * getResources().getDisplayMetrics().density);
     final FrameLayout.LayoutParams iconLp = new FrameLayout.LayoutParams(size, size);
     iconLp.gravity = Gravity.CENTER;
     cover.addView(icon, iconLp);

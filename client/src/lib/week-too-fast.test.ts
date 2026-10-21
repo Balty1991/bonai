@@ -27,7 +27,7 @@ describe("rândurile adăugate la bilanțul familiei", () => {
     const { familyWeekExtras } = await import("./household-insights");
     const lines = familyWeekExtras(family(450, "2026-10-06"), "2026-10-08");
     expect(lines[0]).toMatch(/Până la salariu: 24 de zile/);
-    expect(lines[1]).toMatch(/Mâncare: 450 lei din 600 lei\. Azi cel mult 37,50 lei, apoi cam 37,50 lei pe zi/);
+    expect(lines[1]).toMatch(/Mâncare: 450\u00a0lei din 600\u00a0lei\. Azi cel mult 37,50\u00a0lei, apoi cam 37,50\u00a0lei pe zi/);
   });
 });
 

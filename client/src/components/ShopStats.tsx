@@ -5,7 +5,7 @@ import { receiptsLabel, t } from "@/lib/i18n";
 import { periodStats, type Grain } from "@/lib/shop-stats";
 import { spendEntries } from "@/lib/quick-expense";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const GRAINS: Array<[Grain, string]> = [["day", "Zi"], ["week", "Săptămână"], ["month", "Lună"], ["year", "An"]];
 
 /** Statistici pe Zi / Săptămână / Lună / An, cu navigare înapoi-înainte și grafic animat. */

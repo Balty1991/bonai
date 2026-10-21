@@ -3,7 +3,7 @@
 /** Lista de membri din Setări, cu marcajul de copil. */
 .bf-member-rows{display:grid;gap:7px;margin:8px 0 10px}
 .bf-member-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--cf-line);border-radius:12px;background:var(--cf-surface-alt)}
-.bf-member-row b{color:var(--cf-ink);font:750 12px/1.3 "IBM Plex Sans",sans-serif;overflow-wrap:anywhere}
+.bf-member-row b{color:var(--cf-ink);font:750 12px/1.3 "IBM Plex Sans",sans-serif;overflow-wrap:break-word}
 .bf-member-row label{display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--cf-muted);font:600 10px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
 .bf-member-row input[type=checkbox]{width:17px;height:17px;min-height:0!important;margin:0;accent-color:var(--cf-primary-strong)}
 .bf-member-row button:not(.bf-member-color){display:grid!important;place-items:center!important;width:32px!important;height:32px!important;min-height:0!important;padding:0!important;border:1px solid var(--cf-line)!important;border-radius:12px !important;color:#a34a38!important;background:var(--cf-surface)!important}

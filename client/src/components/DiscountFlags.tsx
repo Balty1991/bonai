@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import type { DiscountFlag } from "@/lib/discount-check";
 import { t } from "@/lib/i18n";
 
-const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const day = (iso?: string) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" }) : "");
 
 export function DiscountFlags({ flags }: { flags: ReadonlyArray<DiscountFlag> }) {

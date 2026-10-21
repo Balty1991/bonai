@@ -27,6 +27,8 @@ import { BONUT_PRICES, FREE_SCANS_PER_MONTH, TRIAL_AFTER_RECEIPTS, TRIAL_DAYS, h
 import { PLAY_STORE_URL } from "@/lib/review-prompt";
 import { firstReceiptsInsight } from "@/lib/first-receipts";
 import { isDemoMode } from "@/lib/demo-data";
+import { warmLazy } from "@/lib/lazy-safe";
+import { debtSummary } from "@/lib/debts-tracker";
 import { basketCompare } from "@/lib/basket-compare";
 import { habitInsights, type InsightAction } from "@/lib/habit-insights";
 import { communityOutside, readCommunity, readCommunityCache } from "@/lib/community-prices";
@@ -43,6 +45,11 @@ function Card({ kicker, title, children, tone }: { kicker?: string; title?: Reac
   return <section className={`sh-card${tone ? ` is-${tone}` : ""}`}>{kicker && <p className="sh-kicker">{kicker}</p>}{title && <h2 className="sh-title">{title}</h2>}{children}</section>;
 }
 
+/** Antetul unui card de pe Acasă: eticheta în stânga, legătura „Toate” aliniată în dreapta. */
+function CardHead({ kicker, action, onAction }: { kicker: string; action?: string; onAction?: () => void }) {
+  return <div className="sh-card-head"><p className="sh-kicker">{kicker}</p>{action && onAction && <button type="button" className="sh-head-link" onClick={onAction}>{action} <ChevronRight size={15} aria-hidden="true" /></button>}</div>;
+}
+
 function Row({ icon, title, hint, onClick }: { icon: ReactNode; title: string; hint?: string; onClick: () => void }) {
   return <button type="button" className="sh-row" onClick={onClick}><span className="sh-row-icon" aria-hidden="true">{icon}</span><span className="sh-row-copy"><b>{title}</b>{hint && <small>{hint}</small>}</span><ChevronRight size={18} aria-hidden="true" /></button>;
 }
@@ -51,6 +58,15 @@ const money2 = (value: number) => value.toLocaleString("ro-RO", { minimumFractio
 
 /** Paywall în context: arată ce deblochează exact cardul ascuns, cu prețurile și proba. */
 const ShopReports = lazy(() => import("@/components/ShopReports"));
+const InsightsPanel = lazy(() => import("@/components/InsightsPanel"));
+
+/**
+ * Bucățile din interiorul filelor (lista, verificarea prețului, urmărirea prețurilor, rapoartele),
+ * încărcate dinainte: la prima deschidere a unei file nu mai apare „Se încarcă…” pentru ele.
+ */
+export function warmShopViews(): Promise<void> {
+  return Promise.all([warmLazy(ShoppingListPanel), warmLazy(BarcodeCheck), warmLazy(PriceWatchPanel), warmLazy(ShopReports), warmLazy(InsightsPanel)]).then(() => undefined, () => undefined);
+}
 /** Fila cu care se deschide Prețuri data viitoare (de pe Acasă sau din Cont: „Rapoarte”). */
 let nextPricesTab: "products" | "stores" | "stats" | undefined;
 export const openPricesTab = (tab: "products" | "stores" | "stats") => { nextPricesTab = tab; };
@@ -99,13 +115,14 @@ function kindText(item: UpcomingItem) {
 }
 
 /** „Ce urmează” pe 30 de zile: tot ce are o dată, cu un tap spre locul unde se gestionează. */
-function UpcomingCard({ data, today, onOpen, onCalendar }: { data: AppData; today: string; onOpen: (item: UpcomingItem) => void; onCalendar?: () => void }) {
-  const items = useMemo(() => upcoming(data, today, 30), [data, today]);
+function UpcomingCard({ items, onOpen, onCalendar }: { items: ReadonlyArray<UpcomingItem>; onOpen: (item: UpcomingItem) => void; onCalendar?: () => void }) {
   const [all, setAll] = useState(false);
   if (!items.length) return null;
   const total = upcomingTotal(items);
   const shown = all ? items : items.slice(0, 4);
-  return <Card kicker={t("CE URMEAZĂ · 30 DE ZILE")} title={total > 0 ? t("{amount} de plătit", { amount: lei(total) }) : undefined}>
+  return <Card>
+    <CardHead kicker={t("CE URMEAZĂ")} action={onCalendar ? t("Scadențar") : undefined} onAction={onCalendar} />
+    {total > 0 && <h2 className="sh-title">{t("{amount} de plătit în 30 de zile", { amount: lei(total) })}</h2>}
     <ul className="sh-next">{shown.map((item) => { const Icon = KIND_ICON[item.kind]; return <li key={item.id}>
       <button type="button" className={`sh-next-row is-${item.kind}${item.days <= 2 ? " is-soon" : ""}`} onClick={() => onOpen(item)}>
         <span className="sh-next-icon" aria-hidden="true"><Icon size={17} /></span>
@@ -113,7 +130,6 @@ function UpcomingCard({ data, today, onOpen, onCalendar }: { data: AppData; toda
         <span className="sh-next-side">{item.amount ? <b>{item.estimate ? "~" : ""}{lei(item.amount)}</b> : null}<small>{new Date(`${item.date}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "short" })}</small></span>
       </button>
     </li>; })}</ul>
-    {onCalendar && <button type="button" className="sh-link" onClick={onCalendar}>{t("Scadențarul lunii")} <ChevronRight size={16} aria-hidden="true" /></button>}
     {items.length > 4 && <button type="button" className="sh-link" aria-expanded={all} onClick={() => setAll(!all)}>{all ? t("Arată mai puțin") : t("Vezi toate ({count})", { count: items.length })} <CalendarClock size={16} aria-hidden="true" /></button>}
   </Card>;
 }
@@ -141,20 +157,71 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     const community = pref.on && cache?.city === pref.city ? communityOutside(cache) : { vendors: [] as string[] };
     return basketCompare(data, today, community.outside, community.vendors);
   }, [data, today]);
-  const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4), [data.receipts]);
+  const recent = useMemo(() => [...data.receipts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3), [data.receipts]);
+  const next = useMemo(() => upcoming(data, today, 30), [data, today]);
+  const debts = useMemo(() => debtSummary(data.debts || []), [data.debts]);
+  const plan = currentBonutPlan(data, today);
+  const [assist, setAssist] = useState(false);
+  const [spendTab, setSpendTab] = useState<"categories" | "products">("categories");
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
   const hour = new Date().getHours();
   const hello = hour < 11 ? t("Bună dimineața") : hour < 18 ? t("Bună ziua") : t("Bună seara");
-  return <div className="sh-page">
+  const openReports = () => { openPricesTab("stats"); onOpenProducts(); };
+  const toPay = upcomingTotal(next);
+  const payCount = next.filter((item) => item.amount).length;
+  const canSave = Math.max(saving.total, basket?.cheapest ? basket.saving : 0);
+  const inflationOn = hasFeature(plan, "myInflation");
+  const allTiles: Array<{ id: string; icon: ReactNode; label: string; value: string; hint: string; tone?: "up" | "down"; onClick?: () => void }> = [
+    { id: "pay", icon: <CalendarClock size={18} />, label: t("De plătit"), value: toPay > 0 ? lei(toPay) : "—", hint: payCount ? (payCount === 1 ? t("o plată în 30 de zile") : t("{count} plăți în 30 de zile", { count: payCount })) : t("nimic în 30 de zile"), onClick: onOpenCosts ? () => onOpenCosts("calendar") : undefined },
+    debts.count > 0
+      ? { id: "debts", icon: <Landmark size={18} />, label: t("Datorii rămase"), value: lei(debts.remaining), hint: t("{amount} pe lună", { amount: lei(debts.monthly) }), onClick: onOpenCosts ? () => onOpenCosts("debts") : undefined }
+      : { id: "receipts", icon: <ReceiptText size={18} />, label: t("Bonuri luna asta"), value: String(month.receipts), hint: month.loose ? looseLabel(month.loose) : t("scanate și citite"), onClick: () => onOpenMore("receipts") },
+    { id: "inflation", icon: <ArrowUpRight size={18} />, label: t("Inflația ta"), value: !inflationOn ? "PRO" : inflation && inflation.products > 0 ? pct(inflation.percent) : "—", hint: !inflationOn ? t("deblochează cu Pro") : inflation && inflation.products > 0 ? t("{count} produse urmărite", { count: inflation.products }) : t("din bonurile tale"), tone: inflationOn && inflation && inflation.products > 0 ? (inflation.percent > 0 ? "up" : "down") : undefined, onClick: onOpenProducts },
+    { id: "saved", icon: <Sparkles size={18} />, label: t("Economisit"), value: savedNow.total > 0 && hasFeature(plan, "savedWithApp") ? lei(savedNow.total) : "—", hint: t("luna asta, cu BonAI"), tone: "down" },
+    { id: "save", icon: <Store size={18} />, label: t("Poți economisi"), value: canSave > 0 ? lei(canSave) : "—", hint: canSave > 0 ? (basket?.cheapest && basket.saving >= saving.total ? t("pe lună, la {vendor}", { vendor: basket.cheapest.vendor }) : t("luna asta, la alt magazin")) : t("compar magazinele"), tone: canSave > 0 ? "down" : undefined, onClick: onOpenStores },
+  ];
+  // Doar cifrele care au ceva de spus, în număr par, ca grila să rămână ordonată.
+  const filled = allTiles.filter((tile) => tile.value !== "—");
+  const tiles = (filled.length >= 2 ? filled : allTiles).slice(0, 4);
+  if (tiles.length % 2) tiles.pop();
+  const shortcuts: Array<{ id: string; icon: ReactNode; label: string; onClick?: () => void }> = [
+    { id: "reports", icon: <BarChart3 size={20} />, label: t("Rapoarte"), onClick: openReports },
+    { id: "calendar", icon: <CalendarClock size={20} />, label: t("Scadențar"), onClick: onOpenCosts ? () => onOpenCosts("calendar") : undefined },
+    { id: "debts", icon: <Landmark size={20} />, label: t("Datorii"), onClick: onOpenCosts ? () => onOpenCosts("debts") : undefined },
+    { id: "warranties", icon: <ShieldCheck size={20} />, label: t("Garanții"), onClick: () => onOpenMore("warranties") },
+  ];
+  return <div className="sh-page sh-dash">
     <div className="sh-greet"><span className="sh-greet-avatar" aria-hidden="true">{(me?.name || "B").trim().charAt(0).toUpperCase()}</span><p><small>{hello}{me?.name && me.name !== "Eu" ? "," : ""}</small><b>{me?.name && me.name !== "Eu" ? me.name : t("Ce cumpărăm azi?")}</b></p></div>
-    <header className="sh-hero">
-      <p className="sh-kicker">{t("CUMPĂRĂTURILE TALE ÎN {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
-      <h1 className="sh-big">{lei(month.spent)}</h1>
-      <p className="sh-sub">{month.receipts || month.loose ? t("din {what}", { what: [month.receipts ? receiptsLabel(month.receipts) : "", month.loose ? looseLabel(month.loose) : ""].filter(Boolean).join(t(" și ")) }) : t("Scanează primul bon al lunii.")}{month.lastMonthSoFar > 0 && <> · <span className={diff > 0 ? "sh-up" : "sh-down"}>{diff > 0 ? t("{amount} mai mult", { amount: lei(diff) }) : t("{amount} mai puțin", { amount: lei(-diff) })}</span> {t("decât luna trecută până azi")}</>}</p>
-      {avg && month.spent > 0 && <p className="sh-sub">{t("Media pe {count} luni: {amount}", { count: avg.months, amount: lei(avg.average) })}</p>}
-      <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
-      {onManual && <button type="button" className="sh-link sh-manual" onClick={onManual}><PenLine size={16} aria-hidden="true" /> {t("Fără bon? Notează suma")}</button>}
+    <header className="sh-hero sh-dash-hero">
+      <p className="sh-kicker">{t("CUMPĂRĂTURI · {month}", { month: monthName(month.month).toLocaleUpperCase("ro-RO") })}</p>
+      <div className="sh-dash-total">
+        <h1 className="sh-big">{lei(month.spent)}</h1>
+        </div>
+      <p className="sh-sub">{month.receipts || month.loose ? t("din {what}", { what: [month.receipts ? receiptsLabel(month.receipts) : "", month.loose ? looseLabel(month.loose) : ""].filter(Boolean).join(t(" și ")) }) : t("Scanează primul bon al lunii.")}</p>
+      {(month.lastMonthSoFar > 0 || (avg && month.spent > 0)) && <div className="sh-dash-meta">
+        {month.lastMonthSoFar > 0 && <span className={`sh-chip ${diff > 0 ? "sh-up" : "sh-down"}`}>{diff > 0 ? "▲" : "▼"} {t("{amount} față de luna trecută", { amount: lei(Math.abs(diff)) })}</span>}
+        {avg && month.spent > 0 && <span className="sh-chip">{t("media pe {count} luni: {amount}", { count: avg.months, amount: lei(avg.average) })}</span>}
+      </div>}
+      <div className="sh-dash-actions">
+        <button type="button" className="sh-scan" onClick={onScan}><ScanLine size={22} aria-hidden="true" /> {t("Scanează bonul")}</button>
+        {onManual && <button type="button" className="sh-dash-manual" aria-label={t("Fără bon? Notează suma")} onClick={onManual}><PenLine size={18} aria-hidden="true" /><span>{t("Notează suma")}</span></button>}
+      </div>
     </header>
+
+    <section className="sh-kpis" aria-label={t("Pe scurt")}>{tiles.map((tile) => <button key={tile.id} type="button" className={`sh-kpi is-${tile.id}`} disabled={!tile.onClick} onClick={tile.onClick}>
+      <span className="sh-kpi-head"><span className="sh-kpi-icon" aria-hidden="true">{tile.icon}</span><small>{tile.label}</small></span>
+      <b className={tile.tone ? `sh-${tile.tone}` : undefined}>{tile.value}</b>
+      <small className="sh-kpi-hint">{tile.hint}</small>
+    </button>)}</section>
+
+    <nav className="sh-shortcuts" aria-label={t("Scurtături")}>{shortcuts.filter((item) => item.onClick).map((item) => <button key={item.id} type="button" onClick={item.onClick}><span aria-hidden="true">{item.icon}</span><small>{item.label}</small></button>)}</nav>
+
+    {insights.length > 0 && <button type="button" className="sh-assist" onClick={() => setAssist(true)}>
+      <span className="sh-assist-icon" aria-hidden="true"><Sparkles size={20} /></span>
+      <span className="sh-assist-copy"><small>{t("ASISTENTUL TĂU · {count}", { count: insights.length })}</small><b>{insights[0].title}</b></span>
+      <ChevronRight size={18} aria-hidden="true" />
+    </button>}
+    {assist && <Suspense fallback={null}><InsightsPanel insights={insights} onClose={() => setAssist(false)} onAct={act} /></Suspense>}
 
     {first && <Card tone="accent" kicker={first.receipts === 1 ? t("DIN PRIMUL TĂU BON") : t("DIN PRIMELE TALE BONURI")} title={first.products ? t("{count} produse de la {vendor}, {total}", { count: first.products, vendor: first.vendor || t("magazin"), total: lei(first.total) }) : t("{total} de la {vendor}", { total: lei(first.total), vendor: first.vendor || t("magazin") })}>
       {first.categories.length > 0 && <div className="sh-bars">{first.categories.map((item) => <div key={item.category} className="sh-bar"><span>{t(item.category)}</span><i style={{ width: `${Math.max(4, item.percent)}%` }} /><b>{item.percent}%</b></div>)}</div>}
@@ -163,16 +230,12 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
       <p className="sh-kicker sh-next-kicker">{t("CE URMEAZĂ")}</p>
       <ul className="sh-list sh-next-steps">
         <li><span><b>{first.repeated > 0 ? t("{count} produse se repetă: vezi-le prețul în Prețuri", { count: first.repeated }) : t("La următorul bon îți arăt ce s-a scumpit")}</b><small>{t("compar aceleași produse, între bonuri și magazine")}</small></span></li>
-        {currentBonutPlan(data, today) === "free" && first.toTrial > 0 && <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>}
+        {plan === "free" && first.toTrial > 0 && <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>}
       </ul>
       <button type="button" className="sh-link" onClick={first.repeated > 0 ? onOpenProducts : onScan}>{first.repeated > 0 ? t("Vezi prețurile") : t("Scanează următorul bon")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>}
 
-    {insights.length > 0 && <Card kicker={t("ASISTENTUL TĂU")} tone="accent">
-      <ul className="bn-insights">{insights.slice(0, 2).map((item) => <li key={item.id}><button type="button" onClick={() => act(item.action)}><span className="bn-insight-icon" aria-hidden="true">{item.icon}</span><span><b>{item.title}</b><small>{item.body}</small></span><ChevronRight size={16} aria-hidden="true" /></button></li>)}</ul>
-      {insights.length > 2 && <button type="button" className="sh-link" onClick={() => act("reports")}>{t("Toate observațiile ({count})", { count: insights.length })} <ChevronRight size={16} aria-hidden="true" /></button>}
-      <p className="sh-muted sh-note">{t("Calculat pe telefon din bonurile și plățile tale. Nu pleacă nimic din aplicație.")}</p>
-    </Card>}
+    <UpcomingCard items={next} onCalendar={onOpenCosts ? () => onOpenCosts("calendar") : undefined} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
 
     {(savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
       <Card tone="accent" kicker={t("ECONOMISIT CU BONAI · {month}", { month: monthName(savedNow.month).toLocaleUpperCase("ro-RO") })} title={<span className="sh-saved-big">{lei(savedNow.total)}</span>}>
@@ -181,47 +244,31 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
           {savedNow.store > 0 && <li><span><b>{t("Magazin mai ieftin")}</b><small>{t("față de ce ai dat ultima dată în alt magazin")}</small></span><b className="sh-down">{lei(savedNow.store)}</b></li>}
           {savedNow.drop > 0 && <li><span><b>{t("Preț mai mic")}</b><small>{t("același magazin, mai ieftin decât data trecută")}</small></span><b className="sh-down">{lei(savedNow.drop)}</b></li>}
         </ul>
-        {savedNow.items.filter((item) => item.kind !== "discount").slice(0, 2).map((item) => <p key={`${item.label}-${item.date}-${item.vendor}`} className="sh-muted sh-saved-item">{item.kind === "drop" ? t("{label}: {amount} mai puțin la {vendor} decât data trecută", { label: item.label, amount: lei(item.amount), vendor: item.vendor }) : t("{label}: {amount} mai puțin la {vendor} decât la {was}", { label: item.label, amount: lei(item.amount), vendor: item.vendor, was: item.was!.vendor })}</p>)}
         {savedNow.allTime > savedNow.total && <p className="sh-muted">{t("De la început: {amount}", { amount: lei(savedNow.allTime) })}</p>}
-        <p className="sh-muted sh-note">{t("Doar bani reali din bonurile tale, nimic estimat.")}</p>
         {savedNow.total > 0 && <button type="button" className="sh-link" onClick={() => shareSaved(savedShareTextV2(savedNow.total, monthName(savedNow.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>}
       </Card>
     </ProGate>}
 
-    {saving.total > 0 && <Card tone="accent" kicker={t("UNDE POȚI ECONOMISI")} title={t("Ai fi dat cu {amount} mai puțin luna asta", { amount: lei(saving.total) })}>
-      <ul className="sh-list">{saving.items.slice(0, 3).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{t("luat la {vendor}, mai ieftin la {cheaper}", { vendor: item.vendor, cheaper: item.cheaperVendor })}</small></span><b className="sh-down">−{lei(item.saved)}</b></li>)}</ul>
-      <button type="button" className="sh-link" onClick={onOpenStores}>{t("Vezi magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
-    </Card>}
-
-    {basket?.cheapest && basket.saving >= 5 && <Card kicker={t("COȘUL TĂU LUNAR")} title={t("La {vendor} ai da cu {amount} mai puțin pe lună", { vendor: basket.cheapest.vendor, amount: lei(basket.saving) })}>
-      <p className="sh-muted">{t("Aceleași produse, în cantitatea ta obișnuită, la prețurile fiecărui magazin.")}</p>
-      <button type="button" className="sh-link" onClick={onOpenStores}>{t("Compară magazinele")} <ChevronRight size={16} aria-hidden="true" /></button>
-    </Card>}
-
-    <ProGate data={data} feature="myInflation" title={t("Inflația ta")} pitch={t("Cât s-au scumpit exact produsele pe care le cumperi tu, nu media țării.")}>
-    <Card kicker={t("INFLAȚIA TA")} title={inflation && inflation.products > 0 ? t("{percent} în {month}", { percent: pct(inflation.percent), month: monthName(inflation.month) }) : t("Se calculează din bonurile tale")}>
-      {inflation && inflation.risers.length > 0 ? <ul className="sh-list">{inflation.risers.slice(0, 3).map((row) => <li key={row.label}><span><b>{row.label}</b></span><b className="sh-up"><ArrowUpRight size={14} aria-hidden="true" />{pct(row.percent)}</b></li>)}</ul>
-        : <p className="sh-muted">{t("Cu fiecare bon scanat îți arăt cât s-au scumpit exact produsele pe care le cumperi tu.")}</p>}
+    {inflationOn && shrink.length > 0 && <Card tone="warn" kicker={t("MAI PUȚIN ÎN PACHET")}>
       {shrink.map((alert) => <p key={`${alert.key}-${alert.date}`} className="sh-alert"><Sparkles size={15} aria-hidden="true" /> {t("{name}: mai puțin în pachet, {percent} pe {per}", { name: alert.label, percent: pct(alert.perUnitPercent), per: alert.per })}</p>)}
       <button type="button" className="sh-link" onClick={onOpenProducts}>{t("Toate produsele")} <ChevronRight size={16} aria-hidden="true" /></button>
-    </Card>
-    </ProGate>
-
-    <UpcomingCard data={data} today={today} onCalendar={onOpenCosts ? () => onOpenCosts("calendar") : undefined} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
-
-    {top.length > 0 && <Card kicker={t("PE CE SE DUC BANII")} title={t("Ultimele 30 de zile")}>
-      <ul className="sh-list">{top.map((item) => <li key={item.key}><span><b>{item.label}</b><small>{item.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: item.count })}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
     </Card>}
 
-    {month.categories.length > 0 && <Card kicker={t("PE CATEGORII")}>
-      <div className="sh-bars">{month.categories.slice(0, 5).map((item) => <div key={item.category} className="sh-bar"><span>{t(item.category)}</span><i style={{ width: `${Math.max(4, Math.round((item.amount / month.categories[0].amount) * 100))}%` }} /><b>{lei(item.amount)}</b></div>)}</div>
-      <button type="button" className="sh-link" onClick={() => { openPricesTab("stats"); onOpenProducts(); }}>{t("Raportul complet: săptămână, lună, trimestru, an")} <ChevronRight size={16} aria-hidden="true" /></button>
+    {(month.categories.length > 0 || top.length > 0) && <Card>
+      <CardHead kicker={t("UNDE SE DUC BANII")} action={t("Rapoarte")} onAction={openReports} />
+      {month.categories.length > 0 && top.length > 0 && <div className="sh-seg" role="group" aria-label={t("Unde se duc banii")}>
+        <button type="button" aria-pressed={spendTab === "categories"} onClick={() => setSpendTab("categories")}>{t("Categorii · luna asta")}</button>
+        <button type="button" aria-pressed={spendTab === "products"} onClick={() => setSpendTab("products")}>{t("Produse · 30 zile")}</button>
+      </div>}
+      {(spendTab === "categories" || !top.length) && month.categories.length > 0
+        ? <ul className="sh-cats">{month.categories.slice(0, 5).map((item) => <li key={item.category}><span>{t(item.category)}</span><b>{lei(item.amount)}</b><i aria-hidden="true"><em style={{ transform: `scaleX(${Math.max(0.03, item.amount / month.categories[0].amount)})` }} /></i></li>)}</ul>
+        : <ul className="sh-list">{top.slice(0, 5).map((item) => <li key={item.key}><span><b>{item.label}</b><small>{item.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: item.count })}</small></span><b>{lei(item.spent)}</b></li>)}</ul>}
     </Card>}
 
-    <Card kicker={t("BONURILE RECENTE")}>
+    <Card>
+      <CardHead kicker={t("BONURILE RECENTE")} action={recent.length ? t("Toate") : undefined} onAction={() => onOpenMore("receipts")} />
       {recent.length ? <ul className="sh-list">{recent.map((receipt) => <li key={receipt.id}><span><b>{receipt.vendor || t("Bon")}</b><small>{dateText(receipt.date, true)}{receipt.lines?.length ? ` · ${productsLabel(receipt.lines.length)}` : ""}</small></span><b>{lei(receipt.amount)}</b></li>)}</ul>
         : <p className="sh-muted">{t("Niciun bon încă. Fă o poză bonului de la magazin: citesc fiecare produs, cu prețul lui.")}</p>}
-      <button type="button" className="sh-link" onClick={() => onOpenMore("receipts")}>{t("Toate bonurile")} <ChevronRight size={16} aria-hidden="true" /></button>
     </Card>
   </div>;
 }

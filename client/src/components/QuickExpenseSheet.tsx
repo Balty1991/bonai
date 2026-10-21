@@ -6,7 +6,7 @@ import { isoToday, type AppData, type Transaction } from "@/lib/finance-data";
 import { t } from "@/lib/i18n";
 import { FIXED_QUICK, QUICK_CATEGORIES, fixedSuggestions, parseAmount, quickExpenseTransaction, quickIcon, quickSuggestions } from "@/lib/quick-expense";
 
-const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} lei`;
+const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}\u00a0lei`;
 
 export function QuickExpenseSheet({ data, onSave, onClose, onItemize }: { data: AppData; onSave: (tx: Transaction) => void; onClose: () => void; onItemize: () => void }) {
   const [amountText, setAmountText] = useState("");

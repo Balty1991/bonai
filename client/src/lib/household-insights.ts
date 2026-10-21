@@ -1481,9 +1481,9 @@ export type WeeklyCheckIn = {
   familyName: string;
 };
 
-const lei = (value: number) => `${Math.round(value).toLocaleString("ro-RO")} lei`;
+const lei = (value: number) => `${Math.round(value).toLocaleString("ro-RO")}\u00a0lei`;
 /** Ca `lei`, dar cu bani când există: cifra pe zi trebuie să fie aceeași ca pe Astăzi (37,50). */
-const leiCents = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 })} lei`;
+const leiCents = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 })}\u00a0lei`;
 
 /**
  * Bilanțul săptămânii de familie: luni–duminică, planificat vs realizat pe plic, fără scriere în AppData.
