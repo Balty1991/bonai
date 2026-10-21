@@ -2,7 +2,10 @@
 
 ## 2.3.1 (235)
 
-- **Notificările bugetului vechi („Plic epuizat”, „Ritm peste plan”, „Azi la mâncare”) nu mai apar deloc.** Android ținea lista de alerte a versiunii vechi și o repunea după repornirea telefonului sau după actualizare, până deschideai aplicația. Acum partea nativă lasă să treacă doar notificările BonAI (scadențe, copia de siguranță, garanții, prețuri) și le sare pe toate celelalte, și pe cele deja programate, iar cu alertele oprite lista veche se șterge.
+- **Codul vechi de notificări al bugetului cu plicuri a fost scos din aplicație.** Nu mai există „Plic epuizat”, „Ritm peste plan”, „Azi la mâncare”, ritmul săptămânii, tranșe, salariu, obiective, amintirea de seară sau bilanțuri. Rămân doar notificările BonAI: abonamente și facturi (cu amintirea aleasă), rate, dobânzi și comisioane din Datorii (cu 3 zile înainte și în ziua plății, dacă nu sunt bifate), copia de siguranță, garanții, „Unde e mai ieftin” și cheltuielile noi din familie.
+- Ratele se iau acum din Datoriile BonAI, cu bifa de plată: o rată bifată nu mai trimite aviz.
+- Setări → Notificări: doar cele patru feluri BonAI.
+- Lista de alerte salvată pe telefon de versiunea veche (pe care Android o repunea după repornire sau actualizare) se curăță la prima pornire: partea nativă păstrează doar alertele BonAI.
 
 ## 2.3.0 (234)
 

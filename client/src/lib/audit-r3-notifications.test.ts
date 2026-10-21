@@ -3,7 +3,7 @@
  * și nu trebuie să rămână oprită după un tap eșuat.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmptyAppData, type Transaction } from "@/lib/finance-data";
+import { createEmptyAppData } from "@/lib/finance-data";
 
 vi.mock("@capacitor/local-notifications", () => ({
   LocalNotifications: {
@@ -84,13 +84,11 @@ afterEach(() => {
 });
 import { LocalNotifications } from "@capacitor/local-notifications";
 
-// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
-vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
 
-const overData = (spent: number) => {
+const rateData = (paid: boolean) => {
   const data = createEmptyAppData();
-  data.settings.salaryPlan = { ...data.settings.salaryPlan, periodStart: "2026-09-01", nextPayday: "2026-09-30", allocations: [{ id: "alloc-1", label: "Alimente", category: "Alimente", amount: 100, alertThreshold: 80 }] };
-  data.transactions = spent ? [{ id: "t1", title: "Lidl", amount: spent, kind: "expense", category: "Alimente", source: "Card debit", sourceId: "source-debit", date: "2026-09-14", allocationId: "alloc-1" } as Transaction] : [];
+  // Rata de mâine (15 septembrie): avizul pleacă azi la 18:30; bifată, nu mai pleacă.
+  data.debts = [{ id: "d1", name: "eMAG telefon", creditor: "eMAG", remaining: 100, monthly: 50, dueDay: 15, due: "", tone: "coral", ...(paid ? { lastPaid: "2026-09-14" } : {}) }];
   return data;
 };
 
@@ -101,25 +99,24 @@ describe("N: reamintiri pe Android", () => {
     vi.setSystemTime(new Date("2026-09-14T08:00:00"));
     const { scheduleFinancialReminders, setNotificationsEnabled } = await import("@/lib/local-notifications");
     setNotificationsEnabled(true);
-    await scheduleFinancialReminders(overData(150));
+    await scheduleFinancialReminders(rateData(false));
     const viaWorkManager = bridge.schedule.mock.calls.length > 0;
     const viaCapacitor = (LocalNotifications.schedule as unknown as ReturnType<typeof vi.fn>).mock.calls.length > 0;
     expect(viaWorkManager && viaCapacitor).toBe(false); // primit: true => aceeași alertă apare de două ori
   });
 
-  it("N2: alerta „plic depășit” programată se anulează când plicul nu mai e depășit", async () => {
+  it("N2: avizul unei rate se anulează când rata e bifată ca plătită", async () => {
     stubWindow({ native: true, permission: true });
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-14T08:00:00"));
     const { scheduleFinancialReminders, setNotificationsEnabled } = await import("@/lib/local-notifications");
     setNotificationsEnabled(true);
-    await scheduleFinancialReminders(overData(150));
+    await scheduleFinancialReminders(rateData(false));
     const first = JSON.parse(String(bridge.schedule.mock.calls[0][0])) as Array<{ tag: string }>;
-    expect(first.some((item) => item.tag.startsWith("env-over"))).toBe(true);
-    // Cheltuiala greșită e ștearsă: plicul nu mai e depășit.
-    await scheduleFinancialReminders(overData(0));
-    const later = bridge.schedule.mock.calls.slice(1).map((call) => JSON.parse(String(call[0])) as Array<{ tag: string }>);
-    const stillPlanned = !bridge.cancelAll.mock.calls.length && !later.some((payload) => payload.some((item) => item.tag.startsWith("env-over")));
-    expect(stillPlanned).toBe(false); // (reprogramarea cu același tag ar fi înlocuit jobul; altfel doar cancelAll îl scoate) primit: true => jobul WorkManager „env-over-alloc-1” rămâne și sună
+    expect(first.some((item) => item.tag.startsWith("debt-d1"))).toBe(true);
+    await scheduleFinancialReminders(rateData(true));
+    const later = JSON.parse(String(bridge.schedule.mock.calls.at(-1)![0])) as Array<{ tag: string }>;
+    expect(bridge.cancelAll).toHaveBeenCalled();
+    expect(later.some((item) => item.tag.startsWith("debt-d1"))).toBe(false);
   });
 });

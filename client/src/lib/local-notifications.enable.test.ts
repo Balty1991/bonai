@@ -3,10 +3,8 @@
  * și nu trebuie să rămână oprită după un tap eșuat.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmptyAppData, type Transaction } from "./finance-data";
+import { createEmptyAppData } from "./finance-data";
 
-// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
-vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
 
 vi.mock("@capacitor/local-notifications", () => ({
   LocalNotifications: {
@@ -138,23 +136,7 @@ describe("activarea reamintirilor pe Android", () => {
     vi.setSystemTime(new Date("2026-09-14T08:00:00"));
     const { scheduleFinancialReminders } = await import("./local-notifications");
     const data = createEmptyAppData();
-    data.settings.salaryPlan = {
-      ...data.settings.salaryPlan,
-      periodStart: "2026-09-01",
-      nextPayday: "2026-09-30",
-      allocations: [{ id: "alloc-1", label: "Alimente", category: "Alimente", amount: 100, alertThreshold: 80 }],
-    };
-    data.transactions = [{
-      id: "t1",
-      title: "Lidl",
-      amount: 100,
-      kind: "expense",
-      category: "Alimente",
-      source: "Card debit",
-      sourceId: "source-debit",
-      date: "2026-09-14",
-      allocationId: "alloc-1",
-    } as Transaction];
+    data.debts = [{ id: "d1", name: "eMAG telefon", creditor: "eMAG", remaining: 100, monthly: 50, dueDay: 15, due: "", tone: "coral" }];
     await scheduleFinancialReminders(data);
     expect(bridge.schedule).toHaveBeenCalled();
     const payload = JSON.parse(String(bridge.schedule.mock.calls[0][0])) as Array<{ title: string }>;
