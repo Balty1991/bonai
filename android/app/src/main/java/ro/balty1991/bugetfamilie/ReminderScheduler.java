@@ -28,6 +28,17 @@ public final class ReminderScheduler {
   static final String KEY_HISTORY = "history";
   static final String KEY_LAST_FIRED = "lastFired";
 
+  /**
+   * BonAI programează doar scadențe (cost-, debt-), copia de siguranță, garanțiile și „Unde e mai ieftin”
+   * (aceeași listă ca BONAI_ALERT din local-notifications.ts). Orice altceva vine din bugetul vechi
+   * (plicuri, mâncare, ritm, salariu, obiective, seara, bilanțuri) și, dintr-o listă salvată de o versiune
+   * veche, nu se mai repune după repornire sau actualizare și nici nu se mai afișează.
+   */
+  static boolean isRetiredTag(String tag) {
+    if (tag == null || tag.isEmpty()) return false;
+    return !tag.matches("^(cost|debt|backup|warranty|price)-.*");
+  }
+
   public static void scheduleJson(Context context, String payload) {
     if (payload == null || payload.trim().isEmpty()) return;
     ReminderWorker.ensureChannel(context);
@@ -61,7 +72,7 @@ public final class ReminderScheduler {
         final String tag = item.optString("tag", "bf-reminder-" + i).trim();
         final long atMs = item.optLong("at", 0L);
         final int notifyId = item.optInt("id", 4200 + i);
-        if (title.isEmpty() || body.isEmpty() || atMs <= 0L) continue;
+        if (title.isEmpty() || body.isEmpty() || atMs <= 0L || isRetiredTag(tag)) continue;
         final long now = System.currentTimeMillis();
         if (atMs < now - TimeUnit.MINUTES.toMillis(1)) continue;
         if (atMs - now > TimeUnit.DAYS.toMillis(14)) continue;

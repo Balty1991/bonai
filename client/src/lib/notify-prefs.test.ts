@@ -3,21 +3,17 @@ import { notifyKindOf, readNotifyPrefs } from "./notify-prefs";
 
 describe("preferințele notificărilor", () => {
   it("pune fiecare alertă la felul ei", () => {
-    expect(notifyKindOf("due-internet")).toBe("bills");
+    expect(notifyKindOf("cost-net-2026-10-10")).toBe("bills");
     expect(notifyKindOf("debt-d1-2026-10-10")).toBe("bills");
-    expect(notifyKindOf("env-warn-a1")).toBe("envelopes");
-    expect(notifyKindOf("pace-over-plan")).toBe("envelopes");
-    expect(notifyKindOf("payday-eve-2026-10-18")).toBe("income");
-    expect(notifyKindOf("goal-due-s1-2027-07-09")).toBe("goals");
-    expect(notifyKindOf("month-card-2026-10")).toBe("summaries");
-    expect(notifyKindOf("month-end-2026-10-18")).toBe("summaries");
-    expect(notifyKindOf("checkin-2026-10-02")).toBe("checkin");
+    expect(notifyKindOf("backup-old-2026-10-25")).toBe("backup");
+    expect(notifyKindOf("warranty-return-w1")).toBe("warranty");
+    expect(notifyKindOf("price-week-2026-10-24")).toBe("prices");
   });
 
-  it("citește doar valori cunoscute, cu ora între 17 și 23", () => {
+  it("citește doar felurile cunoscute", () => {
     const store = (value: unknown) => ({ getItem: () => JSON.stringify(value) });
-    expect(readNotifyPrefs(store({ off: ["checkin", "spam"], eveningHour: 21 }))).toEqual({ off: ["checkin"], eveningHour: 21 });
-    expect(readNotifyPrefs(store({ eveningHour: 3 }))).toEqual({ off: [], eveningHour: 20 });
-    expect(readNotifyPrefs({ getItem: () => "{nu e json" })).toEqual({ off: [], eveningHour: 20 });
+    // Preferințele vechi (plicuri, seara, ora amintirii) se ignoră.
+    expect(readNotifyPrefs(store({ off: ["checkin", "prices", "spam"], eveningHour: 21 }))).toEqual({ off: ["prices"] });
+    expect(readNotifyPrefs({ getItem: () => "{nu e json" })).toEqual({ off: [] });
   });
 });

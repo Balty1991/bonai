@@ -263,7 +263,7 @@ export function useFamilySync(
       // O schimbare făcută aici chiar acum (încă neajunsă în ref) se unește și ea, nu se pierde.
       setData((current) => current === local ? merged : syncRetainLocalReceiptImages(crypto.mergeFamilyData(current, remoteData, base)));
       setSyncLastSync(new Date().toISOString());
-      void import("@/lib/local-notifications").then(({ notifyFamilyEnvelopeChanges }) => notifyFamilyEnvelopeChanges(previous, merged)).catch(() => undefined);
+      void import("@/lib/local-notifications").then(({ notifyFamilyExpenses }) => notifyFamilyExpenses(previous, merged)).catch(() => undefined);
       syncAppendJournal({
         createdAt: new Date().toISOString(),
         status: "resolved",

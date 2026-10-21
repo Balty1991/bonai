@@ -16,7 +16,7 @@ public class ReminderReceiver extends BroadcastReceiver {
       final String body = intent.getStringExtra(ReminderWorker.KEY_BODY);
       final String tag = intent.getStringExtra(ReminderWorker.KEY_TAG);
       final int notifyId = intent.getIntExtra(ReminderWorker.KEY_NOTIFY_ID, 4200);
-      if (title == null || title.isEmpty() || body == null || body.isEmpty()) return;
+      if (title == null || title.isEmpty() || body == null || body.isEmpty() || ReminderScheduler.isRetiredTag(tag)) return;
       context.getSharedPreferences(ReminderScheduler.PREFS, Context.MODE_PRIVATE).edit().putLong(ReminderScheduler.KEY_LAST_FIRED, System.currentTimeMillis()).apply();
       ReminderWorker.notifyNow(context, title, body, notifyId, tag);
       return;

@@ -5724,4 +5724,9 @@ export const en: Record<string, string> = {
   "vinerea": "Friday",
   "sâmbăta": "Saturday",
   "Îți spun pe telefon când vine o rată, un abonament sau o factură, când expiră o garanție și unde e mai ieftin.": "I'll tell you on your phone when an instalment, subscription or bill is due, when a warranty expires and where it's cheaper.",
+  "Comision / dobândă azi": "Fee / interest today",
+  "Ultima copie e de acum {days} zile. Dacă pierzi telefonul, bonurile se pierd cu el: Cont → Export și copii de siguranță.": "Your last backup is {days} days old. If you lose your phone, your receipts go with it: Account → Export and backups.",
+  "N-ai încă nicio copie. Dacă pierzi telefonul, bonurile se pierd cu el: Cont → Export și copii de siguranță.": "You don't have a backup yet. If you lose your phone, your receipts go with it: Account → Export and backups.",
+  "Cu câte zile alegi la fiecare; ratele cu 3 zile înainte și în ziua plății.": "As many days ahead as you choose for each; instalments 3 days before and on the day.",
+  "Bonurile și cheltuielile adăugate de alt membru te anunță când telefoanele sunt sincronizate.": "Receipts and expenses added by another member notify you when the phones sync.",
 };

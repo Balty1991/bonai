@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.1 (235)
+
+- **Codul vechi de notificări al bugetului cu plicuri a fost scos din aplicație.** Nu mai există „Plic epuizat”, „Ritm peste plan”, „Azi la mâncare”, ritmul săptămânii, tranșe, salariu, obiective, amintirea de seară sau bilanțuri. Rămân doar notificările BonAI: abonamente și facturi (cu amintirea aleasă), rate, dobânzi și comisioane din Datorii (cu 3 zile înainte și în ziua plății, dacă nu sunt bifate), copia de siguranță, garanții, „Unde e mai ieftin” și cheltuielile noi din familie.
+- Ratele se iau acum din Datoriile BonAI, cu bifa de plată: o rată bifată nu mai trimite aviz.
+- Setări → Notificări: doar cele patru feluri BonAI.
+- Lista de alerte salvată pe telefon de versiunea veche (pe care Android o repunea după repornire sau actualizare) se curăță la prima pornire: partea nativă păstrează doar alertele BonAI.
+
 ## 2.3.0 (234)
 
 - **Scadențar** (Cont → Scadențar, Datorii, Acasă → „Ce urmează”): calendarul lunii cu fiecare plată în ziua ei (rate, credite, dobânzi și comisioane, abonamente, facturi), inelul „plătit din total”, totalul pe săptămâni și ziua cea mai încărcată.
