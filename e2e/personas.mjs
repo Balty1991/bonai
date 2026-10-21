@@ -148,7 +148,7 @@ const FLOWS = {
   },
   async pantry(page, P, ctx) {
     await dock(page, 1); await sleep(700);
-    for (const tab of ["Stoc", "Meniu"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, tab)); await ctx.shot(tab.toLowerCase()); }
+    for (const tab of ["În casă", "Meniu"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, tab)); await ctx.shot(tab.toLowerCase()); }
     // Capătul Meniului: ultimul rând trebuie să stea deasupra barei de jos.
     await page.evaluate(() => { const m = document.querySelector("main"); if (m) m.scrollTop = m.scrollHeight; window.scrollTo(0, document.documentElement.scrollHeight); }); await sleep(500);
     const gap = await page.evaluate(() => { const dockEl = document.querySelector(".os-dock-v2"); const rows = [...document.querySelectorAll("main *")].filter((e) => e.children.length === 0 && e.textContent.trim() && e.getBoundingClientRect().height > 0); const last = rows[rows.length - 1]; return dockEl && last ? Math.round(dockEl.getBoundingClientRect().top - last.getBoundingClientRect().bottom) : null; });
@@ -159,8 +159,8 @@ const FLOWS = {
   },
   async prices(page, P, ctx) {
     await dock(page, 3); await sleep(900);
-    for (const tab of ["Produsele mele", "Rapoarte", "Magazine"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, `Prețuri/${tab}`)); }
-    await page.getByRole("tab", { name: "Produsele mele" }).click(); await sleep(500); await ctx.shot("prices");
+    for (const tab of ["Produse", "Magazine", "Rapoarte"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, `Prețuri/${tab}`)); }
+    await page.getByRole("tab", { name: "Produse" }).click(); await sleep(500); await ctx.shot("prices");
   },
   async costs(page, P, ctx) {
     await dock(page, 4); await sleep(800);

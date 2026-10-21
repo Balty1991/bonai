@@ -1,6 +1,6 @@
 /**
  * Codul de bare pe aplicația reală (Vite + Chromium cu cameră falsă):
- *   1. Prețuri › Produsele mele › „Scanează codul de bare” deschide scanerul cu camera live;
+ *   1. Prețuri › Produse › „Scanează codul de bare” deschide scanerul cu camera live;
  *   2. cu camera refuzată, scanerul arată de ce (nu tace);
  *   3. cifrele scrise + „Verifică” leagă codul de produsul din bonuri și arată cardul cu ultimul preț;
  *   4. Cumpărături › Listă are butonul de scanare care deschide scanerul.
@@ -50,7 +50,7 @@ async function open(browser, { theme = "white", width = 360, camera = true } = {
   return { context, page, errors };
 }
 const dock = async (page, index) => { await page.locator(".os-dock-v2 > button").nth(index).click(); await page.waitForTimeout(900); };
-const products = async (page) => { await dock(page, 3); await page.getByRole("tab", { name: /^Produsele mele$/ }).click(); await page.waitForTimeout(500); };
+const products = async (page) => { await dock(page, 3); await page.getByRole("tab", { name: /^Produse$/ }).click(); await page.waitForTimeout(500); };
 const shot = async (page, name) => { if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/${name}.png`, fullPage: false }); };
 
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.7.0 (241)
+
+- **Mai simplu pentru cine abia începe**: până la al treilea bon, Acasă arată doar „Scanează bonul” / „Notează suma”, cei trei pași („Fotografiezi bonul”, „Verifici și salvezi”, „Vezi unde se duc banii”) cu progresul („1 din 3 bonuri”) și bonurile. Cifrele lunii, scurtăturile, asistentul și rapoartele apar după al treilea bon, când au ce să arate.
+- **Cont pe grupe**: Banii tăi (Bonuri, Toate cheltuielile, Rapoarte), Plăți și datorii (Calendarul plăților, Datorii, Abonamente, Facturi), Casa și familia (Familie, Garanții), Aplicația (Aspect, Export, Setări).
+- **„Verifică bonul” mai aerisit**: fără bara colorată de categorii de sus (categoriile sunt chiar dedesubt); „Prețuri ca data trecută” e un simplu semn verde, iar cardul de prețuri apare doar când ceva chiar s-a scumpit sau ieftinit; sfatul „apasă pe produs ca să corectezi” stă deasupra produselor, nu la final.
+- **Fiecare filă spune la ce folosește**, într-un rând: Lista de cumpărături („se bifează singur când scanezi bonul”), Ce ai în casă, Meniul săptămânii, Produse, Magazine. Fila „Stoc” se numește acum „În casă”.
+- „În casă” nu mai arată garanția SGR sau sacoșa ca produse care se termină.
+- **Denumiri mai clare**: „Scadențar” devine „Calendarul plăților”; Prețuri are filele Produse, Magazine, Rapoarte, iar verificarea codului de bare stă doar la Produse.
+
 ## 2.6.0 (240)
 
 - **Prețurile față de data trecută, la verificarea bonului**: „1 mai scumpe (+0,36 lei) · 2 mai ieftine · 5 la fel · 3 noi”, comparat cu ultima dată când ai luat fiecare produs, în orice magazin. Pe rând apare ▲ sau ▼ cu diferența.

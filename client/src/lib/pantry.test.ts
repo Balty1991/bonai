@@ -11,4 +11,8 @@ describe("cămara din bonuri", () => {
     expect(pantry.map((p) => [p.key, p.everyDays, p.state])).toEqual([["lapte", 7, "soon"], ["ulei", 30, "ok"]]);
     expect(pantryFromReceipts(rows, "2026-10-26")[0]).toMatchObject({ key: "lapte", state: "out", daysSince: 11 });
   });
+  it("garanția SGR și sacoșa nu sunt produse în casă", () => {
+    const rows = ["2026-10-01", "2026-10-05", "2026-10-09"].flatMap((d) => [o("garantie amb sgr", d), { ...o("sacosa", d), category: "Sacoșe" }, o("lapte", d)]);
+    expect(pantryFromReceipts(rows, "2026-10-20").map((item) => item.label)).toEqual(["lapte"]);
+  });
 });
