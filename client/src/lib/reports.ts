@@ -136,7 +136,9 @@ export function buildReport(data: AppData, grain: ReportGrain, anchor: string, o
   const productsNow = new Map<string, { label: string; amount: number; count: number; price: number; per: string }>();
   for (const item of inRange(observations, from, to)) {
     const row = productsNow.get(item.key) || { label: item.label, amount: 0, count: 0, price: 0, per: item.per };
-    row.amount += item.paid; row.count += 1; row.price += item.price; row.per = item.per; row.label = item.label;
+    // Produsul ambalat (cu gramaj) se cumpără la bucată: media e prețul bucății, nu cel pe kg/l.
+    const packed = item.per !== "buc" && Boolean(item.size) && item.piecePrice > 0;
+    row.amount += item.paid; row.count += 1; row.price += packed ? item.piecePrice : item.price; row.per = packed ? "buc" : item.per; row.label = item.label;
     productsNow.set(item.key, row);
   }
   const productsBefore = new Map<string, number>();

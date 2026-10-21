@@ -25,6 +25,13 @@ const data = (): AppData => {
 };
 
 describe("rapoarte", () => {
+  it("produsul ambalat are prețul pe bucată, nu pe kg (Actimel 4 × 100 g)", () => {
+    const d = createEmptyAppData();
+    d.receipts = [{ id: "r", vendor: "Familiaro", amount: 16.98, category: "Alimente", date: "2026-10-05", lines: [{ id: "a", category: "Alimente", amount: 16.98, label: "Iaurt de băut Actimel 4 × 100 g", size: 400, sizeUnit: "g", qty: 1 }] }];
+    const row = buildReport(d, "month", "2026-10-20").products[0];
+    expect(row).toMatchObject({ avgPrice: 16.98, per: "buc" });
+  });
+
   it("perioadele: săptămâna de luni, trimestrul, anul", () => {
     expect(reportRange("week", "2026-10-20")).toEqual({ from: "2026-10-19", to: "2026-10-25" });
     expect(reportRange("quarter", "2026-10-20")).toEqual({ from: "2026-10-01", to: "2026-12-31" });
