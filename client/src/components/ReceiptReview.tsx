@@ -35,6 +35,10 @@ const CURRENCIES: Array<[string, number]> = [["RON", 1], ["EUR", 4.97], ["USD", 
  */
 
 
+/** Peste atât, „Verifică bonul” spune unde s-a dus timpul (ca omul să ne poată trimite rândul). */
+const SLOW_SCAN_MS = 15_000;
+const secs = (ms: number) => (Math.round(ms / 100) / 10).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
+
 export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWarranty, mode = "new", receiptId }: { data: AppData; prefill: ScanPrefill; onSave: (save: ReviewSave) => void; onCancel: () => void; onRescan?: () => void; /** Garanția propusă din bonul abia salvat (adăugată sau „Nu are garanție”). */ onWarranty?: (warranty: Warranty) => void; mode?: "new" | "edit"; receiptId?: string }) {
   const editMode = mode === "edit";
   const [rows, setRows] = useState<ReviewRow[]>(() => rowsFromPrefill(prefill));
@@ -160,6 +164,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
         {currency !== "RON" && rate > 0 && <p className="sh-muted bn-review-fx">{t("≈ {amount} la cursul {rate}; se salvează în lei", { amount: lei(round2(total * rate)), rate: rate.toLocaleString("ro-RO", { maximumFractionDigits: 4 }) })}</p>}
         <div className="bn-chips">
           {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
+          {prefill.timing && <span className="bn-chip">{t("Citit în {seconds} s", { seconds: secs(prefill.timing.totalMs) })}</span>}
           <span className="bn-chip">{productsLabel(rows.length)}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
           {!prices.up.length && !prices.down.length && prices.same > 0 && <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {t("Prețuri ca data trecută")}</span>}
@@ -171,6 +176,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           {onRescan && !editMode && <button type="button" className="bn-btn" onClick={onRescan}><RotateCcw size={16} aria-hidden="true" /> {t("Scanează din nou")}</button>}
         </div>}
         {prefill.warning && <p className="sh-muted sh-note">{prefill.warning}</p>}
+        {prefill.timing && prefill.timing.totalMs >= SLOW_SCAN_MS && <p className="sh-muted sh-note bn-scan-timing">{t("A durat mai mult: poza {photo} s · verificarea telefonului {id} s · citirea pe server {server} s · internetul {net} s.", { photo: secs(prefill.timing.photoMs), id: secs(prefill.timing.idMs), server: prefill.timing.serverMs === undefined ? "?" : secs(prefill.timing.serverMs), net: secs(prefill.timing.netMs) })}</p>}
       </section>
       {twinShown && <section className="bn-dupe" role="alert">
         <span className="bn-dupe-icon" aria-hidden="true"><Copy size={20} /></span>

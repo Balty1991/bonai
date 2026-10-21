@@ -12,7 +12,7 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
 import { warmOcr } from "@/lib/receipt-orientation-ocr";
-import { compressReceiptPhoto, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, ReceiptScanError, requestReceiptScan, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
+import { compressReceiptPhoto, lastScanTiming, RECEIPT_SHOTS_MAX, receiptCategories, receiptScanConsented, rememberReceiptScanConsent, ReceiptScanError, requestReceiptScan, scanIdentity, scanToPrefill, warmReceiptScan, type ScanPrefill } from "@/lib/receipt-scan";
 
 /**
  * „Scanează bonul”: poza → articolele pe categorii, în formular. Poza pleacă la
@@ -45,7 +45,8 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
   const aiLeft = aiScansLeft(data, today);
   // Motorul OCR (câțiva MB) se încarcă doar când e nevoie de el: altfel concura cu poza pe rețea.
   const needOcr = aiLeft <= 0 || (typeof navigator !== "undefined" && navigator.onLine === false);
-  useEffect(() => { const id = window.setTimeout(() => { if (needOcr) warmOcr(); warmReceiptScan(); }, 600); return () => window.clearTimeout(id); }, [needOcr]);
+  // Ecranul „Verifică bonul” se descarcă cât omul fotografiază, nu după citire (pe web era „Pregătim bonul…”).
+  useEffect(() => { const id = window.setTimeout(() => { if (needOcr) warmOcr(); warmReceiptScan(); void import("@/components/ReceiptReview").catch(() => undefined); }, 600); return () => window.clearTimeout(id); }, [needOcr]);
   const [reveal, setReveal] = useState<{ items: RevealItem[]; total: number; prefill: ScanPrefill }>();
   const thumbsRef = useRef<string[]>([]);
   thumbsRef.current = thumbs;
@@ -98,6 +99,10 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
     setStore(undefined);
     setBusy(true);
     setError("");
+    const started = performance.now();
+    // Identitatea pornește odată cu pregătirea pozei, nu după ea.
+    const identity = offlineRef.current ? undefined : scanIdentity();
+    identity?.catch(() => undefined);
     try {
       const images = [];
       for (const file of files) {
@@ -105,13 +110,16 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
         images.push({ data: photoData, mimeType });
         setProcessed(images.length);
       }
+      const photoMs = Math.round(performance.now() - started);
       const receipt = offlineRef.current
         ? await (await import("@/lib/receipt-offline")).offlineReadReceipt(images, receiptCategories(data))
-        : await requestReceiptScan(images, receiptCategories(data), { receiptCount: data.receipts.length, roomId: getActiveFamilyRoom() });
+        : await requestReceiptScan(images, receiptCategories(data), { receiptCount: data.receipts.length, roomId: getActiveFamilyRoom(), identity });
+      const timing = offlineRef.current ? undefined : lastScanTiming();
       // Serverul trimite numărătoarea adevărată; local doar dacă un server vechi n-a trimis-o.
       if (!offlineRef.current && !readAiQuota()?.at) recordAiScan(isoToday());
       const scanned = scanToPrefill(receipt, data, memberId);
-      const prefill = offlineRef.current ? { ...scanned, warning: [t("Citit pe telefon, fără AI: verifică produsele și totalul înainte să salvezi."), scanned.warning].filter(Boolean).join(" ") } : scanned;
+      const prefill = offlineRef.current ? { ...scanned, warning: [t("Citit pe telefon, fără AI: verifică produsele și totalul înainte să salvezi."), scanned.warning].filter(Boolean).join(" ") }
+        : timing ? { ...scanned, timing: { ...timing, photoMs, totalMs: Math.round(performance.now() - started) } } : scanned;
       // Bonul scanat de două ori îl arată ecranul „Verifică bonul”, cu „Nu-l salva” / „E alt bon”.
       const final = prefill;
       lastFiles.current = [];

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.1 (244)
+
+- **Scanarea pornește mai repede**: verificarea telefonului (identitatea anonimă și App Check) începe odată cu pregătirea pozei, nu după ea, iar cele două se așteaptă în paralel. Înainte se așteptau una după alta (până la 20 s pe web, mai ales în browsere cu blocare de urmărire, ca Brave). App Check, opțional pe server, are acum cel mult 3 s.
+- **Fără „Pregătim bonul…”**: ecranul „Verifică bonul” se descarcă cât fotografiezi, nu după citire.
+- **„Citit în X s”** pe „Verifică bonul”; când durează peste 15 s, un rând spune unde s-a dus timpul (poza, verificarea telefonului, serverul, internetul). Serverul trimite cât a lucrat el.
+
 ## 2.8.0 (243)
 
 - **Prețurile din orașul tău, la vedere**: după al treilea bon, ecranul „Bon salvat” te întreabă o singură dată dacă vrei să afli unde sunt mai ieftine produsele tale. Spune exact ce se trimite (produsul, prețul, magazinul, orașul și luna, anonim) și ce nu (bonul, ziua, numele). „Nu acum” nu mai întreabă.

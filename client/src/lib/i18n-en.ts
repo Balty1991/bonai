@@ -5861,4 +5861,6 @@ export const en: Record<string, string> = {
   "Vrei să afli unde sunt mai ieftine produsele tale?": "Want to know where your products are cheaper?",
   "Dai anonim prețurile din bonuri (doar produsul, prețul, magazinul, orașul și luna) și vezi ce plătesc alții din oraș. Nu pleacă bonul, ziua sau numele tău.": "You share receipt prices anonymously (only the product, price, store, town and month) and see what others in town pay. Your receipt, the day and your name are never sent.",
   "/buc": "/pc",
+  "Citit în {seconds} s": "Read in {seconds} s",
+  "A durat mai mult: poza {photo} s · verificarea telefonului {id} s · citirea pe server {server} s · internetul {net} s.": "This took longer: photo {photo} s · phone check {id} s · server reading {server} s · internet {net} s.",
 };

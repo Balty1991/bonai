@@ -3,6 +3,7 @@
  * animația se închidea și eroarea rămânea mică, sub marginea ecranului: scanarea „se închidea singură”.
  * Verifică: pentru fiecare tip de eșec, ecranul Scanează arată o eroare în română, VIZIBILĂ în ecran,
  * cu „Încearcă din nou” și drumul offline. Serverul e simulat, nu costă nimic.
+ * Plus o citire reușită, dar lentă (16 s): „Verifică bonul” arată „Citit în … s” și unde s-a dus timpul.
  * Rulare: node e2e/scan-error.e2e.mjs (CHROMIUM_PATH opțional).
  */
 /* global innerHeight */
@@ -19,6 +20,7 @@ const CASES = [
   { name: "origine", status: 403, body: { error: "Origin not allowed" }, expect: /a refuzat cererea/ },
   { name: "rețea", abort: true, expect: /Nu am putut trimite poza/ },
 ];
+const SLOW = { store: "Familiaro", date: "2026-10-18", total: 57.3, items: [{ name: "Pâine albă", quantity: 1, amount: 57.3, category: "Alimente" }], payments: [{ method: "cash", amount: 57.3 }], confidence: "high", model: "gemini-3.5-flash-lite", isReceipt: true, ms: 3000 };
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 let failed = 0;
@@ -47,6 +49,27 @@ try {
       if (!(await box.getByRole("button", { name: "Încearcă din nou" }).isVisible())) fail("lipsește Încearcă din nou");
       console.log(`✓ ${C.name}: ${text.replace(/\n/g, " · ")}`);
     } catch (e) { failed++; console.log(`✗ ${C.name}: ${e.message}`); await page.screenshot({ path: `/tmp/scan-error-${C.status || "net"}.png` }).catch(() => {}); }
+    await context.close();
+  }
+  {
+    const context = await browser.newContext({ viewport: { width: 360, height: 640 }, isMobile: true, hasTouch: true, locale: "ro-RO" });
+    await context.addInitScript(() => { try { for (const [k, v] of Object.entries({ "buget-familie:setup-complete": "true", "buget-familie:onboarding-complete": "true", "buget-familie:first-week-tour-dismissed": "1", "buget-familie:whats-new-2026-10h": "1", "bonai:look-v1": "1", "buget-familie:receipt-scan-consent": "1" })) localStorage.setItem(k, v); } catch { /* */ } });
+    await context.route(/readReceipt/, async (route) => { await new Promise((r) => setTimeout(r, 16_000)); await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ receipt: SLOW }) }); });
+    const page = await context.newPage();
+    try {
+      await page.goto(BASE); await page.waitForTimeout(1500);
+      await page.locator(".os-dock-v2 > button").nth(2).click(); await page.waitForTimeout(800);
+      const chooser = page.waitForEvent("filechooser");
+      await page.locator(".bn-tile", { hasText: "Galerie" }).click(); await page.waitForTimeout(400);
+      const ok = page.getByRole("button", { name: "Am înțeles, scanez" }); if (await ok.isVisible().catch(() => false)) await ok.click();
+      await (await chooser).setFiles(IMG);
+      const review = page.getByRole("dialog", { name: "Verifică bonul" });
+      await waitFor(() => review.isVisible(), "„Verifică bonul” după citirea lentă", 60_000);
+      const text = await review.innerText();
+      if (!/Citit în [1-9]\d/.test(text)) fail(`lipsește „Citit în … s”: ${text.slice(0, 900).replace(/\n/g, " | ")}`);
+      if (!/citirea pe server 3 s/.test(text) || !/internetul 1[3-6]/.test(text)) fail(`timpii nu sunt împărțiți corect: ${text.slice(0, 500)}`);
+      console.log(`✓ lent: ${/A durat mai mult[^\n]*/.exec(text)?.[0]}`);
+    } catch (e) { failed++; console.log(`✗ lent: ${e.message}`); await page.screenshot({ path: "/tmp/scan-slow.png" }).catch(() => {}); }
     await context.close();
   }
 } finally { await browser.close(); vite.kill(); }
