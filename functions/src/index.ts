@@ -1652,6 +1652,8 @@ export const readReceipt = onRequest(
         response.status(204).send("");
         return;
       }
+      // Cât a lucrat serverul pe bon (fără drumul pozei): aplicația arată unde se duce timpul.
+      const startedAt = Date.now();
       if (request.method !== "POST") {
         response.status(405).json({ error: "Method not allowed" });
         return;
@@ -1802,7 +1804,7 @@ export const readReceipt = onRequest(
             quota = { ...quota, plan, used: counted.used, trialEndsAt: counted.trialEndsAt, remaining: plan === "free" ? Math.max(0, AI_FREE_PER_MONTH - counted.used) : null };
           }
         }
-        response.json({ receipt, quota });
+        response.json({ receipt: { ...receipt, ms: Date.now() - startedAt }, quota });
       } catch (error) {
         const err = error instanceof GuideCallError ? error : new GuideCallError("unknown", 500);
         console.error("readReceipt failure", err.status, err.message.slice(0, 200));

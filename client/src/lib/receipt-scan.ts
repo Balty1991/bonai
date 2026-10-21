@@ -26,7 +26,12 @@ export type ScannedReceipt = {
   model?: string;
 } & StoreFacts;
 
+/** Unde s-a dus timpul unei scanări AI, în milisecunde: poza pe telefon, identitatea, serverul și drumul. */
+export type ScanTiming = { totalMs: number; photoMs: number; idMs: number; serverMs?: number; netMs: number };
+
 export type ScanPrefill = {
+  /** Cât a durat citirea (doar scanarea AI). */
+  timing?: ScanTiming;
   /** Cine a citit: „gemini” de obicei, „claude” când Gemini era aglomerat. */
   readBy?: "gemini" | "claude" | "offline";
   title: string;
@@ -333,15 +338,33 @@ export function receiptErrorText(error: string | undefined, code: string | undef
   return t("Nu am putut citi bonul acum. Mai încearcă o dată.");
 }
 
-export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[], context: { receiptCount?: number; roomId?: string } = {}): Promise<ScannedReceipt> {
-  // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
-  const { appCheckHeader, authHeader, freshAuthHeader } = await import("./realtime-sync");
-  // Verificarea aplicației poate rămâne agățată fără rețea bună; după 8 s cererea pleacă oricum.
-  const capped = <T,>(work: Promise<T>) => Promise.race([work, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 8_000))]);
+type ScanIdentity = { token?: string; identity?: string; ms: number };
+
+/**
+ * Verificarea aplicației și identitatea anonimă, pornite odată cu pregătirea pozei (nu după ea):
+ * pe web, la prima scanare, Firebase și App Check pot lua câteva secunde.
+ */
+export async function scanIdentity(): Promise<ScanIdentity> {
   const t0 = performance.now();
-  const [token, quick] = await Promise.all([capped(appCheckHeader()), capped(authHeader())]);
-  // Scanarea cere identitatea anonimă: la primul pornit al aplicației o așteptăm, nu trimitem fără ea.
-  const identity = quick || await freshAuthHeader();
+  // Firebase se încarcă abia la prima scanare, nu odată cu formularul.
+  const { appCheckHeader, freshAuthHeader } = await import("./realtime-sync");
+  // Verificarea aplicației e opțională pe server (respinge doar un token fals): pe web, cu blocare de
+  // urmărire (ex. Brave), poate atârna; după 3 s poza pleacă fără ea. Tokenul ținut minte vine pe loc.
+  const capped = <T,>(work: Promise<T>) => Promise.race([work, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 3_000))]);
+  // Identitatea anonimă e obligatorie: o singură așteptare (gata pe loc când telefonul e deja intrat), în paralel
+  // cu verificarea. Înainte erau două așteptări una după alta (6 s, apoi încă 12 s) și poza pleca după 20 s.
+  const [token, identity] = await Promise.all([capped(appCheckHeader()), freshAuthHeader(false, 12_000)]);
+  return { token, identity, ms: Math.round(performance.now() - t0) };
+}
+
+let lastTiming: Omit<ScanTiming, "photoMs" | "totalMs"> | undefined;
+/** Timpii ultimei scanări AI reușite (identitate, server, drum), pentru rândul „Citit în … s”. */
+export const lastScanTiming = () => lastTiming;
+
+export async function requestReceiptScan(images: Array<{ data: string; mimeType: string }>, categories: string[], context: { receiptCount?: number; roomId?: string; identity?: Promise<ScanIdentity> } = {}): Promise<ScannedReceipt> {
+  const { freshAuthHeader } = await import("./realtime-sync");
+  const t0 = performance.now();
+  const { token, identity, ms: idMs } = await (context.identity || scanIdentity());
   const t1 = performance.now();
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (token) headers["X-Firebase-AppCheck"] = token;
@@ -378,11 +401,15 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   } catch {
     throw new Error(t("Nu am putut trimite poza. Verifică internetul și mai încearcă o dată."));
   }
-  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt & { trail?: string; usage?: { in: number; out: number } }; error?: string; reason?: string; code?: string; quota?: ServerAiQuota };
+  const payload = await response.json().catch(() => ({})) as { receipt?: ScannedReceipt & { trail?: string; usage?: { in: number; out: number }; ms?: number }; error?: string; reason?: string; code?: string; quota?: ServerAiQuota };
+  const roundTrip = Math.round(performance.now() - t1);
+  const serverMs = typeof payload.receipt?.ms === "number" && payload.receipt.ms >= 0 ? Math.round(payload.receipt.ms) : undefined;
+  // Identitatea a putut fi gata înainte (pornită odată cu poza): se numără doar cât s-a mai așteptat după ea.
+  lastTiming = { idMs: Math.min(idMs, Math.round(t1 - t0)), serverMs, netMs: Math.max(0, roundTrip - (serverMs ?? 0)) };
   if (payload.quota) syncAiQuota(payload.quota);
   if (payload.code === "ai_quota") throw new AiQuotaError(payload.error || t("Ai folosit scanările AI ale lunii. Scanează gratuit cu „Offline”."));
   // Unde se duce timpul: tokenii pe telefon, apoi drumul + modelul (fără conținutul bonului).
-  console.info("[BonAI] scanare", JSON.stringify({ tokensMs: Math.round(t1 - t0), serverMs: Math.round(performance.now() - t1), trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
+  console.info("[BonAI] scanare", JSON.stringify({ ...lastTiming, trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
   if (!response.ok || !payload.receipt) {
     // Codul tehnic, scurt, ca omul să-l poată trimite când citirea nu merge.
     const code = payload.reason ? ` (${payload.reason})` : !response.ok ? ` (HTTP ${response.status})` : "";
