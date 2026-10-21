@@ -1,4 +1,3 @@
-import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import "../receipt-scan.css";
 import { ReceiptScanAnimation, type RevealItem } from "@/components/ReceiptScanAnimation";
 import { useEffect, useRef, useState } from "react";
@@ -116,10 +115,8 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       if (!offlineRef.current && !readAiQuota()?.at) recordAiScan(isoToday());
       const scanned = scanToPrefill(receipt, data, memberId);
       const prefill = offlineRef.current ? { ...scanned, warning: [t("Citit pe telefon, fără AI: verifică produsele și totalul înainte să salvezi."), scanned.warning].filter(Boolean).join(" ") } : scanned;
-      // Bonul scanat de două ori: doar avertizare, omul decide.
-      const twin = findDuplicateReceipt(data.receipts, { vendor: receipt.store, date: prefill.date, amount: prefill.amount, time: receipt.time, storeCui: receipt.storeCui });
-      const dupe = twin ? t("Pare același bon cu cel din {date} ({amount} lei). Dacă e o dublură, nu-l salva.", { date: twin.date.split("-").reverse().join("."), amount: twin.amount.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) }) : undefined;
-      const final = dupe ? { ...prefill, warning: prefill.warning ? `${dupe} ${prefill.warning}` : dupe } : prefill;
+      // Bonul scanat de două ori îl arată ecranul „Verifică bonul”, cu „Nu-l salva” / „E alt bon”.
+      const final = prefill;
       lastFiles.current = [];
       setStore(receipt.store || undefined);
       setReveal({ items: final.lines.map((line) => ({ name: line.label, amount: line.amount })), total: prefill.amount, prefill: final });

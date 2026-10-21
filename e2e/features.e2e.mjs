@@ -176,7 +176,7 @@ const FEATURES = {
     await card.getByRole("button", { name: /Rată mașină/ }).click();
     await waitFor(async () => /Rată mașină/.test(await page.locator("[role=dialog]").last().innerText().catch(() => "")), "rata deschide Datoriile");
   },
-  /** 6. Scanare offline: „Offline” citește pe telefon, marcat „Citit pe telefon”; totalul nepotrivit cere confirmare. */
+  /** 6. Scanare offline: „Offline” citește pe telefon, marcat „Citit pe telefon”; totalul nepotrivit cere confirmare; același bon a doua oară e semnalat. */
   async offline(page, theme) {
     await page.evaluate(() => { const d = new Date().toISOString().slice(0, 10); localStorage.setItem("bonai:ai-scans-v1", JSON.stringify(Array(15).fill(d))); localStorage.setItem("buget-familie:receipt-scan-consent", "1"); });
     await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
@@ -194,6 +194,30 @@ const FEATURES = {
     await waitFor(() => review.isVisible(), "verificarea bonului citit offline", 90_000);
     if (!/Citit pe telefon/.test(await review.innerText())) fail("rezultatul offline nu e marcat");
     await shot(page, `offline-review-${theme}`);
+    // Același bon a doua oară: cardul „Ai mai înregistrat bonul ăsta”, iar „Nu-l salva” nu adaugă nimic.
+    const count = () => page.evaluate(async () => (await (await import("/src/lib/app-storage.ts")).readAppData()).receipts.length);
+    const start = await count();
+    await review.getByRole("button", { name: /^Salvează bonul$/ }).click();
+    const sum = page.getByRole("button", { name: /^Salvez / });
+    if (await sum.isVisible({ timeout: 1500 }).catch(() => false)) await sum.click();
+    await page.getByRole("button", { name: /^Gata$/ }).click();
+    await waitFor(async () => (await count()) === start + 1, "primul bon salvat");
+    const saved = start + 1;
+    await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
+    await waitFor(() => hub.isVisible(), "centrul de scanare, a doua oară");
+    const again = page.waitForEvent("filechooser");
+    await hub.getByRole("button", { name: /Offline/ }).click();
+    await (await again).setFiles("e2e/receipts/vodka-39.76.jpg");
+    await page.getByRole("button", { name: /^Citește bonul$/ }).click();
+    const twin = review.locator(".bn-dupe");
+    await waitFor(() => twin.isVisible(), "avertizarea de bon dublat", 90_000);
+    if (!/Ai mai înregistrat bonul ăsta/.test(await twin.innerText())) fail("cardul de bon dublat nu spune ce e");
+    await shot(page, `offline-twin-${theme}`, twin);
+    await twin.getByRole("button", { name: /^Nu-l salva$/ }).click();
+    await waitFor(async () => !(await review.isVisible()), "„Nu-l salva” închide verificarea");
+    await page.waitForTimeout(1500);
+    const after = await count();
+    if (after !== saved) fail(`„Nu-l salva” a salvat totuși bonul (${saved} → ${after})`);
   },
   /** 7. Contrast: fiecare text de pe Acasă, Cumpărături, Prețuri, Cont și Scanează: cel puțin 4,5:1 ziua și 7:1 noaptea (3:1 la text mare). */
   async contrast(page, theme) {

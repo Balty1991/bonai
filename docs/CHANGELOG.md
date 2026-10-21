@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.2 (238)
+
+- **Bonul scanat de două ori**: la „Verifică bonul” apare cardul „Ai mai înregistrat bonul ăsta”, cu data, ora, magazinul și suma bonului salvat, și butoanele „Nu-l salva” / „E alt bon”. Se recunoaște după magazin, zi și total (cu ora, dacă o au amândouă) și, când totalul a fost citit altfel, după produse (aceleași în proporție de peste 80%). Se verifică din nou când schimbi data, ora sau totalul. „Salvează bonul” mai întreabă o dată înainte să-l pună de două ori.
+
 ## 2.4.1 (237)
 
 - **Produsele ambalate au prețul pe bucată** în „Produsele tale” și în Rapoarte (de exemplu Actimel 4 × 100 g: prețul bucății, nu „42,45 lei/kg”). Prețul pe kg sau litru rămâne dedesubt, mai mic, pentru comparat gramajele; produsele de la cântar rămân pe kg.

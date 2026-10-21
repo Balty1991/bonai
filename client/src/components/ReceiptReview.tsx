@@ -4,13 +4,14 @@ import { createPortal } from "react-dom";
 
 /** Peste tot ecranul: un strămoș cu transform ar prinde altfel `position: fixed`. */
 const Layer = ({ children }: { children: ReactNode }) => typeof document === "undefined" ? <>{children}</> : createPortal(children, document.body);
-import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X, Pencil } from "lucide-react";
+import { Check, ChevronLeft, Copy, Plus, RotateCcw, Sparkles, Trash2, X, Pencil } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
 import { productsLabel, t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
 import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
+import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import { CATEGORY_COLORS, categoryIcon, groupRows, round2, rowsFromPrefill, rowsTotal, totalGap, type ReviewRow } from "@/lib/receipt-review-model";
 
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
@@ -51,9 +52,17 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   // Bonurile de dinainte de deschiderea ecranului: după salvare, bonul ăsta nu e „ultima dată” față de el însuși.
   const [before] = useState(() => data.receipts.filter((receipt) => receipt.id !== receiptId));
   const previous = useMemo(() => before.filter((receipt) => chainOf(receipt.vendor) === chainOf(store) && receipt.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0], [before, store, date]);
+  // Bonul mai e salvat? Se verifică din nou la fiecare schimbare de magazin, dată, oră sau total.
+  const [notTwin, setNotTwin] = useState<string>();
+  const twin = useMemo(() => editMode ? undefined : findDuplicateReceipt(before, { vendor: store, date, amount: printed > 0 ? printed : total, time, storeCui: prefill.store?.storeCui, labels: rows.map((row) => row.label) }), [editMode, before, store, date, printed, total, time, prefill.store?.storeCui, rows]);
+  const twinShown = twin && twin.id !== notTwin ? twin : undefined;
   const patch = (key: string, change: Partial<ReviewRow>) => setRows((list) => list.map((row) => row.key === key ? { ...row, ...change } : row));
   const addRow = (row?: Partial<ReviewRow>) => { const key = `m${Date.now()}`; setRows((list) => [...list, { key, label: "", raw: "", qty: 1, amount: 0, discount: 0, category: categories[0] || "Alimente", manual: true, ...row }]); if (!row) setEditing(key); };
   const save = async () => {
+    if (twinShown) {
+      const ok = await askConfirm(t("Ai salvat deja un bon {store} pe {date}, de {amount}. Îl salvez încă o dată?", { store: twinShown.vendor, date: fmtDate(twinShown.date), amount: lei(twinShown.amount) }), { title: t("Bonul pare deja înregistrat"), confirmLabel: t("E alt bon, salvează") });
+      if (!ok) return;
+    }
     // Citit offline: un total care nu se potrivește nu se salvează fără să întrebăm.
     if (prefill.readBy === "offline" && gap !== 0 && printed > 0) {
       const ok = await askConfirm(t("Produsele fac {sum}, dar pe bon scrie {printed}. Salvez {sum}? Poți corecta rândurile înainte.", { sum: lei(total), printed: lei(printed) }), { title: t("Totalul nu se potrivește"), confirmLabel: t("Salvez {sum}", { sum: lei(total) }) });
@@ -109,6 +118,17 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
         </div>}
         {prefill.warning && <p className="sh-muted sh-note">{prefill.warning}</p>}
       </section>
+      {twinShown && <section className="bn-dupe" role="alert">
+        <span className="bn-dupe-icon" aria-hidden="true"><Copy size={20} /></span>
+        <div>
+          <b>{t("Ai mai înregistrat bonul ăsta")}</b>
+          <p>{t("Pe {date}{time} ai salvat un bon {store} de {amount}{products}.", { date: fmtDate(twinShown.date), time: twinShown.time ? `, ${twinShown.time}` : "", store: twinShown.vendor, amount: lei(twinShown.amount), products: twinShown.lines?.length ? `, ${productsLabel(twinShown.lines.length)}` : "" })}</p>
+          <div className="bn-dupe-actions">
+            <button type="button" className="bn-btn is-primary" onClick={onCancel}>{t("Nu-l salva")}</button>
+            <button type="button" className="bn-btn" onClick={() => setNotTwin(twinShown.id)}>{t("E alt bon")}</button>
+          </div>
+        </div>
+      </section>}
       <DiscountFlags flags={flags} />
       {groups.map((group, index) => <section key={group.category} className="bn-group">
         <header className="bn-group-head"><span className="bn-cat-icon" style={{ boxShadow: `inset 0 0 0 1px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}` }} aria-hidden="true">{categoryIcon(group.category)}</span><b>{group.category}</b><small>{Math.round(group.share * 100)}%</small><span className="bn-group-sum">{lei(group.total)}</span></header>
