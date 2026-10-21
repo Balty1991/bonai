@@ -84,6 +84,9 @@ afterEach(() => {
 });
 import { LocalNotifications } from "@capacitor/local-notifications";
 
+// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
+vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
+
 const overData = (spent: number) => {
   const data = createEmptyAppData();
   data.settings.salaryPlan = { ...data.settings.salaryPlan, periodStart: "2026-09-01", nextPayday: "2026-09-30", allocations: [{ id: "alloc-1", label: "Alimente", category: "Alimente", amount: 100, alertThreshold: 80 }] };

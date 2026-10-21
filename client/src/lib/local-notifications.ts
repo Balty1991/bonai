@@ -28,6 +28,9 @@ import { partnersLoggedToday, selfLoggedToday } from "@/lib/habit-hold";
 import { notifyKindOf, readNotifyPrefs } from "@/lib/notify-prefs";
 import { warrantyReminders } from "@/lib/warranties";
 import { savingsOpportunity } from "@/lib/shop-insights";
+import { legacyBudgetOn } from "@/lib/app-mode";
+
+const BONAI_ALERT = /^(cost|debt|backup|warranty|price)-/;
 import { nextDue } from "./house-costs";
 const daysBetweenIso = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
 import { readAutoBackup } from "@/lib/auto-backup";
@@ -683,7 +686,9 @@ function buildAlerts(data: AppData): PlannedAlert[] {
   // Ce a oprit omul din Setări nu se programează deloc.
   // Cele mai apropiate întâi: check-inul de seară era pus ultimul și cădea la tăierea listei,
   // așa că amintirea de la 20:00 nu mai venea în zilele cu multe alerte.
-  return alerts.filter((alert) => !prefs.off.includes(notifyKindOf(alert.tag))).sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, 12);
+  // BonAI nu mai are plicuri, salariu, obiective sau check-in: doar scadențele (abonamente, facturi,
+  // rate, dobânzi), copia de siguranță, garanțiile și „Unde e mai ieftin”. Bugetul vechi (arhiva) le are pe toate.
+  return alerts.filter((alert) => (legacyBudgetOn() || BONAI_ALERT.test(alert.tag)) && !prefs.off.includes(notifyKindOf(alert.tag))).sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, 12);
 }
 
 /** Expus pentru teste: aceleași alerte ca programarea locală. */
@@ -887,7 +892,8 @@ export async function notifyFamilyEnvelopeChanges(previous: AppData, next: AppDa
   let changed = false;
   let envelopeAlerted = false;
 
-  for (const allocation of next.settings.salaryPlan.allocations || []) {
+  // Plicurile sunt ale bugetului vechi: în BonAI nu mai anunțăm „plic aproape de limită”.
+  for (const allocation of legacyBudgetOn() ? next.settings.salaryPlan.allocations || [] : []) {
     const before = previous.settings.salaryPlan.allocations.find((item) => item.id === allocation.id);
     const beforeState = before ? allocationStatus(previous, before).state : "healthy";
     const after = allocationStatus(next, allocation);
@@ -996,7 +1002,7 @@ export async function scheduleFinancialReminders(data: AppData): Promise<void> {
 async function pingAlertsOn() {
   await showNow(
     t("Reamintiri active"),
-    t("Îți spun pe telefon când e o scadență, un plic aproape de limită sau o cheltuială adăugată de familie."),
+    t("Îți spun pe telefon când vine o rată, un abonament sau o factură, când expiră o garanție și unde e mai ieftin."),
     "alerts-on",
   );
 }

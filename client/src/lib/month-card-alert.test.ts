@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyAppData, type AppData } from "./finance-data";
 
+// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
+vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
+
 const withSpend = (date: string): AppData => {
   const data = createEmptyAppData();
   data.transactions = [{ id: "t1", title: "Lidl", amount: 80, kind: "expense", category: "Alimente", source: "Card", person: "Eu", date }];

@@ -5723,4 +5723,5 @@ export const en: Record<string, string> = {
   "joia": "Thursday",
   "vinerea": "Friday",
   "sâmbăta": "Saturday",
+  "Îți spun pe telefon când vine o rată, un abonament sau o factură, când expiră o garanție și unde e mai ieftin.": "I'll tell you on your phone when an instalment, subscription or bill is due, when a warranty expires and where it's cheaper.",
 };

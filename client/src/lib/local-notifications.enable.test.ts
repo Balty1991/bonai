@@ -5,6 +5,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyAppData, type Transaction } from "./finance-data";
 
+// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
+vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
+
 vi.mock("@capacitor/local-notifications", () => ({
   LocalNotifications: {
     checkPermissions: vi.fn(async () => { throw new Error("plugin absent"); }),

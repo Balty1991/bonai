@@ -13,7 +13,7 @@ export const DEFAULT_NOTIFY_PREFS: NotifyPrefs = { off: [], eveningHour: 20 };
 
 /** Felul unei alerte, după eticheta ei (tag-ul rămâne aceeași cheie ca înainte). */
 export function notifyKindOf(tag: string): NotifyKind {
-  if (/^(due|debt)-/.test(tag)) return "bills";
+  if (/^(due|debt|cost)-/.test(tag)) return "bills";
   if (/^payday-/.test(tag)) return "income";
   if (/^goal-/.test(tag)) return "goals";
   if (/^(weekly-summary|month-card|month-end)-/.test(tag)) return "summaries";

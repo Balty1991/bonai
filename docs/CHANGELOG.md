@@ -8,6 +8,7 @@
 - **Asistentul tău** (Acasă și Rapoarte): observații calculate pe telefon, fără să plece nimic: ziua în care cheltui cel mai mult, cumpărăturile mici și dese, categoria care crește, cât din bani merg pe plăți fixe, cât te costă banca, cum termini datoriile mai repede, ziua cu multe plăți.
 - **Rapoarte**: inel animat pe categorii.
 - **Bonul scanat se corectează mai ușor**: data, ora, orașul și totalul tipărit se schimbă chiar la scanare (apeși pe dată); un rând de ajutor arată că produsele se corectează apăsând pe ele.
+- **Notificările bugetului vechi s-au oprit**: „Azi la mâncare”, plicuri aproape de limită, ritmul săptămânii, salariul, obiectivele, amintirea de seară și bilanțurile nu se mai programează (cele deja puse se anulează la prima deschidere). Rămân scadențele (abonamente, facturi, rate, dobânzi), copia de siguranță, garanțiile și „Unde e mai ieftin”; amintirile de abonamente țin acum de bifa „Abonamente, facturi și rate”.
 - Ratele plătite înainte de bifă (notate cu plata) apar ca plătite luna asta, ca să nu fie bifate de două ori; datoriile vechi de la eMAG se deschid la editare ca „Rată card de cumpărături”, nu ca dobândă.
 
 ## 2.2.1 (233)
