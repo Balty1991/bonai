@@ -4,6 +4,7 @@
  * Retransformarea în BonAI nu șterge nimic; arhiva e copia pe care omul o poate păstra oricând.
  */
 import type { AppData } from "./finance-data";
+import { deepCopy } from "./deep-copy";
 
 export type LegacyArchive = {
   kind: "bonut-legacy-archive";
@@ -23,17 +24,17 @@ export function buildLegacyArchive(data: AppData, now = new Date()): LegacyArchi
   const settings: Record<string, unknown> = {};
   for (const key of LEGACY_SETTING_KEYS) {
     const value = (data.settings as unknown as Record<string, unknown>)[key];
-    if (value !== undefined) settings[key] = structuredClone(value);
+    if (value !== undefined) settings[key] = deepCopy(value);
   }
   return {
     kind: "bonut-legacy-archive",
     version: 1,
     exportedAt: now.toISOString(),
-    transactionsIncome: structuredClone(data.transactions.filter((tx) => tx.kind === "income")),
-    transactionsTransfer: structuredClone(data.transactions.filter((tx) => Boolean((tx as { transferId?: string }).transferId))),
-    debts: structuredClone(data.debts),
-    savings: structuredClone(data.savings),
-    recurring: structuredClone(data.recurring),
+    transactionsIncome: deepCopy(data.transactions.filter((tx) => tx.kind === "income")),
+    transactionsTransfer: deepCopy(data.transactions.filter((tx) => Boolean((tx as { transferId?: string }).transferId))),
+    debts: deepCopy(data.debts),
+    savings: deepCopy(data.savings),
+    recurring: deepCopy(data.recurring),
     settings: settings as Partial<AppData["settings"]>,
   };
 }

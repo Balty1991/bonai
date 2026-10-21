@@ -5,6 +5,7 @@
  * salvează o copie completă în IndexedDB („bonut-backups”), de unde se poate reveni oricând.
  */
 import type { AppData } from "./finance-data";
+import { deepCopy } from "./deep-copy";
 
 export const BONUT_SCHEMA = 2;
 export const SCHEMA_KEY = "bonut:schema";
@@ -70,7 +71,7 @@ export async function readPreMigrationBackup(): Promise<{ savedAt: string; data:
 export async function runBonutMigration(data: AppData, storage: Pick<Storage, "getItem" | "setItem"> = window.localStorage): Promise<"done" | "skipped" | "deferred"> {
   if (!needsMigration(storage)) return "skipped";
   try {
-    await put(PRE_MIGRATION_ID, { savedAt: new Date().toISOString(), data: structuredClone(data) });
+    await put(PRE_MIGRATION_ID, { savedAt: new Date().toISOString(), data: deepCopy(data) });
   } catch {
     return "deferred";
   }
