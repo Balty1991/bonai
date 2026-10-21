@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   appName: "BonAI",
   webDir: "dist/public",
   android: {
-    backgroundColor: "#1A1446",
+    backgroundColor: "#000000",
     adjustMarginsForEdgeToEdge: "disable",
   },
   plugins: {

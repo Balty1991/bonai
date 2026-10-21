@@ -10,7 +10,7 @@ import { isoToday, type AppData } from "@/lib/finance-data";
 import { paymentCalendar, shiftMonth, type CalendarKind } from "@/lib/payment-calendar";
 import { t } from "@/lib/i18n";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const short = (v: number) => (v >= 1000 ? `${(v / 1000).toLocaleString("ro-RO", { maximumFractionDigits: 1 })}k` : Math.round(v).toLocaleString("ro-RO"));
 const KIND_LABEL: Record<CalendarKind, string> = { debt: "Rată / credit", bank: "Dobândă, comision", sub: "Abonament", bill: "Factură" };
 const WEEKDAYS = ["L", "Ma", "Mi", "J", "V", "S", "D"];

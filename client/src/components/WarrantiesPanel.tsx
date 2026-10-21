@@ -120,7 +120,7 @@ export function WarrantiesPanel({ data, onChange }: { data: AppData; onChange: (
     return <li key={warranty.id} style={{ display: "block", borderTop: "1px solid var(--cf-line)" }}>
       <button type="button" onClick={() => setOpenId(open ? "" : warranty.id)} aria-expanded={open} style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8, alignItems: "center", padding: "10px 0", background: "none", border: 0, textAlign: "left", color: "var(--cf-ink)" }}>
         <span style={{ minWidth: 0, display: "grid", gap: 2 }}>
-          <b style={{ overflowWrap: "anywhere" }}>{warranty.name}</b>
+          <b style={{ overflowWrap: "break-word" }}>{warranty.name}</b>
           <small><StatusLine status={status} /></small>
         </span>
         <span style={{ textAlign: "right", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{warranty.price > 0 ? lei(warranty.price) : ""}</span>
@@ -160,7 +160,7 @@ export function WarrantiesPanel({ data, onChange }: { data: AppData; onChange: (
       <h2 id="bf-warranty-suggest-title">{t("Au garanție?")}</h2>
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid" }}>
         {candidates.map((candidate) => <li key={candidate.id} style={{ display: "grid", gap: 6, padding: "10px 0", borderTop: "1px solid var(--cf-line)" }}>
-          <span style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8 }}><b style={{ overflowWrap: "anywhere" }}>{candidate.name}</b><span style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{lei(candidate.price)}</span></span>
+          <span style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8 }}><b style={{ overflowWrap: "break-word" }}>{candidate.name}</b><span style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{lei(candidate.price)}</span></span>
           <small style={{ color: "var(--cf-muted)" }}>{[candidate.store, dateText(candidate.purchaseDate, true), candidate.returnDays ? t("retur {days} zile", { days: candidate.returnDays }) : ""].filter(Boolean).join(" · ")}</small>
           <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button type="button" className="bf-primary" onClick={() => { const warranty = warrantyFromCandidate(candidate); onChange(upsertWarranty(data, warranty)); setOpenId(warranty.id); }}><Check size={16} aria-hidden="true" /> {t("Da, 2 ani")}</button>

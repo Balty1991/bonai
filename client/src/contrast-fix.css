@@ -179,7 +179,7 @@ html .bf-quick-entry-grid > * { grid-column: auto !important; }
   overflow: visible !important;
   text-overflow: clip !important;
   white-space: normal !important;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .ai-chat-suggestions {
   position: relative;
@@ -315,7 +315,7 @@ html.theme-navy .os-dock button.is-on svg {
     overflow: hidden !important;
     white-space: normal !important;
     word-break: break-word !important;
-    overflow-wrap: anywhere !important;
+    overflow-wrap: break-word !important;
     text-overflow: ellipsis !important;
     font-size: 12px !important;
     line-height: 1.25 !important;
@@ -806,7 +806,7 @@ html body .bf-os-day > span:first-child {
   box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
 }
 .bf-confirm h2 { margin: 0; font-size: 1.15rem; line-height: 1.25; }
-.bf-confirm p { margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.bf-confirm p { margin: 0; line-height: 1.5; overflow-wrap: break-word; }
 .bf-confirm footer { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
 .bf-confirm footer > button { flex: 1 1 8rem; min-height: 44px; white-space: normal; }
 .bf-confirm-danger {

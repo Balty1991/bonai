@@ -115,7 +115,7 @@ html[data-app="shop"] .sh-list { display: grid; margin: 0; padding: 0; list-styl
 html[data-app="shop"] .sh-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 0; border-top: 1px solid var(--bn-edge); }
 html[data-app="shop"] .sh-list li:first-child { border-top: 0; }
 html[data-app="shop"] .sh-list li > span { display: grid; gap: 2px; min-width: 0; }
-html[data-app="shop"] .sh-list li > span b { overflow-wrap: anywhere; font-weight: 600; }
+html[data-app="shop"] .sh-list li > span b { overflow-wrap: break-word; font-weight: 600; }
 html[data-app="shop"] .sh-list li > span small { color: var(--bn-muted); }
 html[data-app="shop"] .sh-list li > b { white-space: nowrap; display: inline-flex; align-items: center; gap: 2px; font: 600 16px/1 var(--bn-head); }
 html[data-app="shop"] .sh-up { color: var(--bn-rise); }
@@ -124,7 +124,7 @@ html[data-app="shop"] .sh-alert { margin: 0; display: flex; gap: 8px; align-item
 html[data-app="shop"] .sh-link { justify-self: start; display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--bn-accent); font-weight: 650; cursor: pointer; }
 html[data-app="shop"] .sh-bars { display: grid; gap: 9px; }
 html[data-app="shop"] .sh-bar { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 8fr) auto; gap: 10px; align-items: center; font-size: 14px; }
-html[data-app="shop"] .sh-bar span { overflow-wrap: anywhere; min-width: 0; }
+html[data-app="shop"] .sh-bar span { overflow-wrap: break-word; min-width: 0; }
 html[data-app="shop"] .sh-bar i { display: block; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #8b5cf6, #22d3ee); box-shadow: 0 0 12px -2px rgba(34, 211, 238, .6); }
 html[data-app="shop"] .sh-bar b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 html[data-app="shop"] .sh-rows { display: grid; border-radius: 24px; overflow: hidden; background: var(--bn-glass); border: 1px solid var(--bn-edge); box-shadow: var(--bn-shadow); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
@@ -249,7 +249,7 @@ button.bn-chip { min-height: 40px; cursor: pointer; }
 .bn-items > li.is-editing { border-color: var(--bn-accent); }
 .bn-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 64px; padding: 12px 16px; border: 0; background: none; color: var(--bn-ink); text-align: left; cursor: pointer; }
 .bn-item-copy { display: grid; gap: 6px; min-width: 0; }
-.bn-item-copy b { font: 600 15.5px/1.3 var(--bn-body); overflow-wrap: anywhere; }
+.bn-item-copy b { font: 600 15.5px/1.3 var(--bn-body); overflow-wrap: break-word; }
 .bn-item-copy small { display: flex; flex-wrap: wrap; gap: 5px; }
 .bn-item-price { font: 700 17px/1 var(--bn-head); color: var(--bn-accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bn-edit { display: grid; gap: 10px; padding: 14px; }
@@ -334,7 +334,7 @@ html:not(.dark) body .bn-vf-beam { box-shadow: 0 0 14px 2px rgba(124, 58, 237, .
 .bn-costs-list li + li { border-top: 1px solid var(--bn-edge); }
 .bn-costs-list button { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 64px; padding: 10px 14px; border: 0; color: inherit; background: none; text-align: left; font: inherit; }
 .bn-costs-day { display: grid; place-items: center; height: 48px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #6d28d9, #0e7490); } .bn-costs-day b { font: 700 17px/1 var(--bn-head); } .bn-costs-day small { font-size: 10px; text-transform: uppercase; }
-.bn-costs-copy { display: grid; gap: 3px; min-width: 0; } .bn-costs-copy b { overflow-wrap: anywhere; } .bn-costs-copy small { color: var(--bn-muted); font-size: 12px; }
+.bn-costs-copy { display: grid; gap: 3px; min-width: 0; } .bn-costs-copy b { overflow-wrap: break-word; } .bn-costs-copy small { color: var(--bn-muted); font-size: 12px; }
 .bn-costs-amount { font: 700 15px/1 var(--bn-head); white-space: nowrap; }
 .bn-costs-add { justify-self: stretch; min-height: 50px; } .bn-costs-note { margin: 0; color: var(--bn-muted); font-size: 13px; text-align: center; }
 .bn-costs-form label { display: grid; gap: 6px; } .bn-costs-form label > span { color: var(--bn-muted); font: 600 13px/1 var(--bn-body); }
@@ -440,19 +440,19 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button.os-d
 /* Verifică în magazin: cardul produsului după codul de bare. */
 html[data-app="shop"] .bn-bc-lead { margin: 0; color: var(--bn-ink-2, var(--bn-ink)); font-size: 15px; line-height: 1.45; }
 html[data-app="shop"] .bn-bc-pick { display: grid; gap: 10px; min-width: 0; }
-html[data-app="shop"] .bn-bc-ask { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-ask { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: break-word; }
 html[data-app="shop"] .bn-bc-search { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); }
 html[data-app="shop"] .bn-bc-search input { flex: 1; min-width: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 16px; outline: none; }
 html[data-app="shop"] .bn-bc-options { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 html[data-app="shop"] .bn-bc-options button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); font: 600 15px/1.35 var(--bn-body, inherit); text-align: left; cursor: pointer; }
-html[data-app="shop"] .bn-bc-options button span { min-width: 0; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-options button span { min-width: 0; overflow-wrap: break-word; }
 html[data-app="shop"] .bn-bc-card { display: grid; gap: 10px; min-width: 0; padding: 16px; border-radius: 20px; background: linear-gradient(140deg, rgba(124, 58, 237, .14), rgba(14, 116, 144, .1)), var(--bn-glass); border: 1px solid rgba(139, 92, 246, .35); }
-html[data-app="shop"] .bn-bc-card h3 { margin: 0; font: 700 18px/1.3 var(--bn-head); overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-card h3 { margin: 0; font: 700 18px/1.3 var(--bn-head); overflow-wrap: break-word; }
 html[data-app="shop"] .bn-bc-card p { margin: 0; }
 html[data-app="shop"] .bn-bc-last { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
 html[data-app="shop"] .bn-bc-last span { flex-basis: 100%; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
 html[data-app="shop"] .bn-bc-last b { font: 750 28px/1.1 var(--bn-head); }
-html[data-app="shop"] .bn-bc-last small { font-size: 15px; overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-bc-last small { font-size: 15px; overflow-wrap: break-word; }
 html[data-app="shop"] .bn-bc-trend, html[data-app="shop"] .bn-bc-verdict { display: flex; align-items: center; gap: 6px; font-weight: 650; }
 html[data-app="shop"] .bn-bc-trend.is-up, html[data-app="shop"] .bn-bc-verdict.is-up { color: #b91c1c; }
 html[data-app="shop"] .bn-bc-trend.is-down, html[data-app="shop"] .bn-bc-verdict.is-down { color: #047857; }
@@ -497,7 +497,7 @@ html.dark .bn-btn.is-danger { color: #fca5a5; border-color: rgba(252, 165, 165, 
 .bn-sheet { display: grid; gap: 4px; width: 100%; padding: 12px 12px calc(env(safe-area-inset-bottom, 0px) + 16px); border-radius: 24px 24px 0 0; background: var(--bn-bg, #fff); color: var(--bn-ink); box-shadow: 0 -8px 30px rgba(0, 0, 0, .25); }
 html.dark .bn-sheet { background: #17132a; }
 .bn-sheet header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 4px 4px 10px; }
-.bn-sheet header b { font-size: 17px; overflow-wrap: anywhere; }
+.bn-sheet header b { font-size: 17px; overflow-wrap: break-word; }
 .bn-sheet header small { grid-row: 2; opacity: .85; }
 .bn-sheet header .bn-icon-btn { grid-row: 1 / span 2; grid-column: 2; }
 .bn-sheet > button { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border: 0; border-radius: 16px; background: none; color: inherit; font: 600 16px/1.2 var(--bn-head, inherit); text-align: left; cursor: pointer; }
@@ -527,7 +527,7 @@ html.dark .bn-qx { background: #17132a; color: #f4f2ff; }
 .bn-qx-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .bn-qx-grid button { display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 70px; padding: 6px 2px; border-radius: 16px; border: 1px solid rgba(124, 58, 237, .2); background: rgba(124, 58, 237, .05); color: inherit; cursor: pointer; }
 .bn-qx-grid button span { font-size: 22px; line-height: 1; display: grid; place-items: center; min-height: 24px; }
-.bn-qx-grid button b { font: 600 12px/1.2 var(--bn-body, inherit); text-align: center; overflow-wrap: anywhere; }
+.bn-qx-grid button b { font: 600 12px/1.2 var(--bn-body, inherit); text-align: center; overflow-wrap: break-word; }
 .bn-qx-grid button.is-on { border-color: #7c3aed; background: rgba(124, 58, 237, .18); box-shadow: inset 0 0 0 1px #7c3aed; }
 html.dark .bn-qx-grid button { border-color: rgba(167, 139, 250, .25); background: rgba(167, 139, 250, .07); }
 html.dark .bn-qx-grid button.is-on { border-color: #a78bfa; background: rgba(167, 139, 250, .22); box-shadow: inset 0 0 0 1px #a78bfa; }
@@ -554,7 +554,7 @@ html.dark .bn-flags-head{color:#fbbf24}
 .sh-next-icon{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,currentColor 9%,transparent)}
 .sh-next-row.is-bill .sh-next-icon{color:#d97706}.sh-next-row.is-sub .sh-next-icon{color:#7c3aed}.sh-next-row.is-debt .sh-next-icon{color:#2563eb}.sh-next-row.is-return .sh-next-icon,.sh-next-row.is-warranty .sh-next-icon{color:#059669}
 html.dark .sh-next-row.is-sub .sh-next-icon{color:#a78bfa}html.dark .sh-next-row.is-debt .sh-next-icon{color:#60a5fa}html.dark .sh-next-row.is-return .sh-next-icon,html.dark .sh-next-row.is-warranty .sh-next-icon{color:#34d399}html.dark .sh-next-row.is-bill .sh-next-icon{color:#fbbf24}
-.sh-next-main{flex:1;min-width:0;display:grid}.sh-next-main b{overflow-wrap:anywhere}
+.sh-next-main{flex:1;min-width:0;display:grid}.sh-next-main b{overflow-wrap:break-word}
 .sh-next-main small,.sh-next-side small{font-size:.8rem;color:var(--bn-muted)}
 .sh-next-side{flex:none;display:grid;justify-items:end;font-variant-numeric:tabular-nums}
 .sh-next-row.is-soon .sh-next-main small{color:#dc2626;opacity:1;font-weight:600}html.dark .sh-next-row.is-soon .sh-next-main small{color:#f87171}
@@ -574,7 +574,7 @@ html[data-app="shop"].theme-dark .sh-link, html[data-app="shop"].theme-navy .sh-
 .bn-bc-found{display:flex;gap:12px;align-items:center;padding:10px;border-radius:14px;border:1px solid var(--bn-edge);background:var(--bn-glass-strong)}
 .bn-bc-found img,.bn-bc-noimg{flex:none;width:56px;height:56px;border-radius:10px;object-fit:contain;background:#fff}
 .bn-bc-noimg{background:color-mix(in srgb,var(--bn-accent) 14%,transparent)}
-.bn-bc-found p{margin:0;display:grid;gap:2px;min-width:0}.bn-bc-found b{overflow-wrap:anywhere}
+.bn-bc-found p{margin:0;display:grid;gap:2px;min-width:0}.bn-bc-found b{overflow-wrap:break-word}
 .bn-bc-found small{color:var(--bn-muted);font-size:.82rem}
 
 /* Familie și membri (și restul paginilor din Cont) în aspectul aplicației de cumpărături, nu în cel vechi al bugetului. */
@@ -600,8 +600,8 @@ html[data-app="shop"] .bf-sync .bf-sync-local-only li::before { content: "✓"; 
 html[data-app="shop"] .bf-sync .bf-sync-local-only ul:nth-of-type(2) li::before { content: "–"; color: var(--bn-muted); }
 /* La 360–390 px numele lungi (magazin, produs) se rup pe rânduri, întregi: nici tăiate brusc, nici ascunse sub „…”. */
 html[data-app="shop"] .bn-costs-copy, html[data-app="shop"] .sh-list li > span { min-width: 0; }
-html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
-html[data-app="shop"] .sh-list li > span > b { overflow-wrap: anywhere; }
+html[data-app="shop"] .bn-costs-copy b, html[data-app="shop"] .bn-costs-copy small { display: block; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: break-word; }
+html[data-app="shop"] .sh-list li > span > b { overflow-wrap: break-word; }
 html[data-app="shop"] .bn-store-pill { min-width: 0; }
 /* Inelul de focus doar la tastatură: după o atingere (tab, buton) nu mai rămâne un chenar rătăcit. */
 html[data-app="shop"] button:focus:not(:focus-visible), html[data-app="shop"] [role="tab"]:focus:not(:focus-visible), html[data-app="shop"] a:focus:not(:focus-visible) { outline: none; }
@@ -631,7 +631,7 @@ html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data
 .bn-report-group > button > b { display: grid; justify-items: end; gap: 1px; font-variant-numeric: tabular-nums; }
 .bn-report-items { display: grid; gap: 6px; margin: 4px 0 8px; padding: 10px 12px; list-style: none; border-radius: 14px; background: var(--bn-soft); }
 .bn-report-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
-.bn-report-items li span { min-width: 0; overflow-wrap: anywhere; }
+.bn-report-items li span { min-width: 0; overflow-wrap: break-word; }
 .bn-report-items li b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bn-qx-section { margin: 6px 0 -2px; color: var(--bn-muted); font: 700 12px/1.2 var(--bn-head); letter-spacing: .06em; text-transform: uppercase; }
 .bn-debt-outlook { margin: 6px 14px 0; color: var(--bn-muted); font-size: 13px; line-height: 1.35; }
@@ -750,3 +750,47 @@ html[data-app="shop"] .bn-community-what { display: grid; gap: 6px; margin: 0; p
   .bn-ring-fill, .bn-donut-seg, .bn-plan-chart path, .bn-insights li, .bn-cal-list li { animation: none; }
   .bn-cal-weeks em { transition: none; }
 }
+
+/* Acasă ca tablou de bord: totalul lunii cu acțiunile, patru cifre, scurtături și asistentul într-un rând. */
+html[data-app="shop"] .sh-dash { gap: 12px; }
+html[data-app="shop"] .sh-dash-hero { gap: 4px; padding: 20px 18px 16px; border-radius: 26px; }
+html[data-app="shop"] .sh-dash-total { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+html[data-app="shop"] .sh-dash-hero .sh-big { font-size: clamp(38px, 11vw, 52px); }
+html[data-app="shop"] .sh-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; background: var(--bn-soft); font: 700 13px/1 var(--bn-head); font-variant-numeric: tabular-nums; }
+html[data-app="shop"] .sh-dash-actions { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+html[data-app="shop"] .sh-dash-actions .sh-scan { margin: 0; min-height: 52px; padding: 0 10px; font-size: 16px; white-space: nowrap; }
+html[data-app="shop"] .sh-dash-manual { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 10px; white-space: nowrap; border: 1px solid var(--bn-edge); border-radius: 18px; background: var(--bn-glass-strong); color: var(--bn-ink); font: 600 15px/1.1 var(--bn-head); cursor: pointer; }
+html[data-app="shop"] .sh-dash-manual svg, html[data-app="shop"] .sh-dash-actions .sh-scan svg { flex: none; }
+html[data-app="shop"] .sh-dash-manual:active, html[data-app="shop"] .sh-kpi:active, html[data-app="shop"] .sh-shortcuts button:active, html[data-app="shop"] .sh-assist:active { transform: scale(.98); }
+html[data-app="shop"] .sh-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+html[data-app="shop"] .sh-kpi { display: grid; align-content: start; gap: 6px; min-height: 108px; padding: 14px; border: 1px solid var(--bn-edge); border-radius: 20px; background: var(--bn-glass); box-shadow: inset 0 1px 0 var(--bn-edge-hi); color: var(--bn-ink); text-align: left; font: inherit; cursor: pointer; transition: transform .12s ease; }
+html[data-app="shop"] .sh-kpi:disabled { cursor: default; }
+html[data-app="shop"] .sh-kpi-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+html[data-app="shop"] .sh-kpi-head small { color: var(--bn-muted); font: 650 12px/1.2 var(--bn-body); overflow-wrap: break-word; }
+html[data-app="shop"] .sh-kpi-icon { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--bn-soft); color: var(--bn-accent); }
+html[data-app="shop"] .sh-kpi > b { font: 700 clamp(17px, 5.2vw, 22px)/1.1 var(--bn-head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-app="shop"] .sh-kpi-hint { color: var(--bn-muted); font-size: 12px; line-height: 1.3; overflow-wrap: break-word; }
+html[data-app="shop"] .sh-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+html[data-app="shop"] .sh-shortcuts button { display: grid; justify-items: center; gap: 6px; min-height: 76px; padding: 10px 4px; border: 1px solid var(--bn-edge); border-radius: 18px; background: var(--bn-glass); color: var(--bn-ink); font: inherit; cursor: pointer; transition: transform .12s ease; }
+html[data-app="shop"] .sh-shortcuts button > span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--bn-soft); color: var(--bn-accent); }
+html[data-app="shop"] .sh-shortcuts small { font: 600 12px/1.15 var(--bn-head); text-align: center; overflow-wrap: break-word; }
+html[data-app="shop"] .sh-assist { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 64px; padding: 12px 14px; border: 1px solid var(--bn-edge); border-radius: 20px; background: linear-gradient(120deg, var(--bn-soft), transparent 80%), var(--bn-glass); color: var(--bn-ink); text-align: left; font: inherit; cursor: pointer; transition: transform .12s ease; }
+html[data-app="shop"] .sh-assist-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; color: var(--bn-on-grad); background-color: #5b21b6; background-image: var(--bn-grad); }
+html[data-app="shop"] .sh-assist-copy { display: grid; gap: 3px; min-width: 0; }
+html[data-app="shop"] .sh-assist-copy small { color: var(--bn-accent); font: 700 11px/1 var(--bn-body); letter-spacing: .08em; }
+html[data-app="shop"] .sh-assist-copy b { font: 600 15px/1.3 var(--bn-head); overflow-wrap: break-word; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-app="shop"] .sh-kpi, html[data-app="shop"] .sh-shortcuts button, html[data-app="shop"] .sh-assist { transition: none; }
+}
+html[data-app="shop"] .sh-dash-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+html[data-app="shop"] .sh-dash-meta .sh-chip { padding: 6px 10px; font: 600 12.5px/1.2 var(--bn-body); }
+html[data-app="shop"] .sh-dash-meta .sh-chip:not(.sh-up):not(.sh-down) { color: var(--bn-muted); }
+html[data-app="shop"] .sh-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+html[data-app="shop"] .sh-head-link { flex: none; display: inline-flex; align-items: center; gap: 2px; min-height: 36px; margin: -4px -6px -4px 0; padding: 0 6px; border: 0; border-radius: 10px; background: none; color: var(--bn-accent); font: 650 13.5px/1 var(--bn-head); cursor: pointer; }
+html[data-app="shop"].theme-dark .sh-head-link { color: #c4b5ff; }
+html[data-app="shop"] .sh-cats { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+html[data-app="shop"] .sh-cats li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: baseline; font-size: 14.5px; }
+html[data-app="shop"] .sh-cats span { min-width: 0; overflow-wrap: break-word; }
+html[data-app="shop"] .sh-cats b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-app="shop"] .sh-cats i { grid-column: 1 / -1; display: block; height: 6px; border-radius: 99px; background: var(--bn-soft); overflow: hidden; }
+html[data-app="shop"] .sh-cats em { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #22d3ee); transform-origin: left; }

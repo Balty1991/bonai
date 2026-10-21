@@ -50,6 +50,7 @@ const SCREENS = {
   "Abonamente": cont(/^Abonamente/),
   "Facturi": cont(/^Facturi/),
   "Datorii": cont(/^Datorii/),
+  "Scadențar": cont(/^Scadențar/),
   "Familie": cont(/^Familie și membri/),
   "Garanții": cont(/^Garanții și retururi/),
   "Setări": cont(/^Setări/),
@@ -152,7 +153,20 @@ function inspect() {
     if (!el.textContent.trim() || !el.checkVisibility() || el.closest("[aria-hidden='true']")) continue;
     if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) problems.push(`„${el.textContent.trim().slice(0, 30)}” e tăiat cu „…” (${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]})`);
   }
-  return [...new Set(problems)].slice(0, 8);
+  // Rupturi urâte: un cuvânt despărțit pe două rânduri („Scanea-ză”, „le-i”) sau o sumă despărțită de „lei”.
+  // Ruptura la cratimă („e-/mail”) e firească în română și rămâne permisă.
+  const walker = document.createTreeWalker(document.body, 4);
+  const range = document.createRange();
+  const lines = (start, end, node) => { range.setStart(node, start); range.setEnd(node, end); return new Set([...range.getClientRects()].filter((rect) => rect.width > 0).map((rect) => Math.round(rect.top / 4))).size; };
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node.parentElement;
+    if (!el || !node.textContent.trim() || el.closest("[aria-hidden='true'], script, style, svg, textarea, input") || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    const label = node.textContent.trim().slice(0, 30);
+    for (const match of node.textContent.matchAll(/[~−+-]?\d[\d.,]*[\s\u00a0](?:lei|RON)\b|[^\s\u00a0-]{2,}/g)) {
+      if (lines(match.index, match.index + match[0].length, node) > 1) { problems.push(/\d/.test(match[0]) && /lei|RON/.test(match[0]) ? `suma „${match[0]}” e ruptă pe două rânduri (${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]})` : `cuvântul „${match[0].slice(0, 20)}” e rupt pe două rânduri în „${label}” (${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]})`); break; }
+    }
+  }
+  return [...new Set(problems)].slice(0, 12);
 }
 
 /* global window, MutationObserver -- zoomText() rulează în pagină */

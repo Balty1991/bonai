@@ -9,7 +9,7 @@ import { bankCosts, DEBT_TYPES, debtDueDay, debtNextDue, debtOutlook, debtProgre
 import { estimatedRate } from "@/lib/debt-insights";
 import { DebtPlanCard } from "@/components/DebtPlanCard";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const num = (v: string) => parseRomanianAmount(v);
 type Draft = { id?: string; debtType: DebtType; creditor: string; initial: string; remaining: string; monthly: string; rate: string; dueDay: string; endDate: string; note: string };
 const empty = (): Draft => ({ debtType: "rata-banca", creditor: "", initial: "", remaining: "", monthly: "", rate: "", dueDay: "15", endDate: "", note: "" });

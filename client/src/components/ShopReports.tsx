@@ -10,7 +10,7 @@ import { quickIcon } from "@/lib/quick-expense";
 import { habitInsights } from "@/lib/habit-insights";
 import { receiptsLabel, t } from "@/lib/i18n";
 
-const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const GRAINS: Array<[ReportGrain, string]> = [["week", "Săptămână"], ["month", "Lună"], ["quarter", "Trimestru"], ["year", "An"]];
 const GROUP_LABEL: Record<FixedGroupId, string> = { rates: "Rate la produse", loans: "Împrumuturi și credite", bank: "Dobânzi și comisioane bancare", subscriptions: "Abonamente", bills: "Facturi și taxe" };
 const PREVIOUS: Record<ReportGrain, string> = { week: "față de săptămâna trecută", month: "față de luna trecută", quarter: "față de trimestrul trecut", year: "față de anul trecut" };

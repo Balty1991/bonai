@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.4.0 (236)
+
+- **Acasă e acum un tablou de bord**: totalul lunii cu diferența față de luna trecută și, alături, „Scanează bonul” și „Notează suma”; patru cifre dintr-o privire (de plătit în 30 de zile, datorii rămase, inflația ta, cât poți economisi), fiecare cu un tap spre locul lui; scurtături spre Rapoarte, Scadențar, Datorii și Garanții; „Unde se duc banii” cu Categorii / Produse într-un singur card.
+- **Asistentul tău are secțiunea lui**: pe Acasă rămâne un singur rând cu cea mai importantă observație; toate se deschid când vrei.
+- **Un singur ecran de pornire**: aceeași iconiță, la aceeași mărime, pe fundal negru, de la pornirea telefonului până apare aplicația (fără al doilea logo).
+- **Textele stau ordonat în toată aplicația**: cuvintele nu se mai rup la mijloc („Scanea-ză”) și „lei” nu mai sare pe rândul următor, despărțit de sumă; pe Acasă titlurile sunt scurte, cu „Toate” aliniat în dreapta, iar categoriile au numele și suma pe un rând, cu bara dedesubt. Testul automat al ecranelor verifică asta pe fiecare ecran.
+- **Schimbarea între file e fluidă**: fiecare filă e pregătită dinainte, trecerea nu mai arată „Pregătim…” și nu mai clipește.
+
 ## 2.3.1 (235)
 
 - **Codul vechi de notificări al bugetului cu plicuri a fost scos din aplicație.** Nu mai există „Plic epuizat”, „Ritm peste plan”, „Azi la mâncare”, ritmul săptămânii, tranșe, salariu, obiective, amintirea de seară sau bilanțuri. Rămân doar notificările BonAI: abonamente și facturi (cu amintirea aleasă), rate, dobânzi și comisioane din Datorii (cu 3 zile înainte și în ziua plății, dacă nu sunt bifate), copia de siguranță, garanții, „Unde e mai ieftin” și cheltuielile noi din familie.

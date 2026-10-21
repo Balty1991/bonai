@@ -19,7 +19,7 @@ to{opacity:1;transform:none}
 }@media (prefers-reduced-motion: reduce){.bf-year-slide{animation:none}
 .bf-year-story{transition:none}
 }.bf-year-kicker{margin:0;color:rgba(255,255,255,0.78);font-size:14px;font-weight:700;letter-spacing:0.12em}
-.bf-year-value{font:600 clamp(64px,22vw,120px)/1 Fraunces,Georgia,serif;letter-spacing:-0.03em;overflow-wrap:anywhere}
+.bf-year-value{font:600 clamp(64px,22vw,120px)/1 Fraunces,Georgia,serif;letter-spacing:-0.03em;overflow-wrap:break-word}
 .bf-year-slide h2{margin:0;color:#fff;font:600 26px/1.2 Fraunces,Georgia,serif}
 .bf-year-note{margin:4px 0 0;color:rgba(255,255,255,0.82);font-size:16px;line-height:1.45}
 .bf-year-bars{display:grid;gap:12px;margin:14px 0 0;padding:0;list-style:none}

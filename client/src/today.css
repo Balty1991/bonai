@@ -48,7 +48,7 @@
 .bf-cycle-strip > div { display: grid; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--cf-primary) 7%, var(--cf-surface)); }
 .bf-cycle-strip dt { color: var(--cf-muted); font-size: 12px; font-weight: 500; }
 /* Suma se rupe pe două rânduri („+5.200” / „lei”) în loc să se taie cu „…” la fontul mare al telefonului. */
-.bf-cycle-strip dd { margin: 0; color: var(--cf-ink); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.bf-cycle-strip dd { margin: 0; color: var(--cf-ink); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
 .bf-cycle-strip dd.income { color: var(--cf-primary-strong, var(--cf-primary)); }
 
 /* Plicurile tale: un rând care derulează, fiecare plic cu inelul lui în culoarea categoriei. */

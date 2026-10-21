@@ -13,7 +13,7 @@ import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
 import { CATEGORY_COLORS, categoryIcon, groupRows, round2, rowsFromPrefill, rowsTotal, totalGap, type ReviewRow } from "@/lib/receipt-review-model";
 
-const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const num = (value: string) => { const parsed = Number(String(value).replace(",", ".")); return Number.isFinite(parsed) ? parsed : 0; };
 /** Lanțul magazinului: primul cuvânt după „Cumpărături”/„Bon” (titlul bonului scanat e „Cumpărături Profi”). */
 export const chainOf = (vendor: string) => String(vendor || "").trim().replace(/^(cumpărături|cumparaturi|bon)\s+/i, "").split(/\s+/)[0]?.toLowerCase() || "";

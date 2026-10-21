@@ -13,7 +13,7 @@ import { buildDemoData, isDemoMode, setDemoMode } from "@/lib/demo-data";
 import { loggingStreak } from "@/lib/logging-habits";
 import { askReviewAfterMilestone, loggedDays, REVIEW_AFTER_LOGGED_DAYS } from "@/lib/review-prompt";
 import { createPortal } from "react-dom";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, startTransition, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { Archive, BarChart3, Bell, CloudOff, Users, RotateCcw, Inbox, LayoutGrid, MessagesSquare, MoreHorizontal, Plus, ReceiptText, ShieldCheck, Wallet, X, Home as HomeIcon, ScanLine, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { isArchiveMode, setAppMode, useAppMode } from "@/lib/app-mode";
@@ -109,14 +109,18 @@ const enterScreen = (main: HTMLElement | null) => {
   const page = main?.firstElementChild as HTMLElement | null;
   if (first || !page || typeof page.animate !== "function" || page.classList.contains("is-entering")) return;
   try { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; } catch { return; }
-  page.animate([{ opacity: 0.35, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" });
+  // Doar o alunecare de 4 px: pornirea de la opacitate mică se vedea ca o pâlpâire la fiecare filă.
+  page.animate([{ transform: "translateY(4px)" }, { transform: "none" }], { duration: 160, easing: "cubic-bezier(.2,.8,.2,1)" });
 };
 let secondaryModule: typeof import("@/pages/home-secondary") | undefined;
 const loadSecondary = () => preloadView("utilities").then(() => import("@/pages/home-secondary")).then((module) => (secondaryModule = module));
 const warmedViews = new Set<MainView>(["today"]);
 const preloadView = (id: MainView): Promise<void> => {
+  // Fiecare filă are învelișul ei leneș: îl pregătim pe al ei, nu doar pe cel al Acasă, altfel
+  // prima apăsare pe Cumpărături, Prețuri sau Cont arăta „Pregătim…” o clipă.
+  const shopView = { shop: ShopHome, list: ListView, products: PricesView, stores: StoresView, house: HouseView } as Partial<Record<MainView, object>>;
   const task = id === "utilities" ? warmLazy(MoreViewScreen)
-    : id === "shop" || id === "list" || id === "products" || id === "stores" || id === "house" ? warmLazy(ShopHome)
+    : shopView[id] ? warmLazy(shopView[id]!).then(() => import("@/pages/ShopViews")).then((module) => module.warmShopViews())
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
 };
@@ -295,7 +299,8 @@ export default function Home() {
     if (next !== "utilities") setMoreReturn(null);
     if (next === view) return;
     haptic("tick");
-    const paint = () => { if (seq === goSeq.current) setView(next); };
+    // În tranziție: până e gata fila nouă rămâne cea veche pe ecran, fără un „Pregătim…” intermediar.
+    const paint = () => { if (seq === goSeq.current) startTransition(() => setView(next)); };
     const stylesReady = next === "today" || deferredStylesReady();
     const tabReady = next === "utilities" ? moreReady.current : undefined;
     if (stylesReady && warmedViews.has(next) && !tabReady) { paint(); return; }
@@ -305,6 +310,8 @@ export default function Home() {
   useEffect(() => {
     const id = window.setTimeout(() => {
       void ensureDeferredStyles();
+      // Filele BonAI întâi: sunt cele din meniul de jos.
+      for (const tab of ["list", "products", "house", "stores"] as MainView[]) void preloadView(tab);
       void preloadView("plan");
       void preloadView("journal");
       void preloadView("utilities");

@@ -89,7 +89,7 @@ export function parseQuery(raw: string, role: RoleId = "detective"): AssistantQu
   return { type: "spend", label: wordsOf(rest).join(" ") || undefined, terms: termsOf(text.replace(/\bla (lidl|kaufland|mega|carrefour|auchan|profi|penny|selgros|metro|cora)\b/, "")), period: periodOf(text), store };
 }
 
-const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
+const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const monthKey = (iso: string) => iso.slice(0, 7);
 
 function inPeriod(date: string, period: Period, today: string): boolean {

@@ -7,7 +7,7 @@ import type { Debt } from "@/lib/finance-data";
 import { debtFreePlan } from "@/lib/debt-insights";
 import { t } from "@/lib/i18n";
 
-const lei = (v: number) => `${Math.round(v).toLocaleString("ro-RO")} lei`;
+const lei = (v: number) => `${Math.round(v).toLocaleString("ro-RO")}\u00a0lei`;
 const EXTRAS = [0, 100, 200, 500];
 const monthName = (offset: number, today: string) => {
   const date = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)) - 1 + offset, 15));
