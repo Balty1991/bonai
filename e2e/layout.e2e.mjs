@@ -50,7 +50,7 @@ const SCREENS = {
   "Abonamente": cont(/^Abonamente/),
   "Facturi": cont(/^Facturi/),
   "Datorii": cont(/^Datorii/),
-  "Scadențar": cont(/^Scadențar/),
+  "Calendarul plăților": cont(/^Calendarul plăților/),
   "Familie": cont(/^Familie și membri/),
   "Garanții": cont(/^Garanții și retururi/),
   "Setări": cont(/^Setări/),

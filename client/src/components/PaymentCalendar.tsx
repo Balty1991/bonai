@@ -35,8 +35,8 @@ export function PaymentCalendar({ data, onClose, onOpen }: { data: AppData; onCl
   const trapRef = useFocusTrap<HTMLDivElement>(onClose);
   const title = new Date(`${month}-15T12:00:00Z`).toLocaleDateString("ro-RO", { month: "long", year: "numeric", timeZone: "UTC" });
   const lead = cal.days[0]?.weekday || 0;
-  return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs bn-cal" role="dialog" aria-modal="true" aria-label={t("Scadențar")}>
-    <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={onClose}><ArrowLeft size={20} /></button><b>{t("Scadențar")}</b><span /></header>
+  return createPortal(<div ref={trapRef} tabIndex={-1} className="bn-costs bn-cal" role="dialog" aria-modal="true" aria-label={t("Calendarul plăților")}>
+    <header className="bn-costs-head"><button type="button" className="bn-icon-btn" aria-label={t("Înapoi")} onClick={onClose}><ArrowLeft size={20} /></button><b>{t("Calendarul plăților")}</b><span /></header>
     <div className="bn-costs-body">
       <section className="bn-cal-hero">
         <Ring value={cal.total > 0 ? cal.paid / cal.total : 0} label={t("{paid} plătit din {total}", { paid: lei(cal.paid), total: lei(cal.total) })} />

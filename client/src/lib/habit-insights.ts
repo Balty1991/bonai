@@ -86,7 +86,7 @@ export function habitInsights(data: AppData, today = isoToday()): Insight[] {
     const share = Math.round((fixed / (fixed + shopping)) * 100);
     if (share >= 40) out.push({ id: "fixed", icon: "🧾", weight: 50, action: "calendar",
       title: t("{share}% din bani merg pe plăți fixe", { share }),
-      body: t("Luna asta {fixed} pe rate, facturi și abonamente, față de {shopping} la cumpărături. Scadențarul arată ce mai vine și în ce zile.", { fixed: lei(fixed), shopping: lei(shopping) }) });
+      body: t("Luna asta {fixed} pe rate, facturi și abonamente, față de {shopping} la cumpărături. Calendarul plăților arată ce mai vine și în ce zile.", { fixed: lei(fixed), shopping: lei(shopping) }) });
   }
 
   // 5. Banca: dobânzi de overdraft și comisioane, pe un an.

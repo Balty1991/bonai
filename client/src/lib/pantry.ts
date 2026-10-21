@@ -10,10 +10,14 @@ const DAY = 86_400_000;
 const days = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / DAY);
 
 /** Produsele cumpărate în cel puțin 3 zile diferite; ritmul = mediana intervalelor. */
+const NOT_STOCK_CATEGORIES = new Set(["SGR", "Sacoșe"]);
+const NOT_STOCK = /\b(sgr|garan[tț]ie amb|ambalaj|saco[sș][aă]|pung[aă]|diferen[tț][aă])\b/i;
+
 export function pantryFromReceipts(observations: ReadonlyArray<ProductObservation>, today: string): PantryItem[] {
   const byKey = new Map<string, { label: string; dates: Set<string> }>();
   for (const o of observations) {
-    if (o.date > today) continue;
+    // Garanția SGR, sacoșa și diferențele de bon nu sunt produse care „se termină” în casă.
+    if (o.date > today || NOT_STOCK_CATEGORIES.has(o.category) || NOT_STOCK.test(o.label)) continue;
     const row = byKey.get(o.key) || { label: o.label, dates: new Set<string>() };
     row.dates.add(o.date);
     byKey.set(o.key, row);

@@ -154,9 +154,9 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
           <span className="bn-chip">{productsLabel(rows.length)}</span>
           {discount > 0 && <span className="bn-chip is-save">−{lei(discount)} {t("reduceri")}</span>}
+          {!prices.up.length && !prices.down.length && prices.same > 0 && <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {t("Prețuri ca data trecută")}</span>}
           {gap === 0 ? <span className="bn-chip is-ok"><Check size={14} aria-hidden="true" /> {printed > 0 ? t("Totalul se potrivește") : t("Fără total tipărit")}</span> : <span className="bn-chip is-warn">{gap > 0 ? t("Lipsesc {amount}", { amount: lei(gap) }) : t("Cu {amount} peste total", { amount: lei(-gap) })}</span>}
         </div>
-        {groups.length > 1 && <div className="bn-split" aria-hidden="true">{groups.map((group, index) => <i key={group.category} style={{ flexGrow: group.share, background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />)}</div>}
         {gap !== 0 && <div className="bn-gap-actions">
           {editMode && <button type="button" className="bn-btn" onClick={() => setPrinted(total)}><Check size={16} aria-hidden="true" /> {t("Totalul de pe bon e {amount}", { amount: lei(total) })}</button>}
           {gap > 0 && <button type="button" className="bn-btn" onClick={() => addRow({ label: t("Diferență bon"), raw: "", amount: gap, category: "Altele" })}><Plus size={16} aria-hidden="true" /> {t("Adaugă rând cu diferența")}</button>}
@@ -175,8 +175,8 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           </div>
         </div>
       </section>}
-      {prices.up.length + prices.down.length + prices.same > 0 && <section className={`bn-prices${prices.up.length ? " is-up" : prices.down.length ? " is-down" : ""}`} aria-label={t("Prețurile față de data trecută")}>
-        <b>{prices.up.length || prices.down.length ? t("Față de data trecută") : t("Niciun preț schimbat față de data trecută")}</b>
+      {prices.up.length + prices.down.length > 0 && <section className={`bn-prices${prices.up.length ? " is-up" : prices.down.length ? " is-down" : ""}`} aria-label={t("Prețurile față de data trecută")}>
+        <b>{t("Față de data trecută")}</b>
         <span>{[
           prices.up.length ? t("{count} mai scumpe (+{amount})", { count: prices.up.length, amount: lei(round2(prices.up.reduce((sum, c) => sum + c.diff, 0))) }) : "",
           prices.down.length ? t("{count} mai ieftine (−{amount})", { count: prices.down.length, amount: lei(round2(-prices.down.reduce((sum, c) => sum + c.diff, 0))) }) : "",
@@ -185,6 +185,8 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
         ].filter(Boolean).join(" · ")}</span>
       </section>}
       <DiscountFlags flags={flags} />
+      {/* Sfatul stă deasupra produselor, unde îl vezi înainte să cauți ce e greșit. */}
+      <p className="sh-muted sh-note bn-review-hint"><Pencil size={13} aria-hidden="true" /> {editMode ? t("Apasă pe un produs ca să-l corectezi. Data, ora și totalul se schimbă sus, pe dată.") : t("Verifică produsele. Dacă am citit ceva greșit, apasă pe el și corectează. Data, ora și totalul se schimbă sus, pe dată.")}</p>
       {groups.map((group, index) => <section key={group.category} className="bn-group">
         <header className="bn-group-head"><span className="bn-cat-icon" style={{ boxShadow: `inset 0 0 0 1px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}` }} aria-hidden="true">{categoryIcon(group.category)}</span><b>{group.category}</b><small>{Math.round(group.share * 100)}%</small><span className="bn-group-sum">{lei(group.total)}</span></header>
         <ul className="bn-items">{group.rows.map((row) => <li key={row.key} className={editing === row.key ? "is-editing" : ""}>
@@ -204,7 +206,6 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           </button>}
         </li>)}</ul>
       </section>)}
-      <p className="sh-muted sh-note bn-review-hint"><Pencil size={13} aria-hidden="true" /> {t("Ceva citit greșit? Apasă pe produs ca să corectezi numele, cantitatea sau prețul; sus, pe dată, pentru data, ora, orașul și totalul.")}</p>
       <button type="button" className="bn-add" onClick={() => addRow()}><span aria-hidden="true"><Plus size={20} /></span>{t("Adaugă un produs")}</button>
       {members.length > 1 && <section className="bn-who"><p className="sh-kicker">{t("CINE A CUMPĂRAT (OPȚIONAL)")}</p><div className="bn-chips">{members.map((member) => <button key={member.id} type="button" className={memberId === member.id ? "bn-chip is-on" : "bn-chip"} aria-pressed={memberId === member.id} onClick={() => setMemberId(memberId === member.id ? undefined : member.id)}>{member.name}</button>)}</div></section>}
     </div>
