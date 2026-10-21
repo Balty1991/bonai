@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.1 (237)
+
+- **Produsele ambalate au prețul pe bucată** în „Produsele tale” și în Rapoarte (de exemplu Actimel 4 × 100 g: prețul bucății, nu „42,45 lei/kg”). Prețul pe kg sau litru rămâne dedesubt, mai mic, pentru comparat gramajele; produsele de la cântar rămân pe kg.
+
 ## 2.4.0 (236)
 
 - **Acasă e acum un tablou de bord**: totalul lunii cu diferența față de luna trecută și, alături, „Scanează bonul” și „Notează suma”; patru cifre dintr-o privire (de plătit în 30 de zile, datorii rămase, inflația ta, cât poți economisi), fiecare cu un tap spre locul lui; scurtături spre Rapoarte, Scadențar, Datorii și Garanții; „Unde se duc banii” cu Categorii / Produse într-un singur card.

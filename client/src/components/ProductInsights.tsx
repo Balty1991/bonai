@@ -41,6 +41,9 @@ function Sparkline({ points }: { points: ProductCard["points"] }) {
 
 function ProductRow({ card, open, onToggle }: { card: ProductCard; open: boolean; onToggle: () => void }) {
   const headline = card.change.m3 ?? card.change.m1 ?? card.change.m6;
+  // Produsul ambalat (are gramaj, nu e luat la cântar) se cumpără la bucată: întâi prețul bucății,
+  // dedesubt prețul pe kg/l, cu care se compară între gramaje și magazine.
+  const packed = card.per !== "buc" && Boolean(card.latest.size) && card.latest.piecePrice > 0;
   return (
     <li style={{ display: "block", borderTop: "1px solid var(--cf-line)" }}>
       <button type="button" onClick={onToggle} aria-expanded={open} style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 8, alignItems: "center", padding: "10px 0", background: "none", border: 0, textAlign: "left", color: "var(--cf-ink)" }}>
@@ -49,7 +52,9 @@ function ProductRow({ card, open, onToggle }: { card: ProductCard; open: boolean
           <small style={{ color: "var(--cf-muted)" }}>{[card.brand, card.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: card.count }), card.latest.vendor].filter(Boolean).join(" · ")}</small>
         </span>
         <span style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-          <b style={{ display: "block", fontVariantNumeric: "tabular-nums" }}>{lei(card.latest.price)} {t("lei")}/{perText(card.per)}</b>
+          {packed
+            ? <><b style={{ display: "block", fontVariantNumeric: "tabular-nums" }}>{lei(card.latest.piecePrice)} {t("lei")}/{t("buc")}</b><small style={{ display: "block", color: "var(--cf-muted)", fontVariantNumeric: "tabular-nums" }}>{lei(card.latest.price)} {t("lei")}/{perText(card.per)}</small></>
+            : <b style={{ display: "block", fontVariantNumeric: "tabular-nums" }}>{lei(card.latest.price)} {t("lei")}/{perText(card.per)}</b>}
           {card.count > 1 && <small><Trend value={headline} /></small>}
         </span>
       </button>
