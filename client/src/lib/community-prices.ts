@@ -8,13 +8,15 @@
 import { authHeader } from "@/lib/realtime-sync";
 import { safeSetItem } from "@/lib/safe-storage";
 import { addIsoDays, isoToday, type AppData } from "./finance-data";
-import { productObservations, regularPrice } from "./personal-inflation";
+import { productObservations, regularPrice, type ProductObservation } from "./personal-inflation";
+import { receiptVendorName } from "./price-history";
 import { FOOD_CATEGORIES } from "./product-catalog";
 import type { OutsidePrice } from "./basket-compare";
 
 const URL_COMMUNITY = "https://europe-central2-buget-familie-a6a0d.cloudfunctions.net/communityPrices";
 const PREF_KEY = "bonai:community";
 const CACHE_KEY = "bonai:community-cache";
+const INVITE_KEY = "bonai:community-invite";
 const SHARED_CATEGORIES = new Set([...Array.from(FOOD_CATEGORIES), "Casă & facturi", "Consumabile copil"]);
 
 export type CommunityPref = { on: boolean; city: string; sentUntil?: string };
@@ -60,7 +62,7 @@ export function communityFacts(data: AppData, since: string | undefined, today =
   for (const item of productObservations(data)) {
     if (item.date <= from || item.date > today || !months.has(item.date.slice(0, 7)) || !(item.price > 0)) continue;
     // Doar coșul de zi cu zi: haine, farmacie sau „Altele” ar spune prea mult despre om și puțin despre magazin.
-    if (!SHARED_CATEGORIES.has(item.category) || !item.vendor || item.vendor === "Magazin") continue;
+    if (!sharedObservation(item)) continue;
     out.set(`${item.key}|${item.per}|${item.vendor}|${item.date.slice(0, 7)}`, { k: item.key, per: item.per, v: item.vendor, p: regularPrice(item), m: item.date.slice(0, 7) });
   }
   return Array.from(out.values()).slice(-80);
@@ -112,4 +114,40 @@ export function communityOutside(cache: CachedPrices | undefined): { outside?: O
   const vendors = new Set<string>();
   Object.values(cache.prices).forEach((byVendor) => Object.keys(byVendor).forEach((vendor) => vendors.add(vendor)));
   return { outside: (key, per, vendor) => cache.prices[`${key}|${per}`]?.[vendor]?.price, vendors: Array.from(vendors) };
+}
+
+/** Invitația de după bon: se arată până când omul răspunde o dată (participă sau „Nu acum”). */
+export function communityInviteDue(): boolean {
+  try { return !readCommunity().on && store()?.getItem(INVITE_KEY) !== "no"; } catch { return false; }
+}
+
+export function dismissCommunityInvite() {
+  try { const target = store(); if (target) safeSetItem(target, INVITE_KEY, "no"); } catch { /* fără stocare */ }
+}
+
+/** Ce poate trimite comunitatea dintr-un bon: doar coșul de zi cu zi, de la un magazin cu nume. */
+export const sharedObservation = (item: Pick<ProductObservation, "category" | "vendor" | "price">) => SHARED_CATEGORIES.has(item.category) && !!item.vendor && item.vendor !== "Magazin" && item.price > 0;
+
+export type CityDeal = { label: string; per: string; mine: number; vendor: string; price: number; n: number };
+const chainOf = (vendor: string) => receiptVendorName(vendor).trim().split(/\s+/)[0].toLocaleLowerCase("ro-RO");
+
+/**
+ * Produsele de pe bon pe care alții din oraș le-au plătit vizibil mai puțin în alt lanț de magazine:
+ * cel puțin 5% și 30 de bani pe unitate, la prețul obișnuit (fără promoția de pe bonul tău). Cele mai mari diferențe întâi.
+ */
+export function cheaperInCity(items: ReadonlyArray<ProductObservation>, cache: CachedPrices | undefined, limit = 3): CityDeal[] {
+  if (!cache) return [];
+  const deals = new Map<string, CityDeal>();
+  for (const item of items) {
+    if (!sharedObservation(item)) continue;
+    const mine = regularPrice(item);
+    const own = chainOf(item.vendor);
+    const offers = Object.entries(cache.prices[`${item.key}|${item.per}`] || {}).filter(([vendor, entry]) => chainOf(vendor) !== own && entry.price > 0);
+    const best = offers.sort((a, b) => a[1].price - b[1].price)[0];
+    if (!best || best[1].price > mine * 0.95 || mine - best[1].price < 0.3) continue;
+    const deal = { label: item.label, per: item.per, mine, vendor: best[0], price: best[1].price, n: best[1].n };
+    const id = `${item.key}|${item.per}`;
+    if (!deals.has(id) || (deals.get(id)!.mine - deals.get(id)!.price) < mine - deal.price) deals.set(id, deal);
+  }
+  return Array.from(deals.values()).sort((a, b) => (b.mine - b.price) - (a.mine - a.price)).slice(0, limit);
 }

@@ -62,6 +62,28 @@ async function open(browser, theme) {
   return { context, page, errors };
 }
 const expected = (page) => page.evaluate(async () => { const { savedWithBonAI } = await import("/src/lib/saved-with-bonai.ts"); const s = await import("/src/lib/app-storage.ts"); const { isoToday } = await import("/src/lib/finance-data.ts"); return savedWithBonAI(await s.readAppData(), isoToday()); });
+/** Scanează offline bonul de test, îl face „Lapte Zuzu 1L” de 9,99 lei la alimente și îl salvează. */
+async function saveLapte(page) {
+  await page.evaluate(() => { const d = new Date().toISOString().slice(0, 10); localStorage.setItem("bonai:ai-scans-v1", JSON.stringify(Array(15).fill(d))); localStorage.setItem("buget-familie:receipt-scan-consent", "1"); });
+  await page.getByRole("button", { name: /^Scanează bonul$/ }).first().click();
+  const hub = page.locator(".bn-hub");
+  await waitFor(() => hub.isVisible(), "centrul de scanare");
+  const chooser = page.waitForEvent("filechooser");
+  await hub.getByRole("button", { name: /Offline/ }).click();
+  await (await chooser).setFiles("e2e/receipts/vodka-39.76.jpg");
+  await page.getByRole("button", { name: /^Citește bonul$/ }).click();
+  const review = page.getByRole("dialog", { name: "Verifică bonul" });
+  await waitFor(() => review.isVisible(), "verificarea bonului", 90_000);
+  await review.locator(".bn-item").first().click();
+  await review.getByLabel("Produs").fill("Lapte Zuzu 1L");
+  await review.getByLabel("Total (lei)").fill("9.99");
+  await review.getByLabel("Categorie").selectOption({ label: (await review.getByLabel("Categorie").locator("option").allInnerTexts()).find((o) => /Alimente/.test(o)) });
+  await review.getByRole("button", { name: /^Gata$/ }).click();
+  await review.getByRole("button", { name: /^Salvează bonul$/ }).click();
+  const sum = page.getByRole("button", { name: /^Salvez / });
+  if (await sum.isVisible({ timeout: 1500 }).catch(() => false)) await sum.click();
+  return page.locator(".bn-city-offer");
+}
 const leiRo = (v) => v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const FEATURES = {
@@ -257,6 +279,35 @@ const FEATURES = {
     await waitFor(async () => (await stored()).includes("Aspirator vertical Dyson V8|24"), "garanția salvată, 24 de luni");
     if (!/Am bifat din listă: Aspirator/.test(await page.locator(".bn-aha").innerText())) fail("„Bon salvat” nu spune ce a bifat din listă");
     await waitFor(() => page.evaluate(async () => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.shoppingList || []).some((item) => item.id === "asp" && item.done)), "„Aspirator” bifat în listă");
+  },
+  /** 6d. După bon: invitația la prețurile din oraș (o dată), apoi „mai ieftin în oraș” din prețurile comunității. */
+  async cityinvite(page, theme) {
+    const offer = await saveLapte(page);
+    await waitFor(() => offer.isVisible(), "invitația la prețurile din oraș");
+    if (!/Vrei să afli unde sunt mai ieftine/.test(await offer.innerText())) fail(`invitația nu spune ce e: ${await offer.innerText()}`);
+    await offer.getByLabel("Orașul").fill("Roșiori");
+    await shot(page, `city-invite-${theme}`, offer);
+    await offer.getByRole("button", { name: /^Particip$/ }).click();
+    await waitFor(() => page.getByText(/Participi din Roșiori/).isVisible(), "confirmarea „Participi din Roșiori”");
+    const pref = await page.evaluate(() => JSON.parse(localStorage.getItem("bonai:community") || "{}"));
+    if (!pref.on || pref.city !== "Roșiori") fail(`acordul nu e salvat: ${JSON.stringify(pref)}`);
+  },
+  async citydeal(page, theme) {
+    await page.evaluate(async () => {
+      const { normalizeProductKey } = await import("/src/lib/price-history.ts");
+      const key = normalizeProductKey("Lapte Zuzu 1L");
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem("bonai:community", JSON.stringify({ on: true, city: "Roșiori", sentUntil: today }));
+      const prices = Object.fromEntries(["kg", "l", "buc"].map((per) => [`${key}|${per}`, { "Penny Market": { price: 6.5, n: 5 } }]));
+      localStorage.setItem("bonai:community-cache", JSON.stringify({ city: "Roșiori", at: Date.now(), prices }));
+    });
+    const offer = await saveLapte(page);
+    await waitFor(() => offer.isVisible(), "„Mai ieftin în oraș” după salvare");
+    const text = await offer.innerText();
+    if (!/MAI IEFTIN ÎN ROȘIORI/.test(text) || !/Penny Market/.test(text) || !/Lapte Zuzu/.test(text)) fail(`cardul nu arată prețul din oraș: ${text}`);
+    await shot(page, `city-deal-${theme}`, offer);
+    const cut = await clipped(page, ".bn-city-offer");
+    if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
   },
   /** 6c. Prețuri față de data trecută la verificare, bonul în euro salvat în lei, și listele multiple. */
   async pricesfx(page, theme) {

@@ -805,15 +805,15 @@ html[data-app="shop"] .sh-cats em { display: block; height: 100%; border-radius:
 html.theme-dark .bn-dupe-icon { color: #fbbf24; }
 
 /* „Are garanție?” pe ecranul „Bon salvat”: produsele cu garanție din bonul abia salvat. */
-.bn-warranty-offer { display: grid; gap: 10px; width: 100%; margin-top: 8px; padding: 14px; border-radius: 18px; border: 1px solid var(--bn-edge); background: var(--bn-glass); text-align: left; }
-.bn-warranty-offer .sh-kicker { display: flex; align-items: center; gap: 6px; }
-.bn-warranty-offer ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.bn-warranty-offer li { display: grid; gap: 8px; }
-.bn-warranty-offer li + li { padding-top: 10px; border-top: 1px solid var(--bn-edge); }
-.bn-warranty-offer li > span:first-child { display: grid; gap: 2px; min-width: 0; }
-.bn-warranty-offer small { color: var(--bn-muted); }
+.bn-warranty-offer, .bn-city-offer { display: grid; gap: 10px; width: 100%; margin-top: 8px; padding: 14px; border-radius: 18px; border: 1px solid var(--bn-edge); background: var(--bn-glass); text-align: left; }
+.bn-warranty-offer .sh-kicker, .bn-city-offer .sh-kicker { display: flex; align-items: center; gap: 6px; }
+.bn-warranty-offer ul, .bn-city-offer ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.bn-warranty-offer li, .bn-city-offer li { display: grid; gap: 8px; }
+.bn-warranty-offer li + li, .bn-city-offer li + li { padding-top: 10px; border-top: 1px solid var(--bn-edge); }
+.bn-warranty-offer li > span:first-child, .bn-city-offer li > span:first-child { display: grid; gap: 2px; min-width: 0; }
+.bn-warranty-offer small, .bn-city-offer small { color: var(--bn-muted); }
 .bn-warranty-offer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.bn-warranty-offer li > .bn-chip { justify-self: start; }
+.bn-warranty-offer li > .bn-chip, .bn-city-offer li > .bn-chip { justify-self: start; }
 
 /* „Față de data trecută” la verificarea bonului, și cipurile ▲/▼ de pe fiecare rând. */
 .bn-prices { display: grid; gap: 3px; margin: 12px 16px 0; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); }

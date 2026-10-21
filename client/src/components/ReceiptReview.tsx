@@ -11,6 +11,7 @@ import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
 import { checkReceiptLines, priceSummary, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
+import { CommunityAfterReceipt } from "@/components/CommunityAfterReceipt";
 import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
 import { DEFAULT_WARRANTY_MONTHS, dismissedCandidate, warrantyCandidates, warrantyFromCandidate, type WarrantyCandidate } from "@/lib/warranties";
 import type { Warranty } from "@/lib/warranty-data";
@@ -76,6 +77,12 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
     // Bonul nou e singurul care n-a existat la deschiderea ecranului, cu data aleasă aici.
     return warrantyCandidates(data).filter((item) => item.receiptId && !old.has(item.receiptId) && item.purchaseDate === saved.date);
   }, [saved, onWarranty, before, data]);
+  // Produsele bonului abia salvat (singurul care n-a existat la deschiderea ecranului), pentru prețurile din oraș.
+  const savedItems = useMemo(() => {
+    if (!saved || editMode) return [];
+    const old = new Set(before.map((receipt) => receipt.id));
+    return productObservations(data).filter((item) => item.receiptId && !old.has(item.receiptId) && item.date === saved.date);
+  }, [saved, editMode, before, data]);
   // Lista se fixează la prima apariție: după „Adaug” rândul rămâne, cu bifa, nu dispare.
   const [offers, setOffers] = useState<WarrantyCandidate[]>();
   const [answered, setAnswered] = useState<Record<string, "added" | "no">>({});
@@ -113,6 +120,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
         {discount > 0 && <p className="bn-aha-save"><Sparkles size={16} aria-hidden="true" /> {t("Ai prins reduceri de {amount} pe bonul ăsta.", { amount: lei(discount) })}</p>}
         {previous && <p className="sh-muted">{t("Ultima dată la {store}: {amount}, {date}.", { store: previous.vendor, amount: lei(previous.amount), date: fmtDate(previous.date) })}</p>}
         {ticked.length > 0 && <p className="bn-aha-save" role="status"><Check size={16} aria-hidden="true" /> {ticked.length === 1 ? t("Am bifat din listă: {items}", { items: ticked[0] }) : t("Am bifat {count} produse din listă: {items}", { count: ticked.length, items: ticked.slice(0, 4).join(", ") + (ticked.length > 4 ? "…" : "") })}</p>}
+        {savedItems.length > 0 && <CommunityAfterReceipt data={data} items={savedItems} city={saved.city} />}
         {offers && offers.length > 0 && <section className="bn-warranty-offer" aria-label={t("Garanții din bonul ăsta")}>
           <p className="sh-kicker"><ShieldCheck size={15} aria-hidden="true" /> {t("ARE GARANȚIE?")}</p>
           <ul>{offers.map((item) => <li key={item.id}>
