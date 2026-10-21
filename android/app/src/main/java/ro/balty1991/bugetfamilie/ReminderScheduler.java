@@ -28,6 +28,16 @@ public final class ReminderScheduler {
   static final String KEY_HISTORY = "history";
   static final String KEY_LAST_FIRED = "lastFired";
 
+  /**
+   * Alertele bugetului vechi (plicuri, mâncare, ritmul săptămânii, salariu, obiective, seara, bilanțuri).
+   * BonAI nu le mai trimite; o listă salvată de o versiune veche nu le mai repune după repornire sau
+   * actualizare și nici nu le mai afișează, chiar dacă alarma lor fusese deja pusă.
+   */
+  static boolean isRetiredTag(String tag) {
+    if (tag == null) return false;
+    return tag.matches("^(food-day|env-|week-fast|weekly-summary|month-end|month-card|tranche|payday|goal|checkin|due-).*");
+  }
+
   public static void scheduleJson(Context context, String payload) {
     if (payload == null || payload.trim().isEmpty()) return;
     ReminderWorker.ensureChannel(context);
@@ -61,7 +71,7 @@ public final class ReminderScheduler {
         final String tag = item.optString("tag", "bf-reminder-" + i).trim();
         final long atMs = item.optLong("at", 0L);
         final int notifyId = item.optInt("id", 4200 + i);
-        if (title.isEmpty() || body.isEmpty() || atMs <= 0L) continue;
+        if (title.isEmpty() || body.isEmpty() || atMs <= 0L || isRetiredTag(tag)) continue;
         final long now = System.currentTimeMillis();
         if (atMs < now - TimeUnit.MINUTES.toMillis(1)) continue;
         if (atMs - now > TimeUnit.DAYS.toMillis(14)) continue;

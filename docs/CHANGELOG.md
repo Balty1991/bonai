@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.1 (235)
+
+- **Notificările de plicuri („Plic epuizat”, „Azi la mâncare”) nu mai apar deloc.** Android ținea lista de alerte a versiunii vechi și o repunea după repornirea telefonului sau după actualizare, până deschideai aplicația. Acum partea nativă le sare și pe cele deja programate, iar cu alertele oprite lista veche se șterge.
+
 ## 2.3.0 (234)
 
 - **Scadențar** (Cont → Scadențar, Datorii, Acasă → „Ce urmează”): calendarul lunii cu fiecare plată în ziua ei (rate, credite, dobânzi și comisioane, abonamente, facturi), inelul „plătit din total”, totalul pe săptămâni și ziua cea mai încărcată.

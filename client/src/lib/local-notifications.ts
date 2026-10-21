@@ -978,9 +978,10 @@ function scheduleWorkManager(alerts: PlannedAlert[]): boolean {
 }
 
 export async function scheduleFinancialReminders(data: AppData): Promise<void> {
-  if (!isNotificationsEnabled()) return;
+  // Oprite sau fără permisiune: lista salvată de o versiune veche (cu plicuri) nu mai rămâne pe telefon.
+  if (!isNotificationsEnabled()) { try { nativeReminders()?.cancelAll?.(); } catch { /* fără punte nativă */ } return; }
   const permission = await getNotificationPermission();
-  if (permission === "denied") return;
+  if (permission === "denied") { try { nativeReminders()?.cancelAll?.(); } catch { /* fără punte nativă */ } return; }
 
   const alerts = buildAlerts(data).map((alert) => ({ ...alert, body: lockSafeBody(alert.body) }));
 
