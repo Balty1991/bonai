@@ -2,8 +2,11 @@
  * Alerta trimisă când o actualizare de la un alt telefon împinge un plic peste prag.
  * Testăm decizia, nu transportul: ce declanșează o notificare și ce nu.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyAppData, type AppData, type Transaction } from "./finance-data";
+
+// Alertele bugetului vechi (plicuri, mâncare, salariu, seara) mai există doar în arhivă: testele le pornesc explicit.
+vi.mock("./app-mode", async (original) => ({ ...(await original<typeof import("./app-mode")>()), legacyBudgetOn: () => true }));
 
 type Sent = { title: string; body: string; tag: string };
 

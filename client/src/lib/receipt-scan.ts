@@ -201,7 +201,7 @@ export function spreadReceiptDiscount<T extends { amount: number; discount?: num
 /** Categoriile pe care le primește modelul: ale aplicației și cele create de familie. */
 export function receiptCategories(data: AppData): string[] {
   // Ratele și creditele nu apar pe bonuri de cumpărături.
-  const base = expenseCategories.filter((item) => item !== "Credite" && item !== "Rate produse");
+  const base = expenseCategories.filter((item) => item !== "Credite" && item !== "Rate produse" && item !== "Comisioane bancare");
   return Array.from(new Set([...base, ...data.settings.customCategories])).slice(0, 40);
 }
 

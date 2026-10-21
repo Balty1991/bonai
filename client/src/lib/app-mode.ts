@@ -24,6 +24,8 @@ export function readAppMode(): AppMode {
 }
 
 export const isArchiveMode = () => readAppMode() === "budget" && !legacyTestHook();
+/** Bugetul vechi încă activ: arhiva deschisă sau testele care îl verifică. În BonAI, nu. */
+export const legacyBudgetOn = () => readAppMode() === "budget" || legacyTestHook();
 
 export function setAppMode(mode: AppMode) {
   try { safeSetItem(window.sessionStorage, KEY, mode); } catch { /* fără stocare: rămâne până la repornire */ }

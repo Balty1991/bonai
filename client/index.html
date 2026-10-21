@@ -18,7 +18,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <style>
       html, body, #root { margin: 0; background: #E4E9E6; min-height: 100%; }
-      html.dark, html.dark body, html.dark #root { background: #0b1026; }
+      html.dark, html.dark body, html.dark #root { background: #000000; }
       /*
        * Culorile foii de start (pictate înainte de CSS-ul aplicației) trec prin tokens.
        * Fiecare regulă de mai jos cere întâi tokenul real al temei (`--cf-*`, definit de
@@ -289,7 +289,7 @@
           root.classList.add("theme-" + theme, "background-" + background);
           var dark = theme !== "white";
           if (dark) root.classList.add("dark");
-          var paint = dark ? "#0B0F0E" : "#E4E9E6";
+          var paint = dark ? "#000000" : "#E4E9E6";
           root.style.backgroundColor = paint;
           root.style.colorScheme = dark ? "dark" : "light";
           var meta = document.querySelector('meta[name="theme-color"]');

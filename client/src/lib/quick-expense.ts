@@ -17,12 +17,13 @@ export const QUICK_CATEGORIES: Array<{ id: string; icon: string }> = [
 export const FIXED_QUICK: Array<{ id: string; label: string; icon: string }> = [
   { id: "Credite", label: "Rată la bancă", icon: "🏦" }, { id: "Rate produse", label: "Rată produs", icon: "💳" },
   { id: "Abonamente", label: "Abonament", icon: "🔁" }, { id: "Casă & facturi", label: "Factură", icon: "🧾" },
+  { id: "Comisioane bancare", label: "Comision / dobândă bancă", icon: "💸" },
 ];
 
 /** Iconițele categoriilor vechi, ca orice cheltuială notată înainte să aibă semnul ei, nu o etichetă goală. */
 const CATEGORY_ICONS: Record<string, string> = {
   Alimente: "🛒", Dulciuri: "🍬", Băuturi: "🥤", Apă: "💧", "Consumabile copil": "🧸", Sănătate: "💊", Haine: "👕",
-  "Timp liber": "🎬", Sacoșe: "🛍️", SGR: "♻️", "Casă & facturi": "🧾", Educație: "🎓", Abonamente: "🔁", Pizza: "🍕", Credite: "🏦", "Rate produse": "💳",
+  "Timp liber": "🎬", Sacoșe: "🛍️", SGR: "♻️", "Casă & facturi": "🧾", Educație: "🎓", Abonamente: "🔁", Pizza: "🍕", Credite: "🏦", "Rate produse": "💳", "Comisioane bancare": "💸",
 };
 export const quickIcon = (category: string) => QUICK_CATEGORIES.find((item) => item.id === category)?.icon || CATEGORY_ICONS[category] || "🏷️";
 
@@ -71,7 +72,7 @@ export function quickSuggestions(data: AppData, limit = 4): { repeats: Array<{ c
  * Plățile fixe notate fără bon: ratele și creditele (au și `debtId`), facturile, abonamentele,
  * taxa de grădiniță. Nu sunt cumpărături: apar separat, ca „facturi și rate”, nu în coșul lunii.
  */
-export const FIXED_COST_CATEGORIES = new Set(["Rate produse", "Credite", "Casă & facturi", "Abonamente", "Educație"]);
+export const FIXED_COST_CATEGORIES = new Set(["Rate produse", "Credite", "Comisioane bancare", "Casă & facturi", "Abonamente", "Educație"]);
 export const isFixedCost = (tx: Pick<Transaction, "category" | "debtId">) => Boolean(tx.debtId) || FIXED_COST_CATEGORIES.has(tx.category);
 
 /** Cheltuielile fără bon: nici transfer între cardurile familiei, nici corecție de sold. */

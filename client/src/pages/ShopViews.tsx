@@ -28,6 +28,7 @@ import { PLAY_STORE_URL } from "@/lib/review-prompt";
 import { firstReceiptsInsight } from "@/lib/first-receipts";
 import { isDemoMode } from "@/lib/demo-data";
 import { basketCompare } from "@/lib/basket-compare";
+import { habitInsights, type InsightAction } from "@/lib/habit-insights";
 import { communityOutside, readCommunity, readCommunityCache } from "@/lib/community-prices";
 import { BasketCard } from "@/components/BasketCard";
 import { referralText } from "@/lib/referral";
@@ -98,7 +99,7 @@ function kindText(item: UpcomingItem) {
 }
 
 /** „Ce urmează” pe 30 de zile: tot ce are o dată, cu un tap spre locul unde se gestionează. */
-function UpcomingCard({ data, today, onOpen }: { data: AppData; today: string; onOpen: (item: UpcomingItem) => void }) {
+function UpcomingCard({ data, today, onOpen, onCalendar }: { data: AppData; today: string; onOpen: (item: UpcomingItem) => void; onCalendar?: () => void }) {
   const items = useMemo(() => upcoming(data, today, 30), [data, today]);
   const [all, setAll] = useState(false);
   if (!items.length) return null;
@@ -112,11 +113,12 @@ function UpcomingCard({ data, today, onOpen }: { data: AppData; today: string; o
         <span className="sh-next-side">{item.amount ? <b>{item.estimate ? "~" : ""}{lei(item.amount)}</b> : null}<small>{new Date(`${item.date}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "short" })}</small></span>
       </button>
     </li>; })}</ul>
+    {onCalendar && <button type="button" className="sh-link" onClick={onCalendar}>{t("Scadențarul lunii")} <ChevronRight size={16} aria-hidden="true" /></button>}
     {items.length > 4 && <button type="button" className="sh-link" aria-expanded={all} onClick={() => setAll(!all)}>{all ? t("Arată mai puțin") : t("Vezi toate ({count})", { count: items.length })} <CalendarClock size={16} aria-hidden="true" /></button>}
   </Card>;
 }
 
-export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores, onOpenMore, onOpenCosts }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts") => void }) {
+export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores, onOpenMore, onOpenCosts }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "calendar") => void }) {
   const today = isoToday();
   const month = useMemo(() => monthShopping(data, today), [data, today]);
   const top = useMemo(() => topProducts(data, today), [data, today]);
@@ -127,6 +129,12 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   const savedNow = useMemo(() => savedWithBonAI(data, today), [data, today]);
   const avg = useMemo(() => threeMonthAverage(data, today), [data, today]);
   const first = useMemo(() => isDemoMode() ? undefined : firstReceiptsInsight(data), [data]);
+  const insights = useMemo(() => isDemoMode() ? [] : habitInsights(data, today), [data, today]);
+  const act = (action?: InsightAction) => {
+    if (action === "debts" || action === "calendar") onOpenCosts?.(action);
+    else if (action === "stores") onOpenStores();
+    else { openPricesTab("stats"); onOpenProducts(); }
+  };
   const basket = useMemo(() => {
     const pref = readCommunity();
     const cache = readCommunityCache();
@@ -158,6 +166,12 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
         {currentBonutPlan(data, today) === "free" && first.toTrial > 0 && <li><span><b>{first.toTrial === 1 ? t("Încă un bon și primești {days} zile de Pro gratuit", { days: TRIAL_DAYS }) : t("Încă {count} bonuri și primești {days} zile de Pro gratuit", { count: first.toTrial, days: TRIAL_DAYS })}</b><small>{t("inflația ta, economiile și alertele de preț")}</small></span></li>}
       </ul>
       <button type="button" className="sh-link" onClick={first.repeated > 0 ? onOpenProducts : onScan}>{first.repeated > 0 ? t("Vezi prețurile") : t("Scanează următorul bon")} <ChevronRight size={16} aria-hidden="true" /></button>
+    </Card>}
+
+    {insights.length > 0 && <Card kicker={t("ASISTENTUL TĂU")} tone="accent">
+      <ul className="bn-insights">{insights.slice(0, 2).map((item) => <li key={item.id}><button type="button" onClick={() => act(item.action)}><span className="bn-insight-icon" aria-hidden="true">{item.icon}</span><span><b>{item.title}</b><small>{item.body}</small></span><ChevronRight size={16} aria-hidden="true" /></button></li>)}</ul>
+      {insights.length > 2 && <button type="button" className="sh-link" onClick={() => act("reports")}>{t("Toate observațiile ({count})", { count: insights.length })} <ChevronRight size={16} aria-hidden="true" /></button>}
+      <p className="sh-muted sh-note">{t("Calculat pe telefon din bonurile și plățile tale. Nu pleacă nimic din aplicație.")}</p>
     </Card>}
 
     {(savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
@@ -193,7 +207,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
     </Card>
     </ProGate>
 
-    <UpcomingCard data={data} today={today} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
+    <UpcomingCard data={data} today={today} onCalendar={onOpenCosts ? () => onOpenCosts("calendar") : undefined} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
 
     {top.length > 0 && <Card kicker={t("PE CE SE DUC BANII")} title={t("Ultimele 30 de zile")}>
       <ul className="sh-list">{top.map((item) => <li key={item.key}><span><b>{item.label}</b><small>{item.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: item.count })}</small></span><b>{lei(item.spent)}</b></li>)}</ul>
@@ -318,7 +332,7 @@ export function StoresView({ data }: { data: AppData }) {
 
 export type Look = "light" | "dark" | "auto";
 /** Cont: profilul, BonAI Pro, bonurile și costurile casei, familia, setările. Fără unelte din aplicația veche. */
-export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpenReports, look, onLook }: { data: AppData; onOpenReports?: () => void; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "receipts" | "costs") => void; look?: Look; onLook?: (look: Look) => void }) {
+export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpenReports, look, onLook }: { data: AppData; onOpenReports?: () => void; onOpenMore: (tab: MoreView) => void; onOpenJournal: () => void; onOpenBudget?: () => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "receipts" | "costs" | "calendar") => void; look?: Look; onLook?: (look: Look) => void }) {
   const members = data.settings.members.filter((item) => item.kind !== "child").map((item) => item.name).join(", ");
   const plan = currentBonutPlan(data, isoToday());
   const self = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
@@ -340,6 +354,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpen
       <Row icon={<ShieldCheck size={20} />} title={t("Garanții și retururi")} hint={t("bonul păstrat, amintire înainte de retur")} onClick={() => onOpenMore("warranties")} />
       <Row icon={<Repeat size={20} />} title={t("Abonamente")} hint={t("Netflix, telefon, sală")} onClick={() => onOpenCosts?.("sub")} />
       <Row icon={<Zap size={20} />} title={t("Facturi")} hint={t("curent, gaz, internet")} onClick={() => onOpenCosts?.("bill")} />
+      <Row icon={<CalendarClock size={20} />} title={t("Scadențar")} hint={t("toate plățile lunii, zi cu zi")} onClick={() => onOpenCosts?.("calendar")} />
       <Row icon={<Landmark size={20} />} title={t("Datorii")} hint={data.debts.length ? t("{n} în evidență", { n: data.debts.length }) : t("rate, împrumuturi, carduri")} onClick={() => onOpenCosts?.("debts")} />
     </div>
     {onLook && <section className="sh-card" aria-label={t("Aspect")}><p className="sh-kicker">{t("ASPECT")}</p><div className="sh-seg" role="group" aria-label={t("Tema aplicației")}>{([["light", t("Luminos")], ["dark", t("Noapte")], ["auto", t("Automat")]] as Array<[Look, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={look === id} onClick={() => onLook(id)}>{label}</button>)}</div><p className="sh-muted sh-note">{t("Automat urmează setarea telefonului.")}</p></section>}

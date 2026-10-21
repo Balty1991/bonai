@@ -250,7 +250,7 @@ html.capacitor-android body *::after {
 }
 /* Animațiile scurte se taie, dar nu cele care se repetă cât lucrează aplicația: raza de scanare,
    schița bonului și cercul de încărcare. Tăiate la 0,01 ms, raza „zbura” sacadat prin cadru. */
-html.capacitor-android body *:not(.bn-vf-beam):not(.bn-scan-sweep):not(.bn-scan-beam):not(.bn-vr-sk):not(.bf-spin):not(.bn-scan-stages li),
+html.capacitor-android body *:not(.bn-vf-beam):not(.bn-scan-sweep):not(.bn-scan-beam):not(.bn-vr-sk):not(.bf-spin):not(.bn-scan-stages li):not(.bn-donut-seg):not(.bn-ring-fill):not(.bn-plan-draw),
 html.capacitor-android body *:not(.bn-scan-stages li)::before,
 html.capacitor-android body *::after {
   animation-duration: 0.01ms !important;

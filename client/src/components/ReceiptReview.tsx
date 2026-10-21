@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 
 /** Peste tot ecranul: un strămoș cu transform ar prinde altfel `position: fixed`. */
 const Layer = ({ children }: { children: ReactNode }) => typeof document === "undefined" ? <>{children}</> : createPortal(children, document.body);
-import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
+import { Check, ChevronLeft, Plus, RotateCcw, Sparkles, Trash2, X, Pencil } from "lucide-react";
 import type { AppData } from "@/lib/finance-data";
 import { productsLabel, t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
@@ -19,7 +19,7 @@ const num = (value: string) => { const parsed = Number(String(value).replace(","
 export const chainOf = (vendor: string) => String(vendor || "").trim().replace(/^(cumpărături|cumparaturi|bon)\s+/i, "").split(/\s+/)[0]?.toLowerCase() || "";
 const fmtDate = (iso?: string) => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "long" }) : "";
 
-export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string };
+export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string; /** Corectate de om dacă scanarea le-a citit greșit. */ time?: string; city?: string };
 
 /**
  * Verificarea bonului scanat, în locul formularului vechi de mișcare: fără surse, plicuri sau venituri.
@@ -35,6 +35,9 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
   const [memberId, setMemberId] = useState<string | undefined>(data.settings.selfMemberId);
   const [saved, setSaved] = useState<ReviewSave>();
   const [date, setDate] = useState(() => prefill.date || new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState(() => prefill.store?.time || "");
+  const [city, setCity] = useState(() => prefill.store?.city || "");
+  const [details, setDetails] = useState(false);
   const categories = useMemo(() => receiptCategories(data), [data]);
   const groups = groupRows(rows);
   const total = rowsTotal(rows);
@@ -56,7 +59,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
       const ok = await askConfirm(t("Produsele fac {sum}, dar pe bon scrie {printed}. Salvez {sum}? Poți corecta rândurile înainte.", { sum: lei(total), printed: lei(printed) }), { title: t("Totalul nu se potrivește"), confirmLabel: t("Salvez {sum}", { sum: lei(total) }) });
       if (!ok) return;
     }
-    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
+    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId, time: /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : "", city: city.trim().slice(0, 60) }; onSave(result); if (editMode) onCancel(); else setSaved(result); };
 
   if (saved) {
     const split = groupRows(saved.rows);
@@ -83,8 +86,14 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
     </header>
     <div className="bn-review-scroll">
       <section className="bn-review-hero">
-        {editMode ? <label className="bn-edit-date"><span>{t("Data bonului")}</span><input type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => event.target.value && setDate(event.target.value)} /></label> : null}
-        <p className="sh-kicker">{fmtDate(date)}{prefill.store?.time ? ` · ${prefill.store.time}` : ""}{prefill.store?.city ? ` · ${prefill.store.city}` : ""}</p>
+        <button type="button" className="bn-review-when" aria-expanded={details} onClick={() => setDetails(!details)}><span className="sh-kicker">{fmtDate(date)}{time ? ` · ${time}` : ""}{city ? ` · ${city}` : ""}</span><Pencil size={14} aria-hidden="true" /><span className="sr-only">{t("Modifică data, ora, orașul")}</span></button>
+        {details && <div className="bn-review-details">
+          <label><span>{t("Data bonului")}</span><input type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => event.target.value && setDate(event.target.value)} /></label>
+          <label><span>{t("Ora")}</span><input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label>
+          <label><span>{t("Orașul")}</span><input value={city} maxLength={60} onChange={(event) => setCity(event.target.value)} placeholder={t("opțional")} /></label>
+          <label><span>{t("Totalul de pe bon")}</span><input inputMode="decimal" defaultValue={printed > 0 ? String(printed).replace(".", ",") : ""} placeholder="0,00" onChange={(event) => setPrinted(round2(num(event.target.value)))} /></label>
+          <button type="button" className="bn-btn is-primary" onClick={() => setDetails(false)}><Check size={16} aria-hidden="true" /> {t("Gata")}</button>
+        </div>}
         <p className="bn-review-total">{lei(total)}</p>
         <div className="bn-chips">
           {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
@@ -120,6 +129,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, mode 
           </button>}
         </li>)}</ul>
       </section>)}
+      <p className="sh-muted sh-note bn-review-hint"><Pencil size={13} aria-hidden="true" /> {t("Ceva citit greșit? Apasă pe produs ca să corectezi numele, cantitatea sau prețul; sus, pe dată, pentru data, ora, orașul și totalul.")}</p>
       <button type="button" className="bn-add" onClick={() => addRow()}><span aria-hidden="true"><Plus size={20} /></span>{t("Adaugă un produs")}</button>
       {members.length > 1 && <section className="bn-who"><p className="sh-kicker">{t("CINE A CUMPĂRAT (OPȚIONAL)")}</p><div className="bn-chips">{members.map((member) => <button key={member.id} type="button" className={memberId === member.id ? "bn-chip is-on" : "bn-chip"} aria-pressed={memberId === member.id} onClick={() => setMemberId(memberId === member.id ? undefined : member.id)}>{member.name}</button>)}</div></section>}
     </div>

@@ -7,11 +7,12 @@ import { ChevronDown, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { buildReport, change, reportText, reportTitle, type FixedGroupId, type ReportGrain, type ReportRow } from "@/lib/reports";
 import { quickIcon } from "@/lib/quick-expense";
+import { habitInsights } from "@/lib/habit-insights";
 import { receiptsLabel, t } from "@/lib/i18n";
 
 const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei`;
 const GRAINS: Array<[ReportGrain, string]> = [["week", "Săptămână"], ["month", "Lună"], ["quarter", "Trimestru"], ["year", "An"]];
-const GROUP_LABEL: Record<FixedGroupId, string> = { rates: "Rate la produse", loans: "Împrumuturi și credite", subscriptions: "Abonamente", bills: "Facturi și taxe" };
+const GROUP_LABEL: Record<FixedGroupId, string> = { rates: "Rate la produse", loans: "Împrumuturi și credite", bank: "Dobânzi și comisioane bancare", subscriptions: "Abonamente", bills: "Facturi și taxe" };
 const PREVIOUS: Record<ReportGrain, string> = { week: "față de săptămâna trecută", month: "față de luna trecută", quarter: "față de trimestrul trecut", year: "față de anul trecut" };
 
 function Delta({ now, before, invert = false }: { now: number; before: number; invert?: boolean }) {
@@ -20,6 +21,26 @@ function Delta({ now, before, invert = false }: { now: number; before: number; i
   const up = value > 0;
   // La cheltuieli, mai mult e roșu; mai puțin e verde.
   return <small className={(up !== invert) ? "sh-up" : "sh-down"}>{up ? "+" : ""}{value}%</small>;
+}
+
+const DONUT_COLORS = ["#7c5cff", "#2ec5d3", "#ff6fa8", "#ffb547", "#4ad991", "#8a94a6"];
+
+/** Inelul categoriilor: primele 5 și „restul”, cu totalul în mijloc; segmentele se desenează pe rând. */
+function Donut({ rows, total, label }: { rows: ReportRow[]; total: number; label: string }) {
+  const top = rows.slice(0, 5);
+  const rest = Math.max(0, total - top.reduce((sum, row) => sum + row.amount, 0));
+  const parts = [...top.map((row) => ({ key: row.key, label: t(row.label), amount: row.amount })), ...(rest > 0.5 ? [{ key: "rest", label: t("Altele"), amount: rest }] : [])];
+  const c = 2 * Math.PI * 40;
+  let offset = 0;
+  return <div className="bn-donut">
+    <svg viewBox="0 0 100 100" role="img" aria-label={label}>
+      <circle cx="50" cy="50" r="40" className="bn-donut-track" />
+      {parts.map((part, index) => { const len = (part.amount / Math.max(1, total)) * c; const el = <circle key={part.key} cx="50" cy="50" r="40" className="bn-donut-seg" stroke={DONUT_COLORS[index % DONUT_COLORS.length]} strokeDasharray={`${Math.max(0, len - 1.2)} ${c}`} strokeDashoffset={-offset} style={{ animationDelay: `${index * 90}ms` }} />; offset += len; return el; })}
+      <text x="50" y="48" textAnchor="middle" className="bn-donut-big">{Math.round(total).toLocaleString("ro-RO")}</text>
+      <text x="50" y="61" textAnchor="middle" className="bn-donut-small">lei</text>
+    </svg>
+    <ul className="bn-donut-legend">{parts.map((part, index) => <li key={part.key}><i style={{ background: DONUT_COLORS[index % DONUT_COLORS.length] }} aria-hidden="true" /><span>{part.label}</span><b>{Math.round((part.amount / Math.max(1, total)) * 100)}%</b></li>)}</ul>
+  </div>;
 }
 
 function Rows({ rows, limit, icon }: { rows: Array<ReportRow & { extra?: string }>; limit: number; icon?: (label: string) => string }) {
@@ -44,11 +65,12 @@ export function ShopReports({ data }: { data: AppData }) {
   const title = reportTitle(grain, report.from, report.to);
   const max = Math.max(1, ...report.buckets.map((b) => b.total));
   const share = async () => {
-    const text = reportText(report, title, { shopping: t("Cumpărături"), fixed: t("Plăți fixe"), total: t("Total cheltuit"), categories: t("Pe categorii"), products: t("Produsele pe care s-au dus cei mai mulți bani"), groups: { rates: t(GROUP_LABEL.rates), loans: t(GROUP_LABEL.loans), subscriptions: t(GROUP_LABEL.subscriptions), bills: t(GROUP_LABEL.bills) } }, lei);
+    const text = reportText(report, title, { shopping: t("Cumpărături"), fixed: t("Plăți fixe"), total: t("Total cheltuit"), categories: t("Pe categorii"), products: t("Produsele pe care s-au dus cei mai mulți bani"), groups: { rates: t(GROUP_LABEL.rates), loans: t(GROUP_LABEL.loans), bank: t(GROUP_LABEL.bank), subscriptions: t(GROUP_LABEL.subscriptions), bills: t(GROUP_LABEL.bills) } }, lei);
     try { if (navigator.share) { await navigator.share({ text }); return; } } catch { /* anulat */ }
     try { await navigator.clipboard.writeText(text); } catch { /* fără clipboard */ }
   };
   const empty = report.shopping.total === 0 && report.fixed.total === 0;
+  const insights = useMemo(() => habitInsights(data, today), [data, today]);
   return <div className="bn-report">
     <section className="sh-card">
       <div className="sh-seg" role="group" aria-label={t("Perioada")}>{GRAINS.map(([id, label]) => <button key={id} type="button" aria-pressed={grain === id} onClick={() => { setGrain(id); setOffset(0); }}>{t(label)}</button>)}</div>
@@ -66,7 +88,11 @@ export function ShopReports({ data }: { data: AppData }) {
       {!empty && <button type="button" className="sh-link" onClick={() => void share()}><Share2 size={16} aria-hidden="true" /> {t("Trimite raportul")}</button>}
     </section>
 
-    {report.categories.length > 0 && <section className="sh-card"><p className="sh-kicker">{t("PE CATEGORII")}</p><Rows rows={report.categories} limit={6} icon={quickIcon} /></section>}
+    {insights.length > 0 && offset === 0 && <section className="sh-card"><p className="sh-kicker">{t("OBSERVAȚII · ASISTENTUL TĂU")}</p>
+      <ul className="bn-insights is-static">{insights.map((item) => <li key={item.id}><div><span className="bn-insight-icon" aria-hidden="true">{item.icon}</span><span><b>{item.title}</b><small>{item.body}</small></span></div></li>)}</ul>
+    </section>}
+
+    {report.categories.length > 0 && <section className="sh-card"><p className="sh-kicker">{t("PE CATEGORII")}</p>{report.categories.length > 1 && <Donut rows={report.categories} total={report.categories.reduce((sum, row) => sum + row.amount, 0)} label={t("Cumpărăturile pe categorii, {period}", { period: title })} />}<Rows rows={report.categories} limit={6} icon={quickIcon} /></section>}
 
     {report.products.length > 0 && <section className="sh-card"><p className="sh-kicker">{t("PE PRODUSE")}</p><h2 className="sh-title">{t("Unde s-au dus banii la cumpărături")}</h2>
       <Rows rows={report.products.map((row) => ({ ...row, extra: `${row.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: row.count })} · ${t("~{price} lei/{per}", { price: row.avgPrice.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), per: row.per === "buc" ? t("buc") : row.per })}` }))} limit={8} />
