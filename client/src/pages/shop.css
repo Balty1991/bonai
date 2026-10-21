@@ -43,29 +43,30 @@ html[data-app="shop"] {
   color-scheme: light;
 }
 html[data-app="shop"].theme-dark, html[data-app="shop"].theme-navy {
-  --bn-bg: #0b1026;
-  --bn-bg-glow-a: rgba(139, 92, 246, .28);
-  --bn-bg-glow-b: rgba(34, 211, 238, .16);
+  /* Negru OLED (2.3): fundal negru complet, fără strălucire în spate, ca textul să fie tăios. */
+  --bn-bg: #000000;
+  --bn-bg-glow-a: transparent;
+  --bn-bg-glow-b: transparent;
   /* Noaptea: suprafețe pline (fără sticlă cu blur în spatele textului) și margini clare de 1px. */
-  --bn-glass: #151a36;
-  --bn-glass-strong: #1a1f42;
-  --bn-edge: rgba(185, 166, 255, .3);
+  --bn-glass: #101014;
+  --bn-glass-strong: #17171d;
+  --bn-edge: rgba(255, 255, 255, .16);
   --bn-edge-hi: rgba(255, 255, 255, .14);
-  --bn-ink: #eef0f8;
-  --bn-muted: #c4c9de;
-  --bn-accent: #b9a6ff;
+  --bn-ink: #ffffff;
+  --bn-muted: #d4d4dc;
+  --bn-accent: #c4b5fd;
   --bn-accent-2: #67e8f9;
   --bn-grad: linear-gradient(120deg, #7c3aed, #4f46e5 55%, #0e7490);
-  --bn-soft: rgba(139, 92, 246, .18);
+  --bn-soft: rgba(196, 181, 253, .14);
   --bn-rise: #ff9b9b;
   --bn-save: #5eead4;
   --bn-warn: rgba(245, 158, 11, .16);
   --bn-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 24px 48px -28px rgba(0, 0, 0, .8);
   --bn-glow: 0 0 0 1px rgba(167, 139, 250, .35), 0 12px 36px -8px rgba(124, 58, 237, .7), 0 0 28px -6px rgba(34, 211, 238, .45);
   --cf-bg: var(--bn-bg);
-  --cf-surface: #161b38;
-  --cf-surface-alt: #1d2347;
-  --cf-line: #2b3263;
+  --cf-surface: #101014;
+  --cf-surface-alt: #17171d;
+  --cf-line: #26262e;
   --cf-primary-strong: #d4c5ff;
   --bn-strong: #d4c5ff;
   color-scheme: dark;
