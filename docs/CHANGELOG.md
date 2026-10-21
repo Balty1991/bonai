@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.1 (242)
+
+- **Cod vechi scos** (fără să atingă datele):
+  - **„Mod copil”**, făcut pentru bugetul cu plicuri. Un telefon rămas în modul ăsta cere o singură dată codul adultului, apoi se deschide BonAI normal (fără cod salvat, iese direct). Modul nu se mai poate porni.
+  - **„De verificat”**, importul de extras bancar, cu bulina lui. Ciornele rămase rămân salvate.
+  - **Povestea anului** și cardurile ei de distribuire, rămase fără niciun loc de unde să fie deschise, împreună cu stilurile lor.
+  - Fișiere moarte: vechile statistici, „ziua de salariu”, averea familiei.
+
 ## 2.7.0 (241)
 
 - **Mai simplu pentru cine abia începe**: până la al treilea bon, Acasă arată doar „Scanează bonul” / „Notează suma”, cei trei pași („Fotografiezi bonul”, „Verifici și salvezi”, „Vezi unde se duc banii”) cu progresul („1 din 3 bonuri”) și bonurile. Cifrele lunii, scurtăturile, asistentul și rapoartele apar după al treilea bon, când au ce să arate.

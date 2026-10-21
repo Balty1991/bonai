@@ -1,28 +1,15 @@
-import { t } from "./i18n";
 /**
- * „Telefonul lui X”: pe telefonul unui copil sau al unui bunic, aplicația arată un singur
- * ecran — cât are azi persoana aceea și „Notează”. E o alegere a telefonului, nu a familiei:
- * stă în stocarea locală și nu se sincronizează.
+ * Ce a rămas din „Telefonul lui X” (modul copil al bugetului vechi): doar ieșirea. Pe un telefon
+ * pus în modul ăsta înainte, aplicația cere codul adultului o dată, apoi se deschide BonAI.
+ * Modul nu se mai poate porni; fără cod salvat, telefonul iese direct.
  */
 import { useEffect, useState } from "react";
 import { safeSetItem } from "./safe-storage";
-import { allocationStatus, type AppData } from "./finance-data";
-import { envelopeUntilPayday, weekDayCap } from "./household-insights";
 
 export const MEMBER_MODE_KEY = "buget-familie:member-mode-v1";
 const PIN_KEY = "buget-familie:member-mode-pin-v1";
 const PREVIOUS_SELF_KEY = "buget-familie:member-mode-previous-self";
 const ATTEMPTS_KEY = "buget-familie:member-mode-attempts";
-
-/**
- * Genitivul românesc pentru „Telefonul …”: Ana → Anei, Maria → Mariei, Andrei → lui Andrei.
- * Numele de femeie terminate în „a” primesc „-ei”; restul, „lui”.
- */
-export const genitiveName = (name: string) => {
-  const clean = name.trim();
-  if (!clean) return "";
-  return /[aă]$/i.test(clean) && clean.length > 2 ? `${clean.slice(0, -1)}ei` : `lui ${clean}`;
-};
 
 const encoder = new TextEncoder();
 const toBase64 = (bytes: Uint8Array) => btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
@@ -30,13 +17,6 @@ const fromBase64 = (value: string) => Uint8Array.from(atob(value), (character) =
 async function derive(pin: string, salt: Uint8Array) {
   const material = await crypto.subtle.importKey("raw", encoder.encode(pin), "PBKDF2", false, ["deriveBits"]);
   return toBase64(new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 150_000, hash: "SHA-256" }, material, 256)));
-}
-
-/** Codul de ieșire, ales de adult la pornire: fără el, copilul nu ajunge la bugetul familiei. */
-export async function setMemberModePin(pin: string) {
-  if (!/^\d{4}$/.test(pin)) throw new Error(t("Codul trebuie să aibă 4 cifre."));
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  safeSetItem(window.localStorage, PIN_KEY, JSON.stringify({ salt: toBase64(salt), hash: await derive(pin, salt) }));
 }
 
 /** Cât mai trebuie așteptat după prea multe încercări greșite (0 = se poate încerca). */
@@ -70,7 +50,6 @@ export async function verifyMemberModePin(pin: string): Promise<boolean> {
 export const hasMemberModePin = () => { try { return Boolean(window.localStorage.getItem(PIN_KEY)); } catch { return false; } };
 
 /** Cine era „eu” pe telefon înainte de mod: la ieșire, cheltuielile nu mai sunt ale copilului. */
-export const rememberPreviousSelf = (memberId: string | undefined) => { try { safeSetItem(window.localStorage, PREVIOUS_SELF_KEY, memberId || ""); } catch { /* */ } };
 export const takePreviousSelf = () => {
   try {
     const value = window.localStorage.getItem(PREVIOUS_SELF_KEY) || "";
@@ -100,28 +79,4 @@ export function useMemberMode() {
     return () => window.removeEventListener("buget-familie:member-mode", onChange);
   }, []);
   return memberId;
-}
-
-/**
- * Cât are persoana azi: din plicurile ei (bani de buzunar, pensie pentru piață), dacă are;
- * altfel, cifra familiei de pe Astăzi. Pe plicurile pe săptămâni, cifra săptămânii.
- */
-export function memberToday(data: AppData, memberId: string) {
-  const own = data.settings.salaryPlan.allocations.filter((item) => item.memberId === memberId);
-  if (!own.length) {
-    // Fără plic propriu nu arătăm banii familiei: ecranul promite „fără restul bugetului”.
-    return { own: false as const, today: 0, left: undefined, labels: [] as string[], days: undefined };
-  }
-  let today = 0;
-  let left = 0;
-  let days: number | undefined;
-  for (const item of own) {
-    const remaining = Math.max(0, allocationStatus(data, item).remaining);
-    left += remaining;
-    const cap = weekDayCap(data, item);
-    const until = envelopeUntilPayday(data, item);
-    if (until) days = until.days;
-    today += cap ? cap.perDay : until ? remaining / Math.max(1, until.latestDays) : remaining;
-  }
-  return { own: true as const, today: Math.floor(today * 100) / 100, left: Math.round(left * 100) / 100, labels: own.map((item) => item.label), days };
 }
