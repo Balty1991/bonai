@@ -29,13 +29,14 @@ public final class ReminderScheduler {
   static final String KEY_LAST_FIRED = "lastFired";
 
   /**
-   * Alertele bugetului vechi (plicuri, mâncare, ritmul săptămânii, salariu, obiective, seara, bilanțuri).
-   * BonAI nu le mai trimite; o listă salvată de o versiune veche nu le mai repune după repornire sau
-   * actualizare și nici nu le mai afișează, chiar dacă alarma lor fusese deja pusă.
+   * BonAI programează doar scadențe (cost-, debt-), copia de siguranță, garanțiile și „Unde e mai ieftin”
+   * (aceeași listă ca BONAI_ALERT din local-notifications.ts). Orice altceva vine din bugetul vechi
+   * (plicuri, mâncare, ritm, salariu, obiective, seara, bilanțuri) și, dintr-o listă salvată de o versiune
+   * veche, nu se mai repune după repornire sau actualizare și nici nu se mai afișează.
    */
   static boolean isRetiredTag(String tag) {
-    if (tag == null) return false;
-    return tag.matches("^(food-day|env-|week-fast|weekly-summary|month-end|month-card|tranche|payday|goal|checkin|due-).*");
+    if (tag == null || tag.isEmpty()) return false;
+    return !tag.matches("^(cost|debt|backup|warranty|price)-.*");
   }
 
   public static void scheduleJson(Context context, String payload) {

@@ -2,7 +2,7 @@
 
 ## 2.3.1 (235)
 
-- **Notificările de plicuri („Plic epuizat”, „Azi la mâncare”) nu mai apar deloc.** Android ținea lista de alerte a versiunii vechi și o repunea după repornirea telefonului sau după actualizare, până deschideai aplicația. Acum partea nativă le sare și pe cele deja programate, iar cu alertele oprite lista veche se șterge.
+- **Notificările bugetului vechi („Plic epuizat”, „Ritm peste plan”, „Azi la mâncare”) nu mai apar deloc.** Android ținea lista de alerte a versiunii vechi și o repunea după repornirea telefonului sau după actualizare, până deschideai aplicația. Acum partea nativă lasă să treacă doar notificările BonAI (scadențe, copia de siguranță, garanții, prețuri) și le sare pe toate celelalte, și pe cele deja programate, iar cu alertele oprite lista veche se șterge.
 
 ## 2.3.0 (234)
 
