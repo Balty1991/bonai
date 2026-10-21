@@ -4,7 +4,8 @@
  * binelea: „Golește ce am luat” marchează produsele `cleared`, ca partenerul să nu le
  * readucă la sincronizare; după 30 de zile ies și din pachet.
  */
-export type ShoppingItem = { id: string; text: string; done?: boolean; cleared?: boolean; by?: string; updatedAt: string };
+/** `list`: numele listei („Weekend”, „Petrecere”); fără el, produsul e pe lista familiei. */
+export type ShoppingItem = { id: string; text: string; done?: boolean; cleared?: boolean; by?: string; list?: string; updatedAt: string };
 
 const DAY = 86_400_000;
 export const SHOPPING_LIMIT = 200;
@@ -25,7 +26,7 @@ export function normalizeShoppingList(raw: unknown, now = Date.now()): ShoppingI
     if (!id || !text || !updatedAt || seen.has(id)) continue;
     if (entry.cleared && now - Date.parse(updatedAt) > 30 * DAY) continue;
     seen.add(id);
-    out.push({ id, text, updatedAt, ...(entry.done ? { done: true } : {}), ...(entry.cleared ? { cleared: true } : {}), ...(typeof entry.by === "string" && entry.by ? { by: entry.by.slice(0, 80) } : {}) });
+    out.push({ id, text, updatedAt, ...(entry.done ? { done: true } : {}), ...(entry.cleared ? { cleared: true } : {}), ...(typeof entry.by === "string" && entry.by ? { by: entry.by.slice(0, 80) } : {}), ...(typeof entry.list === "string" && entry.list.trim() ? { list: entry.list.trim().slice(0, 40) } : {}) });
   }
   return out.slice(0, SHOPPING_LIMIT);
 }
@@ -71,3 +72,13 @@ export function tickFromReceipt(list: ReadonlyArray<ShoppingItem>, labels: Reado
   const hit = new Set(listItemsOnReceipt(visibleShopping(list).todo, labels).map((item) => item.id));
   return hit.size ? list.map((item) => hit.has(item.id) ? { ...item, done: true, updatedAt: now } : item) : [...list];
 }
+
+/** Listele care au ceva pe ele (în afară de lista familiei), în ordinea în care au apărut. */
+export function shoppingListNames(list: ReadonlyArray<ShoppingItem>): string[] {
+  const seen = new Map<string, string>();
+  for (const item of [...list].sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))) if (item.list && !item.cleared && !seen.has(item.list.toLocaleLowerCase("ro-RO"))) seen.set(item.list.toLocaleLowerCase("ro-RO"), item.list);
+  return Array.from(seen.values());
+}
+
+/** Produsele unei liste; `undefined` e lista familiei. */
+export const itemsOfList = (list: ReadonlyArray<ShoppingItem>, name: string | undefined) => list.filter((item) => (item.list || undefined)?.toLocaleLowerCase("ro-RO") === name?.toLocaleLowerCase("ro-RO"));

@@ -8,7 +8,7 @@ import { Check, ChevronLeft, Copy, Plus, ShieldCheck, RotateCcw, Sparkles, Trash
 import type { AppData } from "@/lib/finance-data";
 import { productsLabel, t } from "@/lib/i18n";
 import { receiptCategories, type ScanPrefill } from "@/lib/receipt-scan";
-import { checkReceiptLines, readShelfSeen } from "@/lib/discount-check";
+import { checkReceiptLines, priceSummary, readShelfSeen } from "@/lib/discount-check";
 import { productObservations } from "@/lib/personal-inflation";
 import { DiscountFlags } from "@/components/DiscountFlags";
 import { findDuplicateReceipt } from "@/lib/receipt-duplicates";
@@ -23,7 +23,10 @@ const num = (value: string) => { const parsed = Number(String(value).replace(","
 export const chainOf = (vendor: string) => String(vendor || "").trim().replace(/^(cumpărături|cumparaturi|bon)\s+/i, "").split(/\s+/)[0]?.toLowerCase() || "";
 const fmtDate = (iso?: string) => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { weekday: "short", day: "numeric", month: "long" }) : "";
 
-export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string; /** Corectate de om dacă scanarea le-a citit greșit. */ time?: string; city?: string };
+export type ReviewSave = { rows: ReviewRow[]; total: number; store: string; date: string; memberId?: string; /** Corectate de om dacă scanarea le-a citit greșit. */ time?: string; city?: string; /** Bonul în altă monedă: suma și cursul, ca notă pe cheltuială (sumele sunt deja în lei). */ note?: string };
+
+/** Monedele bonurilor din concediu, cu un curs orientativ (lei pentru 1 unitate) când nu e salvat altul. */
+const CURRENCIES: Array<[string, number]> = [["RON", 1], ["EUR", 4.97], ["USD", 4.6], ["GBP", 5.8], ["HUF", 0.0127], ["BGN", 2.54], ["MDL", 0.26]];
 
 /**
  * Verificarea bonului scanat, în locul formularului vechi de mișcare: fără surse, plicuri sau venituri.
@@ -44,6 +47,9 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
   const [time, setTime] = useState(() => prefill.store?.time || "");
   const [city, setCity] = useState(() => prefill.store?.city || "");
   const [details, setDetails] = useState(false);
+  const [currency, setCurrency] = useState("RON");
+  const savedRate = (code: string) => data.settings.exchangeRates?.find((item) => item.currency === code)?.rate || CURRENCIES.find(([id]) => id === code)?.[1] || 1;
+  const [rate, setRate] = useState(1);
   const categories = useMemo(() => receiptCategories(data), [data]);
   const groups = groupRows(rows);
   const total = rowsTotal(rows);
@@ -53,6 +59,8 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
   const discount = round2(rows.reduce((sum, row) => sum + row.discount, 0));
   const history = useMemo(() => productObservations(data).filter((o) => o.receiptId !== receiptId), [data, receiptId]);
   const flags = useMemo(() => checkReceiptLines(rows.map((row) => ({ label: row.label, amount: row.amount, qty: row.qty, discount: row.discount })), store, date, history, readShelfSeen()), [rows, store, date, history]);
+  // Față de ultima dată când ai luat fiecare produs: ce s-a scumpit, ce s-a ieftinit, ce e la fel.
+  const prices = useMemo(() => priceSummary(rows.map((row) => ({ label: row.label, amount: row.amount, qty: row.qty })), date, history), [rows, date, history]);
   const members = data.settings.members.filter((member) => member.kind !== "child");
   // Bonurile de dinainte de deschiderea ecranului: după salvare, bonul ăsta nu e „ultima dată” față de el însuși.
   const [before] = useState(() => data.receipts.filter((receipt) => receipt.id !== receiptId));
@@ -85,7 +93,12 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
       const ok = await askConfirm(t("Produsele fac {sum}, dar pe bon scrie {printed}. Salvez {sum}? Poți corecta rândurile înainte.", { sum: lei(total), printed: lei(printed) }), { title: t("Totalul nu se potrivește"), confirmLabel: t("Salvez {sum}", { sum: lei(total) }) });
       if (!ok) return;
     }
-    const clean = rows.filter((row) => row.label.trim() && row.amount > 0); if (!clean.length) return; const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId, time: /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : "", city: city.trim().slice(0, 60) }; if (!editMode) setTicked(listItemsOnReceipt(visibleShopping(data.settings.shoppingList || []).todo, clean.map((row) => row.label)).map((item) => item.text)); onSave(result); if (editMode) onCancel(); else setSaved(result); };
+    const kept = rows.filter((row) => row.label.trim() && row.amount > 0); if (!kept.length) return;
+    // Bon în altă monedă: sumele se trec în lei la cursul ales, iar nota păstrează suma originală.
+    const foreign = currency !== "RON" && rate > 0;
+    const clean = foreign ? kept.map((row) => ({ ...row, amount: round2(row.amount * rate), discount: round2(row.discount * rate) })) : kept;
+    const note = foreign ? t("Bon în {currency}: {amount} {currency}, curs {rate} lei", { currency, amount: rowsTotal(kept).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), rate: rate.toLocaleString("ro-RO", { maximumFractionDigits: 4 }) }) : undefined;
+    const result = { rows: clean, total: rowsTotal(clean), store: store.trim() || t("Magazin"), date, memberId, time: /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : "", city: city.trim().slice(0, 60), ...(note ? { note } : {}) }; if (!editMode) setTicked(listItemsOnReceipt(visibleShopping(data.settings.shoppingList || []).todo, clean.map((row) => row.label)).map((item) => item.text)); onSave(result); if (editMode) onCancel(); else setSaved(result); };
 
   if (saved) {
     const split = groupRows(saved.rows);
@@ -130,10 +143,13 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           <label><span>{t("Data bonului")}</span><input type="date" value={date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => event.target.value && setDate(event.target.value)} /></label>
           <label><span>{t("Ora")}</span><input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label>
           <label><span>{t("Orașul")}</span><input value={city} maxLength={60} onChange={(event) => setCity(event.target.value)} placeholder={t("opțional")} /></label>
+          {!editMode && <label><span>{t("Moneda bonului")}</span><select value={currency} onChange={(event) => { setCurrency(event.target.value); setRate(savedRate(event.target.value)); }}>{CURRENCIES.map(([code]) => <option key={code} value={code}>{code === "RON" ? t("lei (RON)") : code}</option>)}</select></label>}
+          {!editMode && currency !== "RON" && <label><span>{t("Curs: lei pentru 1 {currency}", { currency })}</span><input inputMode="decimal" defaultValue={String(rate).replace(".", ",")} key={currency} onChange={(event) => setRate(num(event.target.value))} /></label>}
           <label><span>{t("Totalul de pe bon")}</span><input inputMode="decimal" defaultValue={printed > 0 ? String(printed).replace(".", ",") : ""} placeholder="0,00" onChange={(event) => setPrinted(round2(num(event.target.value)))} /></label>
           <button type="button" className="bn-btn is-primary" onClick={() => setDetails(false)}><Check size={16} aria-hidden="true" /> {t("Gata")}</button>
         </div>}
-        <p className="bn-review-total">{lei(total)}</p>
+        <p className="bn-review-total">{currency !== "RON" ? `${total.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0${currency}` : lei(total)}</p>
+        {currency !== "RON" && rate > 0 && <p className="sh-muted bn-review-fx">{t("≈ {amount} la cursul {rate}; se salvează în lei", { amount: lei(round2(total * rate)), rate: rate.toLocaleString("ro-RO", { maximumFractionDigits: 4 }) })}</p>}
         <div className="bn-chips">
           {prefill.readBy === "offline" && <span className="bn-chip is-offline">{t("Citit pe telefon")}</span>}
           <span className="bn-chip">{productsLabel(rows.length)}</span>
@@ -159,6 +175,15 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
           </div>
         </div>
       </section>}
+      {prices.up.length + prices.down.length + prices.same > 0 && <section className={`bn-prices${prices.up.length ? " is-up" : prices.down.length ? " is-down" : ""}`} aria-label={t("Prețurile față de data trecută")}>
+        <b>{prices.up.length || prices.down.length ? t("Față de data trecută") : t("Niciun preț schimbat față de data trecută")}</b>
+        <span>{[
+          prices.up.length ? t("{count} mai scumpe (+{amount})", { count: prices.up.length, amount: lei(round2(prices.up.reduce((sum, c) => sum + c.diff, 0))) }) : "",
+          prices.down.length ? t("{count} mai ieftine (−{amount})", { count: prices.down.length, amount: lei(round2(-prices.down.reduce((sum, c) => sum + c.diff, 0))) }) : "",
+          prices.same ? t("{count} la fel", { count: prices.same }) : "",
+          prices.fresh ? t("{count} noi", { count: prices.fresh }) : "",
+        ].filter(Boolean).join(" · ")}</span>
+      </section>}
       <DiscountFlags flags={flags} />
       {groups.map((group, index) => <section key={group.category} className="bn-group">
         <header className="bn-group-head"><span className="bn-cat-icon" style={{ boxShadow: `inset 0 0 0 1px ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}` }} aria-hidden="true">{categoryIcon(group.category)}</span><b>{group.category}</b><small>{Math.round(group.share * 100)}%</small><span className="bn-group-sum">{lei(group.total)}</span></header>
@@ -174,7 +199,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
             <label><span>{t("Categorie")}</span><select value={row.category} onChange={(event) => patch(row.key, { category: event.target.value })}>{categories.map((item) => <option key={item} value={item}>{categoryIcon(item)} {item}</option>)}</select></label>
             <div className="bn-edit-actions"><button type="button" className="bn-btn" onClick={() => { setRows((list) => list.filter((item) => item.key !== row.key)); setEditing(undefined); }}><Trash2 size={16} aria-hidden="true" /> {t("Șterge")}</button><button type="button" className="bn-btn is-primary" onClick={() => setEditing(undefined)}><Check size={16} aria-hidden="true" /> {t("Gata")}</button></div>
           </div> : <button type="button" className="bn-item" onClick={() => setEditing(row.key)}>
-            <span className="bn-item-copy"><b>{row.label || t("Produs fără nume")}</b><small><span className="bn-chip is-mini">{row.qty !== 1 ? `${String(row.qty).replace(".", ",")} × ${lei(round2(row.amount / row.qty))}` : t("1 buc")}</span>{row.discount > 0 && <span className="bn-chip is-mini is-save">−{lei(row.discount)}</span>}</small></span>
+            <span className="bn-item-copy"><b>{row.label || t("Produs fără nume")}</b><small><span className="bn-chip is-mini">{row.qty !== 1 ? `${String(row.qty).replace(".", ",")} × ${lei(round2(row.amount / row.qty))}` : t("1 buc")}{row.product?.size && row.product.sizeUnit && row.product.sizeUnit !== "buc" ? ` · ${row.product.size.toLocaleString("ro-RO", { maximumFractionDigits: 3 })} ${row.product.sizeUnit}` : ""}</span>{prices.byLabel.get(row.label) && <span className={`bn-chip is-mini ${prices.byLabel.get(row.label)!.diff > 0 ? "is-up" : "is-save"}`} title={t("data trecută {price} la {vendor}", { price: lei(prices.byLabel.get(row.label)!.before), vendor: prices.byLabel.get(row.label)!.vendor })}>{prices.byLabel.get(row.label)!.diff > 0 ? "▲" : "▼"} {lei(Math.abs(prices.byLabel.get(row.label)!.diff))}</span>}{row.discount > 0 && <span className="bn-chip is-mini is-save">−{lei(row.discount)}</span>}</small></span>
             <span className="bn-item-price">{lei(row.amount)}</span>
           </button>}
         </li>)}</ul>
@@ -184,7 +209,7 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
       {members.length > 1 && <section className="bn-who"><p className="sh-kicker">{t("CINE A CUMPĂRAT (OPȚIONAL)")}</p><div className="bn-chips">{members.map((member) => <button key={member.id} type="button" className={memberId === member.id ? "bn-chip is-on" : "bn-chip"} aria-pressed={memberId === member.id} onClick={() => setMemberId(memberId === member.id ? undefined : member.id)}>{member.name}</button>)}</div></section>}
     </div>
     <footer className="bn-review-bar">
-      <div className="bn-bar-total"><small>{t("Total")}</small><b>{lei(total)}</b></div>
+      <div className="bn-bar-total"><small>{t("Total")}</small><b>{currency !== "RON" ? `${total.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0${currency}` : lei(total)}</b></div>
       <button type="button" className="bn-btn" onClick={onCancel}><X size={16} aria-hidden="true" /> {t("Anulează")}</button>
       <button type="button" className="bn-btn is-primary" disabled={!rows.some((row) => row.label.trim() && row.amount > 0)} onClick={() => void save()}>{editMode ? t("Salvează modificările") : t("Salvează bonul")}</button>
     </footer>

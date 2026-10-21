@@ -5,15 +5,17 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
-import { buildReport, change, reportText, reportTitle, type FixedGroupId, type ReportGrain, type ReportRow } from "@/lib/reports";
+import { buildReport, change, reportText, reportTitle, type FixedGroupId, type QuantityUnit, type ReportGrain, type ReportRow } from "@/lib/reports";
 import { quickIcon } from "@/lib/quick-expense";
 import { habitInsights } from "@/lib/habit-insights";
 import { receiptsLabel, t } from "@/lib/i18n";
 
+/** „12,4 kg”, „3,5 l”, „46 buc”, cu spațiu nedespărțitor. */
+const qty = (v: number, unit: QuantityUnit) => `${v.toLocaleString("ro-RO", { maximumFractionDigits: unit === "buc" ? 0 : 1 })}\u00a0${unit}`;
 const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
-const GRAINS: Array<[ReportGrain, string]> = [["week", "Săptămână"], ["month", "Lună"], ["quarter", "Trimestru"], ["year", "An"]];
+const GRAINS: Array<[ReportGrain, string]> = [["day", "Zi"], ["week", "Săptămână"], ["month", "Lună"], ["quarter", "Trimestru"], ["year", "An"]];
 const GROUP_LABEL: Record<FixedGroupId, string> = { rates: "Rate la produse", loans: "Împrumuturi și credite", bank: "Dobânzi și comisioane bancare", subscriptions: "Abonamente", bills: "Facturi și taxe" };
-const PREVIOUS: Record<ReportGrain, string> = { week: "față de săptămâna trecută", month: "față de luna trecută", quarter: "față de trimestrul trecut", year: "față de anul trecut" };
+const PREVIOUS: Record<ReportGrain, string> = { day: "față de ziua dinainte", week: "față de săptămâna trecută", month: "față de luna trecută", quarter: "față de trimestrul trecut", year: "față de anul trecut" };
 
 function Delta({ now, before, invert = false }: { now: number; before: number; invert?: boolean }) {
   const value = change(now, before);
@@ -60,6 +62,7 @@ export function ShopReports({ data }: { data: AppData }) {
   const [grain, setGrain] = useState<ReportGrain>("month");
   const [offset, setOffset] = useState(0);
   const [openGroup, setOpenGroup] = useState<FixedGroupId | "">("");
+  const [unit, setUnit] = useState<QuantityUnit>("kg");
   const today = isoToday();
   const report = useMemo(() => buildReport(data, grain, today, offset), [data, grain, today, offset]);
   const title = reportTitle(grain, report.from, report.to);
@@ -70,6 +73,8 @@ export function ShopReports({ data }: { data: AppData }) {
     try { await navigator.clipboard.writeText(text); } catch { /* fără clipboard */ }
   };
   const empty = report.shopping.total === 0 && report.fixed.total === 0;
+  // Unitatea arătată: cea aleasă dacă are ceva în perioada asta, altfel prima care are.
+  const shownUnit: QuantityUnit = report.quantity[unit].total > 0 ? unit : (["kg", "l", "buc"] as QuantityUnit[]).find((id) => report.quantity[id].total > 0) || unit;
   const insights = useMemo(() => habitInsights(data, today), [data, today]);
   return <div className="bn-report">
     <section className="sh-card">
@@ -81,7 +86,7 @@ export function ShopReports({ data }: { data: AppData }) {
         <span className="is-total"><small>{t("Total cheltuit")}</small><b>{lei(report.total)}</b></span>
       </div>
       <p className="sh-muted bn-report-meta">{[receiptsLabel(report.shopping.receipts), report.shopping.loose ? t("{count} fără bon", { count: report.shopping.loose }) : "", report.shopping.total > 0 ? t("{amount} pe zi", { amount: lei(report.shopping.perDay) }) : "", report.shopping.perReceipt > 0 ? t("bonul mediu {amount}", { amount: lei(report.shopping.perReceipt) }) : ""].filter(Boolean).join(" · ")}{report.shopping.previous > 0 ? ` · ${t(PREVIOUS[grain])}: ${lei(report.shopping.previous)}` : ""}</p>
-      {report.shopping.total > 0 && <div className={`bn-stats-chart is-${grain === "quarter" ? "week" : grain}`} role="img" aria-label={t("Cumpărături pe {period}", { period: title })} key={`${grain}${offset}`}>
+      {report.shopping.total > 0 && report.buckets.length > 0 && <div className={`bn-stats-chart is-${grain === "quarter" ? "week" : grain}`} role="img" aria-label={t("Cumpărături pe {period}", { period: title })} key={`${grain}${offset}`}>
         {report.buckets.map((b, i) => <span key={b.key} title={`${b.label}: ${lei(b.total)}`}><i style={{ transform: `scaleY(${b.total / max})`, animationDelay: `${Math.min(i, 30) * 18}ms` }} />{(grain !== "month" || i % 5 === 0) && <small>{b.label}</small>}</span>)}
       </div>}
       {empty && <p className="sh-muted">{t("Nimic notat în perioada asta. Scanează bonuri sau mergi înapoi cu săgeata.")}</p>}
@@ -96,6 +101,13 @@ export function ShopReports({ data }: { data: AppData }) {
 
     {report.products.length > 0 && <section className="sh-card"><p className="sh-kicker">{t("PE PRODUSE")}</p><h2 className="sh-title">{t("Unde s-au dus banii la cumpărături")}</h2>
       <Rows rows={report.products.map((row) => ({ ...row, extra: `${row.count === 1 ? t("o cumpărare") : t("{count} cumpărări", { count: row.count })} · ${t("~{price} lei/{per}", { price: row.avgPrice.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), per: row.per === "buc" ? t("buc") : row.per })}` }))} limit={8} />
+    </section>}
+
+    {(report.quantity.kg.total > 0 || report.quantity.l.total > 0 || report.quantity.buc.total > 0) && <section className="sh-card"><p className="sh-kicker">{t("CANTITATE")}</p><h2 className="sh-title">{t("Cât ai luat, nu doar cât ai dat")}</h2>
+      <div className="sh-seg" role="group" aria-label={t("Unitatea")}>{(["kg", "l", "buc"] as QuantityUnit[]).map((id) => <button key={id} type="button" aria-pressed={shownUnit === id} disabled={!(report.quantity[id].total > 0)} onClick={() => setUnit(id)}>{`${qty(report.quantity[id].total, id)}`}</button>)}</div>
+      {report.quantity[shownUnit].top.length > 0 ? <ul className="sh-list bn-report-rows">{report.quantity[shownUnit].top.map((row) => <li key={row.key}><span><b>{row.label}</b></span><b>{qty(row.amount, shownUnit)}</b></li>)}</ul>
+        : <p className="sh-muted">{t("Nimic în {unit} în perioada asta.", { unit: shownUnit === "buc" ? t("bucăți") : shownUnit === "l" ? t("litri") : t("kilograme") })}</p>}
+      <p className="sh-muted sh-note">{t("Din gramajul de pe bon sau din cântar; produsele fără gramaj se numără la bucată.")}</p>
     </section>}
 
     {report.stores.length > 0 && <section className="sh-card"><p className="sh-kicker">{t("PE MAGAZINE")}</p><Rows rows={report.stores.map((row) => ({ ...row, extra: row.count === 1 ? t("o vizită") : t("{count} vizite", { count: row.count }) }))} limit={6} /></section>}

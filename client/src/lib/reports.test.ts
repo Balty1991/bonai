@@ -32,6 +32,28 @@ describe("rapoarte", () => {
     expect(row).toMatchObject({ avgPrice: 16.98, per: "buc" });
   });
 
+  it("ziua: perioada, titlul și ziua de dinainte", () => {
+    expect(reportRange("day", "2026-10-21")).toEqual({ from: "2026-10-21", to: "2026-10-21" });
+    expect(reportRange("day", "2026-10-21", -1)).toEqual({ from: "2026-10-20", to: "2026-10-20" });
+    expect(reportTitle("day", "2026-10-21", "2026-10-21")).toMatch(/^Miercuri, 21 /);
+    const report = buildReport(data(), "day", "2026-10-05");
+    expect(report.shopping.total).toBe(30);
+    expect(report.buckets).toEqual([]);
+  });
+
+  it("cantitatea: kilograme din cântar și gramaj, bucăți din rest", () => {
+    const d = createEmptyAppData();
+    d.receipts = [{ id: "r", vendor: "Lidl", amount: 40, category: "Alimente", date: "2026-10-05", lines: [
+      { id: "a", category: "Alimente", amount: 15.99, label: "Piept pui", qty: 0.5, unit: "kg" },
+      { id: "b", category: "Alimente", amount: 12, label: "Iaurt Danone 4 × 125 g", size: 125, sizeUnit: "g", qty: 4 },
+      { id: "c", category: "Alimente", amount: 6, label: "Pix", qty: 3 },
+    ] }];
+    const q = buildReport(d, "month", "2026-10-20").quantity;
+    expect(q.kg.total).toBe(1);
+    expect(q.kg.top.map((row) => row.label)).toEqual(["Piept pui", "Iaurt Danone 4 × 125 g"]);
+    expect(q.buc.total).toBe(3);
+  });
+
   it("perioadele: săptămâna de luni, trimestrul, anul", () => {
     expect(reportRange("week", "2026-10-20")).toEqual({ from: "2026-10-19", to: "2026-10-25" });
     expect(reportRange("quarter", "2026-10-20")).toEqual({ from: "2026-10-01", to: "2026-12-31" });

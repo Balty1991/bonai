@@ -53,3 +53,29 @@ export function checkReceiptLines(lines: ReadonlyArray<Line>, vendor: string, da
   }
   return flags;
 }
+
+export type PriceChange = { label: string; now: number; before: number; diff: number; vendor: string; date: string };
+export type PriceSummary = { up: PriceChange[]; down: PriceChange[]; same: number; fresh: number; byLabel: Map<string, PriceChange> };
+
+/**
+ * Rezumatul bonului la verificare: ce s-a scumpit și ce s-a ieftinit față de ultima dată când
+ * l-ai luat (în orice magazin, înainte de ziua bonului), pe bucată. Sub 1% e „la fel”.
+ */
+export function priceSummary(lines: ReadonlyArray<Line>, date: string, history: ReadonlyArray<ProductObservation>): PriceSummary {
+  const out: PriceSummary = { up: [], down: [], same: 0, fresh: 0, byLabel: new Map() };
+  for (const line of lines) {
+    if (!line.label || !(line.amount > 0)) continue;
+    const qty = line.qty && line.qty > 0 ? line.qty : 1;
+    const unit = qty !== 1 ? { label: line.label.replace(/\s×\s[\d.,]+(\s?kg)?$/, ""), amount: line.amount / qty } : receiptLineUnit(line.label, line.amount);
+    const key = normalizeProductKey(unit.label);
+    if (!key) continue;
+    const last = history.filter((o) => o.key === key && o.date <= date).sort((a, b) => b.date.localeCompare(a.date))[0];
+    if (!last || !(last.piecePrice > 0)) { out.fresh += 1; continue; }
+    const now = round2(unit.amount);
+    const change: PriceChange = { label: unit.label, now, before: last.piecePrice, diff: round2(now - last.piecePrice), vendor: last.vendor, date: last.date };
+    if (Math.abs(change.diff) < Math.max(0.01, last.piecePrice * 0.01)) { out.same += 1; continue; }
+    (change.diff > 0 ? out.up : out.down).push(change);
+    out.byLabel.set(line.label, change);
+  }
+  return out;
+}

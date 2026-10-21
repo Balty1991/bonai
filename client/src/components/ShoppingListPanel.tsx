@@ -5,7 +5,8 @@
  */
 import "../shopping-list.css";
 import { lazy, Suspense, useMemo, useState } from "react";
-import { Barcode, Check, ListChecks, Plus, ReceiptText, X } from "lucide-react";
+import { Barcode, Check, ListChecks, Plus, ReceiptText, Trash2, X } from "lucide-react";
+import { askConfirm } from "@/lib/confirm-dialog";
 import { nameScore, openFoodFactsName, readBarcodeLinks } from "@/lib/barcode-check";
 import { productObservations } from "@/lib/personal-inflation";
 const BarcodeScanner = lazy(() => import("@/components/BarcodeScanner").then((module) => ({ default: module.BarcodeScanner })));
@@ -14,7 +15,7 @@ import { lei } from "@/lib/money-format";
 import { estimateShopping } from "@/lib/shopping-price";
 import { t } from "@/lib/i18n";
 import { selfMemberIdOf } from "@/lib/member-identity";
-import { SHOPPING_LIMIT, splitShoppingText, visibleShopping, type ShoppingItem } from "@/lib/shopping-list";
+import { SHOPPING_LIMIT, itemsOfList, shoppingListNames, splitShoppingText, visibleShopping, type ShoppingItem } from "@/lib/shopping-list";
 
 const shortDay = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 
@@ -23,9 +24,14 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState<string>();
   const list = data.settings.shoppingList || [];
-  const { todo, done } = visibleShopping(list);
+  // Listele: a familiei (fără nume) și cele cu nume, care există cât au produse pe ele.
+  const [active, setActive] = useState<string>();
+  const [fresh, setFresh] = useState<string[]>([]);
+  const [naming, setNaming] = useState<string>();
+  const names = useMemo(() => { const have = shoppingListNames(list); return [...have, ...fresh.filter((name) => !have.some((item) => item.toLocaleLowerCase("ro-RO") === name.toLocaleLowerCase("ro-RO")))]; }, [list, fresh]);
+  const { todo, done } = visibleShopping(itemsOfList(list, active));
   const me = selfMemberIdOf(data);
-  const estimate = useMemo(() => estimateShopping(visibleShopping(list).todo, data.receipts, isoToday()), [list, data.receipts]);
+  const estimate = useMemo(() => estimateShopping(todo, data.receipts, isoToday()), [todo, data.receipts]);
   const nameOf = (id?: string) => (data.settings.members.length > 1 && id && id !== me ? data.settings.members.find((member) => member.id === id)?.name : undefined);
   const save = (next: ShoppingItem[]) => onChange({ ...data, settings: { ...data.settings, shoppingList: next.slice(0, SHOPPING_LIMIT) } });
   const touch = (id: string, patch: Partial<ShoppingItem>) => save(list.map((item) => item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item));
@@ -36,7 +42,7 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
     const now = Date.now();
     // Același produs încă de luat nu se dublează; unul golit demult revine ca nou.
     const open = new Set(todo.map((item) => item.text.toLocaleLowerCase("ro-RO")));
-    const fresh = names.filter((name) => !open.has(name.toLocaleLowerCase("ro-RO"))).map((text, index) => ({ id: newId("shop"), text, by: me, updatedAt: new Date(now + index).toISOString() }));
+    const fresh = names.filter((name) => !open.has(name.toLocaleLowerCase("ro-RO"))).map((text, index) => ({ id: newId("shop"), text, by: me, ...(active ? { list: active } : {}), updatedAt: new Date(now + index).toISOString() }));
     if (fresh.length) save([...fresh, ...list]);
     setDraft("");
   };
@@ -53,11 +59,32 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
     if (name) { setDraft(name); setScanNote(t("Am găsit: {name}. Apasă Adaugă.", { name })); }
     else setScanNote(t("Nu găsesc codul {code}. Scrie numele produsului.", { code }));
   };
+  const doneIds = new Set(done.map((item) => item.id));
   const finish = () => {
     const stamp = new Date().toISOString();
-    save(list.map((item) => item.done && !item.cleared ? { ...item, cleared: true, updatedAt: stamp } : item));
+    save(list.map((item) => doneIds.has(item.id) ? { ...item, cleared: true, updatedAt: stamp } : item));
     window.dispatchEvent(new Event("buget-familie:open-expense"));
   };
+
+  const createList = () => {
+    const name = (naming || "").trim().replace(/\s+/g, " ").slice(0, 40);
+    setNaming(undefined);
+    if (!name) return;
+    const existing = names.find((item) => item.toLocaleLowerCase("ro-RO") === name.toLocaleLowerCase("ro-RO"));
+    if (!existing) setFresh((list) => [...list, name]);
+    setActive(existing || name);
+  };
+  const removeList = async () => {
+    if (!active) return;
+    const open = itemsOfList(list, active).filter((item) => !item.cleared);
+    if (open.length && !await askConfirm(t("Lista „{name}” are {count} produse. O ștergi cu tot cu ele?", { name: active, count: open.length }), { title: t("Șterge lista"), confirmLabel: t("Șterge lista") })) return;
+    const stamp = new Date().toISOString();
+    const ids = new Set(open.map((item) => item.id));
+    if (ids.size) save(list.map((item) => ids.has(item.id) ? { ...item, cleared: true, updatedAt: stamp } : item));
+    setFresh((items) => items.filter((name) => name !== active));
+    setActive(undefined);
+  };
+  const countOf = (name: string | undefined) => visibleShopping(itemsOfList(list, name)).todo.length;
 
   const row = (item: ShoppingItem) => <li key={item.id} className={item.done ? "is-done" : ""}>
     <button type="button" className="bf-shop-check" aria-pressed={Boolean(item.done)} aria-label={item.done ? t("Scoate bifa de la {item}", { item: item.text }) : t("Bifează {item}", { item: item.text })} onClick={() => touch(item.id, { done: !item.done })}>{item.done ? <Check size={16} aria-hidden="true" /> : null}</button>
@@ -72,6 +99,13 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
       <h2 id="bf-shopping-title">{t("Lista familiei")}</h2>
       <p>{data.settings.members.length > 1 ? t("Ce scrie unul apare și pe telefonul celuilalt, la sincronizare.") : t("Scrie ce trebuie luat; bifezi în magazin.")}</p>
     </header>
+    <div className="bf-shop-lists" role="tablist" aria-label={t("Listele tale")}>
+      {[undefined, ...names].map((name) => <button key={name || "_"} type="button" role="tab" aria-selected={active === name} className={active === name ? "is-on" : ""} onClick={() => setActive(name)}>{name || t("Lista familiei")}{countOf(name) > 0 && <small>{countOf(name)}</small>}</button>)}
+      {naming === undefined
+        ? <button type="button" className="is-new" onClick={() => setNaming("")}><Plus size={15} aria-hidden="true" /> {t("Listă nouă")}</button>
+        : <form className="bf-shop-newlist" onSubmit={(event) => { event.preventDefault(); createList(); }}><input autoFocus value={naming} maxLength={40} placeholder={t("Weekend, Petrecere…")} aria-label={t("Numele listei noi")} onChange={(event) => setNaming(event.target.value)} onBlur={createList} /></form>}
+    </div>
+    {active && <button type="button" className="bf-shop-droplist" onClick={() => void removeList()}><Trash2 size={15} aria-hidden="true" /> {t("Șterge lista „{name}”", { name: active })}</button>}
     <form className="bf-shop-add" onSubmit={(event) => { event.preventDefault(); add(); }}>
       <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={t("lapte, pâine, ouă…")} aria-label={t("Ce trebuie luat")} enterKeyHint="done" />
       <button type="button" className="bf-shop-barcode" aria-label={t("Scanează codul de bare")} onClick={() => { setScanNote(undefined); setScanning(true); }}><Barcode size={20} aria-hidden="true" /></button>

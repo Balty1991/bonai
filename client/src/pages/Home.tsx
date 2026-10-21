@@ -674,7 +674,7 @@ export default function Home() {
       for (const row of review.rows) byCategory.set(row.category, (byCategory.get(row.category) || 0) + row.amount);
       const category = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || scanPrefill.category;
       const now = new Date().toISOString();
-      const tx: Transaction = { id: newId("tx"), title: `Bon — ${review.store}`, amount: review.total, kind: "expense", category, sourceId: source?.id, source: source?.name || "", memberId: member?.id, person: member?.name || "", date: review.date, allocationId: "outside", createdAt: now, updatedAt: now };
+      const tx: Transaction = { id: newId("tx"), title: `Bon — ${review.store}`, ...(review.note ? { note: review.note } : {}), amount: review.total, kind: "expense", category, sourceId: source?.id, source: source?.name || "", memberId: member?.id, person: member?.name || "", date: review.date, allocationId: "outside", createdAt: now, updatedAt: now };
       const detailLines: ReceiptLine[] = review.rows.map((row) => ({ id: newId("line"), label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, ...(row.discount > 0 ? { discount: row.discount } : {}) }));
       saveTx(tx, { detailLines, vendor: review.store, scanLines: review.rows.map((row) => ({ label: labelWithQty(row.label, row.qty), amount: row.amount, category: row.category, qty: row.qty, product: row.product })), store: { ...scanPrefill.store, ...(review.time !== undefined ? { time: review.time || undefined } : {}), ...(review.city !== undefined ? { city: review.city || undefined } : {}) } });
       // Ce era pe listă și s-a cumpărat acum se bifează singur (ecranul „Bon salvat” spune ce).

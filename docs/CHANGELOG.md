@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.6.0 (240)
+
+- **Prețurile față de data trecută, la verificarea bonului**: „1 mai scumpe (+0,36 lei) · 2 mai ieftine · 5 la fel · 3 noi”, comparat cu ultima dată când ai luat fiecare produs, în orice magazin. Pe rând apare ▲ sau ▼ cu diferența.
+- **Gramajul pe fiecare rând** din bon („1 buc · 500 g”).
+- **Mai multe liste de cumpărături**: „+ Listă nouă” (Weekend, Petrecere…), fiecare cu produsele ei; lista familiei rămâne principală. „Șterge lista” o golește. Bifarea din bon merge pe toate listele.
+- **Rapoarte pe zi** („Zi”, lângă Săptămână, Lună, Trimestru, An), cu ziua de dinainte pentru comparație.
+- **Cantitate în Rapoarte**: câte kilograme, litri și bucăți ai luat în perioadă, cu produsele cele mai multe în fiecare (din gramajul de pe bon sau din cântar).
+- **Bonuri în altă monedă**: la detaliile bonului alegi EUR, USD, GBP, HUF, BGN sau MDL și cursul; sumele se salvează în lei, cu suma și cursul în nota cheltuielii.
+- **Scanarea e din nou rapidă**: aplicația nu mai retrimite poza după 15 s (prima citire mergea mai departe pe server degeaba, iar a doua o lua de la zero, deci 18 s deveneau 35–40). Pe server, dacă Gemini nu răspunde în 9 s (13 s la două poze), pornește și Claude, iar primul bon citit câștigă; dacă Gemini cade, Claude pornește imediat. Se folosesc doar modele Gemini cu versiune, fără aliasurile „-latest” care se mutau singure pe un model mai lent.
+- **Asistentul răspunde la întrebare, nu la rolul ales**: „Pe ce cheltui de obicei banii?” primea „unde poți economisi” pentru că era ales „Consultant economii”; acum rolul contează doar la o întrebare vagă. Răspunsuri noi: pe ce se duc banii (categorii, produse, magazin), plăți și rate care urmează, datorii rămase, garanții, sfaturi din obiceiurile tale, „azi” și „ieri”.
+- **Câte scanări AI mai ai luna asta**, sub butoanele de pe Acasă, când abonamentele vor fi pornite.
+
 ## 2.5.0 (239)
 
 - **Garanția pornește din bon**: pe ecranul „Bon salvat”, produsele cu garanție (electronice, electrocasnice, cele scumpe) apar cu „Adaug garanția” (2 ani, plus 14 zile de retur la magazinele online) sau „Nu are”. Bifa „Garanție adăugată” rămâne vizibilă; amintirea vine cu 30 de zile înainte să expire.

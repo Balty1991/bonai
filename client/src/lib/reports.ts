@@ -11,7 +11,7 @@ import { productObservations } from "./personal-inflation";
 import { receiptVendorName } from "./price-history";
 import { fixedCostEntries, spendEntries } from "./quick-expense";
 
-export type ReportGrain = "week" | "month" | "quarter" | "year";
+export type ReportGrain = "day" | "week" | "month" | "quarter" | "year";
 export type FixedGroupId = "rates" | "loans" | "bank" | "subscriptions" | "bills";
 export type ReportRow = { key: string; label: string; amount: number; previous: number; count: number };
 export type FixedItem = { id: string; title: string; amount: number; date: string };
@@ -24,11 +24,14 @@ export type Report = {
   products: Array<ReportRow & { avgPrice: number; per: string }>;
   stores: ReportRow[];
   fixed: { total: number; previous: number; groups: FixedGroup[] };
+  /** Cât ai luat, nu cât ai dat: kilograme, litri și bucăți, cu produsele cele mai multe în fiecare. */
+  quantity: Record<QuantityUnit, { total: number; top: Array<{ key: string; label: string; amount: number }> }>;
   /** Cumpărături + plăți fixe. */
   total: number;
 };
 
 const r2 = (value: number) => Math.round(value * 100) / 100;
+export type QuantityUnit = "kg" | "l" | "buc";
 const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 const iso = (date: Date) => date.toISOString().slice(0, 10);
 const addDays = (day: string, n: number) => { const d = at(day); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
@@ -38,6 +41,7 @@ const DAYS = ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
 /** Perioada care conține `anchor`, mutată cu `offset` perioade (−1 = cea dinainte). */
 export function reportRange(grain: ReportGrain, anchor: string, offset = 0): { from: string; to: string } {
   const d = at(anchor);
+  if (grain === "day") { const day = addDays(anchor, offset); return { from: day, to: day }; }
   if (grain === "week") { const monday = addDays(anchor, -((d.getUTCDay() + 6) % 7) + offset * 7); return { from: monday, to: addDays(monday, 6) }; }
   const span = grain === "month" ? 1 : grain === "quarter" ? 3 : 12;
   const firstMonth = grain === "month" ? d.getUTCMonth() : grain === "quarter" ? Math.floor(d.getUTCMonth() / 3) * 3 : 0;
@@ -49,6 +53,7 @@ export function reportRange(grain: ReportGrain, anchor: string, offset = 0): { f
 /** „13–19 oct.”, „Octombrie 2026”, „T4 2026”, „2026”. */
 export function reportTitle(grain: ReportGrain, from: string, to: string): string {
   const f = at(from); const tt = at(to);
+  if (grain === "day") { const name = f.toLocaleDateString("ro-RO", { weekday: "long", timeZone: "UTC" }); return `${name[0].toLocaleUpperCase("ro-RO")}${name.slice(1)}, ${f.getUTCDate()} ${MONTHS[f.getUTCMonth()]} ${f.getUTCFullYear()}`; }
   if (grain === "week") return `${f.getUTCDate()} ${MONTHS[f.getUTCMonth()]} – ${tt.getUTCDate()} ${MONTHS[tt.getUTCMonth()]} ${tt.getUTCFullYear()}`;
   if (grain === "month") { const name = f.toLocaleDateString("ro-RO", { month: "long", timeZone: "UTC" }); return `${name[0].toLocaleUpperCase("ro-RO")}${name.slice(1)} ${f.getUTCFullYear()}`; }
   if (grain === "quarter") return `T${Math.floor(f.getUTCMonth() / 3) + 1} ${f.getUTCFullYear()}`;
@@ -112,6 +117,8 @@ function groupOf(data: AppData, entry: Receipt): FixedGroupId {
 function buckets(grain: ReportGrain, from: string, to: string, list: Receipt[]) {
   const sum = (a: string, b: string) => r2(list.filter((entry) => entry.date >= a && entry.date <= b).reduce((s, entry) => s + entry.amount, 0));
   const out: Report["buckets"] = [];
+  // O zi nu are bare: bonurile ei sunt chiar lista de magazine și de produse.
+  if (grain === "day") return out;
   if (grain === "week") for (let i = 0; i < 7; i++) { const day = addDays(from, i); out.push({ key: day, label: DAYS[i], total: sum(day, day) }); }
   else if (grain === "month") for (let day = from; day <= to; day = addDays(day, 1)) out.push({ key: day, label: String(at(day).getUTCDate()), total: sum(day, day) });
   else if (grain === "quarter") for (let start = from, i = 1; start <= to; start = addDays(start, 7), i++) { const end = addDays(start, 6) > to ? to : addDays(start, 6); out.push({ key: start, label: `S${i}`, total: sum(start, end) }); }
@@ -143,6 +150,20 @@ export function buildReport(data: AppData, grain: ReportGrain, anchor: string, o
   }
   const productsBefore = new Map<string, number>();
   for (const item of inRange(observations, prev.from, prev.to)) productsBefore.set(item.key, (productsBefore.get(item.key) || 0) + item.paid);
+  // Cantitatea: la cântar și la ambalat cu gramaj, kg/l = plătit ÷ preț pe kg/l; altfel bucăți.
+  const quantityMap: Record<QuantityUnit, Map<string, { label: string; amount: number }>> = { kg: new Map(), l: new Map(), buc: new Map() };
+  for (const item of inRange(observations, from, to)) {
+    const unitPrice = item.per === "buc" ? item.piecePrice : item.price;
+    if (!(unitPrice > 0) || !(item.paid > 0)) continue;
+    const amount = item.paid / unitPrice;
+    const entry = quantityMap[item.per].get(item.key) || { label: item.label, amount: 0 };
+    entry.amount += amount; entry.label = item.label;
+    quantityMap[item.per].set(item.key, entry);
+  }
+  const quantity = Object.fromEntries((["kg", "l", "buc"] as QuantityUnit[]).map((unit) => {
+    const list = Array.from(quantityMap[unit], ([key, entry]) => ({ key, label: entry.label, amount: Math.round(entry.amount * (unit === "buc" ? 1 : 100)) / (unit === "buc" ? 1 : 100) })).filter((entry) => entry.amount > 0).sort((a, b) => b.amount - a.amount);
+    return [unit, { total: Math.round(list.reduce((sum, entry) => sum + entry.amount, 0) * 100) / 100, top: list.slice(0, 5) }];
+  })) as Report["quantity"];
   const products = Array.from(productsNow, ([key, row]) => ({ key, label: row.label, amount: r2(row.amount), previous: r2(productsBefore.get(key) || 0), count: row.count, avgPrice: r2(row.price / row.count), per: row.per })).sort((a, b) => b.amount - a.amount);
 
   const fixedAll = fixedCostEntries(data);
@@ -162,6 +183,7 @@ export function buildReport(data: AppData, grain: ReportGrain, anchor: string, o
     products,
     stores: rows(byStore(now), flatten(byStore(before))),
     fixed: { total: fixedTotal, previous: r2(groups.reduce((s, group) => s + group.previous, 0)), groups },
+    quantity,
     total: r2(total + fixedTotal),
   };
 }

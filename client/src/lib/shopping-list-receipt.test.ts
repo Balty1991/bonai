@@ -19,3 +19,19 @@ describe("lista se bifează din bon", () => {
     expect(listItemsOnReceipt([item("d", "Detergent vase")], ["DETERGENT RUFE ARIEL"])).toEqual([]);
   });
 });
+
+describe("mai multe liste", () => {
+  it("numele listelor se păstrează la normalizare și se citesc din produse", async () => {
+    const { normalizeShoppingList, shoppingListNames, itemsOfList } = await import("./shopping-list");
+    const list = normalizeShoppingList([
+      { id: "a", text: "Lapte", updatedAt: "2026-10-20T10:00:00.000Z" },
+      { id: "b", text: "Chipsuri", list: " Petrecere ", updatedAt: "2026-10-20T11:00:00.000Z" },
+      { id: "c", text: "Cărbuni", list: "Weekend", updatedAt: "2026-10-20T12:00:00.000Z" },
+      { id: "d", text: "Suc", list: "petrecere", updatedAt: "2026-10-20T13:00:00.000Z" },
+    ]);
+    expect(list.find((x) => x.id === "b")?.list).toBe("Petrecere");
+    expect(shoppingListNames(list)).toEqual(["Petrecere", "Weekend"]);
+    expect(itemsOfList(list, undefined).map((x) => x.id)).toEqual(["a"]);
+    expect(itemsOfList(list, "Petrecere").map((x) => x.id)).toEqual(["b", "d"]);
+  });
+});

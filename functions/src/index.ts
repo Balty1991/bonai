@@ -381,8 +381,11 @@ async function flashModels(apiKey: string): Promise<string[]> {
       .map((model) => String(model.name || "").replace(/^models\//, ""))
       .filter((name) => /^gemini-.*flash/.test(name) && !/(image|tts|audio|live|embed|thinking|exp|preview-\d{2}-\d{2})/.test(name));
     const version = (name: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(name)?.[1] || 0);
-    const rank = (name: string) => (name === "gemini-flash-latest" ? 1000 : 0) + version(name) * 10 - (name.includes("lite") ? 5 : 0) - (name.includes("preview") ? 1 : 0);
-    const found = Array.from(new Set(names)).sort((a, b) => rank(b) - rank(a));
+    const rank = (name: string) => version(name) * 10 - (name.includes("lite") ? 5 : 0) - (name.includes("preview") ? 1 : 0);
+    // Doar modele cu versiune: „-latest” se mută singur pe versiunea nouă, iar fără versiune nu știm
+    // ce gândire să-i cerem (Gemini 3 cu gândirea implicită trecea de 15–30 s pe bon).
+    const versioned = Array.from(new Set(names)).filter((name) => version(name) > 0);
+    const found = (versioned.length ? versioned : Array.from(new Set(names))).sort((a, b) => rank(b) - rank(a));
     // Lite întâi: pe bonurile de test citește la fel de corect, în 2–4 s, și are cotă mai largă.
     // Flash-urile mari rămân rezervă (aveau 429/503 și 16–30 s).
     const models = Array.from(new Set([...found.filter((name) => name.includes("lite")).slice(0, 1), ...found.filter((name) => !name.includes("lite")).slice(0, 2)]));
@@ -1746,7 +1749,29 @@ export const readReceipt = onRequest(
         response.status(503).json({ error: "Scanarea nu este configurată.", code: "receipt_key" });
         return;
       }
+      // Gemini întâi; dacă nu răspunde în câteva secunde, pornește și Claude, iar primul bon citit câștigă.
+      // Claude nu pornește deloc când Gemini răspunde la timp (de obicei 3–6 s), deci costul rămâne același.
+      const hedged = async () => {
+        const hedgeMs = 9_000 + 4_000 * (images.length - 1);
+        const gemini = readReceiptWithGemini(geminiKey, images, categories, Date.now() + 45_000 + 5_000 * (images.length - 1));
+        const claude = new Promise<Awaited<ReturnType<typeof readReceiptWithClaude>>>((resolve, reject) => {
+          let started = false;
+          const go = () => { if (started) return; started = true; clearTimeout(timer); readReceiptWithClaude(claudeKey, images, categories).then(resolve, reject); };
+          const timer = setTimeout(go, hedgeMs);
+          // Gemini a răspuns: Claude nu mai pornește. Gemini a căzut: Claude pornește acum, nu după pauză.
+          gemini.then(() => clearTimeout(timer), go);
+        });
+        try {
+          return await Promise.any([gemini, claude]);
+        } catch (error) {
+          const reasons = error instanceof AggregateError ? error.errors : [error];
+          const failures = reasons.map((reason) => (reason instanceof GuideCallError ? reason : new GuideCallError("unknown", 500)));
+          failures.forEach((failure, index) => console.warn("receipt provider failed", index ? "claude" : "gemini", failure.status, failure.message.slice(0, 200)));
+          throw new GuideCallError(failures.map((failure) => failure.message.slice(0, 160)).join(" || "), failures[failures.length - 1]?.status ?? 502);
+        }
+      };
       const readWith = async () => {
+        if (usable.length === 2 && usable[0] === "gemini") return hedged();
         const failures: string[] = [];
         let lastError: GuideCallError | undefined;
         for (const name of usable) {

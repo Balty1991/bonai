@@ -350,9 +350,11 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   const send = (limit = images.length > 1 ? 120_000 : 95_000) => fetch(ENDPOINT, { method: "POST", headers, body, signal: AbortSignal.timeout(limit) });
   let response: Response;
   try {
-    // Un bon se citește de obicei în 3–6 s. Dacă cererea atârnă (ex. funcția tocmai se republică),
-    // după ~15 s o trimitem încă o dată, automat; a doua oară primește tot timpul.
-    const hang = images.length > 1 ? 25_000 : 15_000;
+    // Un bon se citește de obicei în 3–6 s; serverul pornește singur a doua cale după câteva secunde.
+    // Nu mai retrimitem poza după 15 s: prima citire continua pe server degeaba, iar a doua o lua de la
+    // zero, așa că 18 s deveneau 35–40. O singură retrimitere doar dacă cererea chiar a atârnat (ex.
+    // funcția tocmai se republica).
+    const hang = images.length > 1 ? 75_000 : 60_000;
     try {
       response = await send(hang);
     } catch (error) {
