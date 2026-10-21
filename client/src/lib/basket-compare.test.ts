@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData, type AppData } from "./finance-data";
 import { basketCompare, basketKeys } from "./basket-compare";
-import { communityFacts, communityOutside } from "./community-prices";
+import { cheaperInCity, communityFacts, communityOutside } from "./community-prices";
+import { productObservations } from "./personal-inflation";
 import { referralText } from "./referral";
 
 const line = (id: string, label: string, amount: number) => ({ id, category: "Alimente", amount, label });
@@ -71,5 +72,22 @@ describe("recomandă BonAI", () => {
     const text = referralText(createEmptyAppData(), "2026-10-20", "https://play.example/bonai");
     expect(text).toContain("https://play.example/bonai");
     expect(text).not.toContain("economisit");
+  });
+});
+
+describe("mai ieftin în oraș, după bon", () => {
+  it("arată doar alt lanț, vizibil mai ieftin, cu cea mai mare diferență întâi", () => {
+    const items = productObservations(data()).filter((item) => item.receiptId === "k1");
+    const keyOf = (label: string) => items.find((item) => item.label === label)!;
+    const lapte = keyOf("Lapte Zuzu"), paine = keyOf("Paine Vel Pitar"), oua = keyOf("Oua 10 buc");
+    const prices: Record<string, Record<string, { price: number; n: number }>> = {
+      [`${lapte.key}|${lapte.per}`]: { "Lidl Rosiori": { price: 8, n: 4 }, "Kaufland": { price: 7, n: 9 } },
+      [`${paine.key}|${paine.per}`]: { Penny: { price: 4.5, n: 3 } },
+      [`${oua.key}|${oua.per}`]: { Penny: { price: 13.8, n: 3 } },
+    };
+    const cache = { city: "rosiori", at: Date.now(), prices };
+    const deals = cheaperInCity(items, cache);
+    expect(deals.map((deal) => [deal.label, deal.vendor, deal.price])).toEqual([["Paine Vel Pitar", "Penny", 4.5], ["Lapte Zuzu", "Lidl Rosiori", 8]]);
+    expect(cheaperInCity(items, undefined)).toEqual([]);
   });
 });

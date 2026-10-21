@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.8.0 (243)
+
+- **Prețurile din orașul tău, la vedere**: după al treilea bon, ecranul „Bon salvat” te întreabă o singură dată dacă vrei să afli unde sunt mai ieftine produsele tale. Spune exact ce se trimite (produsul, prețul, magazinul, orașul și luna, anonim) și ce nu (bonul, ziua, numele). „Nu acum” nu mai întreabă.
+- **„Mai ieftin în oraș”**: pentru cine participă, ecranul „Bon salvat” arată până la 3 produse de pe bon pe care alții din oraș le-au plătit vizibil mai puțin în alt magazin (cel puțin 5% și 30 de bani pe unitate, din prețuri trimise de cel puțin 3 ori), lângă cât ai dat tu.
+
 ## 2.7.1 (242)
 
 - **Cod vechi scos** (fără să atingă datele):

@@ -5852,4 +5852,13 @@ export const en: Record<string, string> = {
   "Introdu codul adultului ca să deschizi BonAI": "Enter the adult's code to open BonAI",
   "Telefonul era pus în „Modul copil”, care nu mai există. După cod, aplicația se deschide normal.": "This phone was in “Child mode”, which no longer exists. After the code, the app opens normally.",
   "Deschide BonAI": "Open BonAI",
+  "Mai ieftin în oraș": "Cheaper in town",
+  "MAI IEFTIN ÎN {city}": "CHEAPER IN {city}",
+  "{price}{unit} la {vendor} · tu ai dat {mine}": "{price}{unit} at {vendor} · you paid {mine}",
+  "Prețuri medii din bonurile altor oameni din oraș, luna asta și luna trecută, trimise de cel puțin 3 ori.": "Average prices from other people's receipts in town, this month and last, sent at least 3 times.",
+  "Participi din {city}. Prețurile din oraș apar aici și în Magazine.": "You're taking part from {city}. Town prices show up here and in Stores.",
+  "Prețurile din orașul tău": "Prices in your town",
+  "Vrei să afli unde sunt mai ieftine produsele tale?": "Want to know where your products are cheaper?",
+  "Dai anonim prețurile din bonuri (doar produsul, prețul, magazinul, orașul și luna) și vezi ce plătesc alții din oraș. Nu pleacă bonul, ziua sau numele tău.": "You share receipt prices anonymously (only the product, price, store, town and month) and see what others in town pay. Your receipt, the day and your name are never sent.",
+  "/buc": "/pc",
 };
