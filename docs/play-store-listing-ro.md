@@ -150,7 +150,7 @@ App de finanțe personale, fără user-generated public, fără violență, făr
 
 - Grafic de prezentare: `play-store-assets/feature-graphic-ro.png` (1024×500).
 - Pictogramă: `play-store-assets/icon-512.png`.
-- Capturi: `play-store-assets/screenshots/ro/` (telefon, 8) și `screenshots/tableta-ro/` (tabletă, 8), refăcute cu `scripts/store-screenshots` (vezi `SCREENSHOTS.md`).
+- Capturi: `play-store-assets/screenshots/ro/` și `en/` (telefon, 8 pe limbă, 1080×1920), refăcute cu `node e2e/play-screens.mjs` (vezi `play/CAPTURI.md`).
 
 ## Ce NU s-a atins
 

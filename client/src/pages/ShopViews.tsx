@@ -184,8 +184,9 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
       ? { id: "debts", icon: <Landmark size={18} />, label: t("Datorii rămase"), value: lei(debts.remaining), hint: t("{amount} pe lună", { amount: lei(debts.monthly) }), onClick: onOpenCosts ? () => onOpenCosts("debts") : undefined }
       : { id: "receipts", icon: <ReceiptText size={18} />, label: t("Bonuri luna asta"), value: String(month.receipts), hint: month.loose ? looseLabel(month.loose) : t("scanate și citite"), onClick: () => onOpenMore("receipts") },
     { id: "inflation", icon: <ArrowUpRight size={18} />, label: t("Inflația ta"), value: !inflationOn ? "PRO" : inflation && inflation.products > 0 ? pct(inflation.percent) : "—", hint: !inflationOn ? t("deblochează cu Pro") : inflation && inflation.products > 0 ? t("{count} produse urmărite", { count: inflation.products }) : t("din bonurile tale"), tone: inflationOn && inflation && inflation.products > 0 ? (inflation.percent > 0 ? "up" : "down") : undefined, onClick: onOpenProducts },
-    { id: "saved", icon: <Sparkles size={18} />, label: t("Ai economisit"), value: savedNow.total > 0 && hasFeature(plan, "savedWithApp") ? lei(savedNow.total) : "—", hint: t("luna asta, din reduceri"), tone: "down" },
-    { id: "save", icon: <Store size={18} />, label: t("Poți economisi"), value: canSave > 0 ? lei(canSave) : "—", hint: canSave > 0 ? (basket?.cheapest && basket.saving >= saving.total ? t("pe lună, la {vendor}", { vendor: basket.cheapest.vendor }) : t("luna asta, la alt magazin")) : t("compar magazinele"), tone: canSave > 0 ? "down" : undefined, onClick: onOpenStores },
+    { id: "saved", icon: <Sparkles size={18} />, label: t("Ai economisit"), value: savedNow.total > 0 && hasFeature(plan, "savedWithApp") ? lei(savedNow.total) : "—", hint: t("luna asta, văzut pe bonuri"), tone: "down" },
+    // Estimare, nu bani câștigați: altă denumire și fără culoarea „economisit”, ca să nu se confunde cu cifra de lângă.
+    { id: "save", icon: <Store size={18} />, label: t("Ai putea plăti mai puțin"), value: canSave > 0 ? lei(canSave) : "—", hint: canSave > 0 ? (basket?.cheapest && basket.saving >= saving.total ? t("estimare · pe lună, la {vendor}", { vendor: basket.cheapest.vendor }) : t("estimare · luna asta, la alt magazin")) : t("compar magazinele"), onClick: onOpenStores },
   ];
   // Doar cifrele care au ceva de spus, în număr par, ca grila să rămână ordonată.
   const filled = allTiles.filter((tile) => tile.value !== "—");
@@ -293,9 +294,10 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   </div>;
 }
 
-export function ProductsView({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+export function ProductsView({ data, onChange, barcode }: { data: AppData; onChange: (next: AppData) => void; /** Verificarea la raft, sub titlu: produsele tale rămân primul lucru din pagină. */ barcode?: ReactNode }) {
   return <div className="sh-page">
     <header className="sh-head"><p className="sh-kicker">{t("PRODUSE")}</p><h1 className="sh-h1">{t("Tot ce cumperi, cu prețul în timp")}</h1><p className="sh-sub sh-muted">{t("Apasă pe un produs ca să vezi cum i s-a schimbat prețul și unde l-ai luat cel mai ieftin.")}</p></header>
+    {barcode}
     <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PriceWatchPanel data={data} onChange={onChange} /></Suspense>
   </div>;
 }
@@ -373,8 +375,7 @@ export function PricesView({ data, onChange }: { data: AppData; onChange: (next:
   const [tab, setTab] = useState<"products" | "stores" | "stats">(() => { const first = nextPricesTab || "products"; nextPricesTab = undefined; return first; });
   return <div className="sh-page">
     <div className="sh-tabs" role="tablist">{([["products", t("Produse")], ["stores", t("Magazine")], ["stats", t("Rapoarte")]] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-on" : undefined} onClick={() => setTab(id)}>{label}</button>)}</div>
-    {tab === "products" && <Suspense fallback={null}><BarcodeCheck data={data} onChange={onChange} /></Suspense>}
-    {tab === "products" ? <ProductsView data={data} onChange={onChange} /> : tab === "stats" ? <Suspense fallback={null}><ShopReports data={data} /></Suspense> : <StoresView data={data} />}
+    {tab === "products" ? <ProductsView data={data} onChange={onChange} barcode={<Suspense fallback={null}><BarcodeCheck data={data} onChange={onChange} compact /></Suspense>} /> : tab === "stats" ? <Suspense fallback={null}><ShopReports data={data} /></Suspense> : <StoresView data={data} />}
   </div>;
 }
 

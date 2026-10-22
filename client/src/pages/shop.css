@@ -439,6 +439,7 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2 > button.os-d
 .bn-review-scroll > *, .bn-group, .bn-group * { min-width: 0; }
 /* Verifică în magazin: cardul produsului după codul de bare. */
 html[data-app="shop"] .bn-bc-lead { margin: 0; color: var(--bn-ink-2, var(--bn-ink)); font-size: 15px; line-height: 1.45; }
+html[data-app="shop"] .bn-bc-hint { margin: 0; font-size: 13px; line-height: 1.4; }
 html[data-app="shop"] .bn-bc-pick { display: grid; gap: 10px; min-width: 0; }
 html[data-app="shop"] .bn-bc-ask { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: break-word; }
 html[data-app="shop"] .bn-bc-search { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--bn-edge); background: var(--bn-glass); color: var(--bn-ink); }

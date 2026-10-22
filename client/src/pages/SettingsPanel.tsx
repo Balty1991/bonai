@@ -36,9 +36,8 @@ import { isoToday as todayIso } from "@/lib/finance-data";
 
 
 const TrustCenter = lazy(() => import("@/components/TrustCenter").then((module) => ({ default: module.TrustCenter })));
-const PremiumStudio = lazy(() => import("@/components/PremiumStudio").then((module) => ({ default: module.PremiumStudio })));
 /** Încălzite odată cu setările: altfel apăreau cu o clipă mai târziu și împingeau pagina. */
-export const preloadSettingsParts = () => Promise.all([warmLazy(TrustCenter), warmLazy(PremiumStudio)]);
+export const preloadSettingsParts = () => Promise.all([warmLazy(TrustCenter)]);
 
 /**
  * Cursurile sunt introduse manual, cu data la care au fost puse. Aplicația nu întreabă

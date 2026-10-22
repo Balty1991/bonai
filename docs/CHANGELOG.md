@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.9.0 (246)
+
+Din auditul de produs și UI (22.10.2026):
+
+- **Capturi Play noi**, din aplicația de acum, cu o familie demo: 8 în română, 8 în engleză (1080×1920, cu titlu). Cele vechi „Buget Familie” (salariu, plicuri, jurnal) au fost scoase. Se refac cu `pnpm play:screens`.
+- **Acasă, realizat vs estimat**: „Ai economisit · văzut pe bonuri” rămâne în culoarea economiei; „Poți economisi” devine „Ai putea plăti mai puțin”, neutru, cu „estimare ·” în față.
+- **Prețuri → Produse**: titlul și produsele tale vin primele; verificarea la raft e un card scurt (butonul de scanare și cifrele), care se deschide complet doar când verifici un cod.
+- **Lista goală**: butoane cu produsele pe care le iei des (din bonurile ultimelor 90 de zile) sau, fără bonuri, câteva exemple; o atingere și sunt pe listă.
+- **Abonamentele vechi scoase**: ecranele cu prețurile vechiului plan „Familia” (19,99 lei/lună, 149 lei/an) nu mai există; sincronizarea pe al doilea telefon arată prețul BonAI Familie.
+- **Documentație**: paleta reală (violet, petrol pentru economisit, roșu pentru scumpiri) în `docs/ARHITECTURA.md`; `docs/play/CAPTURI.md` descrie capturile noi.
+
 ## 2.8.2 (245)
 
 - **„Economisit cu BonAI” devine „Ai economisit la cumpărături”**: suma vine din reducerile tipărite pe bonuri și din prețurile mai mici ale magazinelor, nu de la aplicație. Pe Acasă: „Ai economisit · luna asta, din reduceri”; cardul spune acum, într-un rând, că reducerile sunt ale magazinelor și BonAI doar le adună din bonuri.

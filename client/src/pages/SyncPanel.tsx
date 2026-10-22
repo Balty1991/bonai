@@ -15,7 +15,7 @@ import { getLocale, t } from "@/lib/i18n";
 import { canUseFamilySync, BILLING_LIVE } from "@/lib/entitlements";
 import { hasActiveFamilie } from "@/lib/billing-store";
 import { gateSecondPhone } from "@/lib/launch-offer";
-import { FamilieUpgrade } from "@/components/FamilieUpgrade";
+import { BONUT_PRICES } from "@/lib/bonut-plans";
 import { showNotice } from "@/lib/confirm-dialog";
 
 /**
@@ -194,7 +194,11 @@ export function SyncPanel({ connected, busy, online, password, setPassword, noti
   };
 
   return <div className="bf-sync">
-    {!canUseFamilySync() || phoneBlocked ? <FamilieUpgrade reason="sync" /> : null}
+    {/* Al doilea telefon e în BonAI Familie: prețurile vin din planurile BonAI, nu din vechiul plan „Familia” al bugetului. */}
+    {!canUseFamilySync() || phoneBlocked ? <aside className="bf-sync-local-only" role="note">
+      <p className="bf-kicker">{t("BONAI FAMILIE")}</p>
+      <p>{t("Al doilea telefon intră în BonAI Familie: {year} lei/an sau {month} lei/lună. Pe un singur telefon, totul rămâne gratuit.", { year: BONUT_PRICES.familie.year.toLocaleString("ro-RO", { minimumFractionDigits: 2 }), month: BONUT_PRICES.familie.month.toLocaleString("ro-RO", { minimumFractionDigits: 2 }) })}</p>
+    </aside> : null}
     <div className="bf-sync-hero"><Users size={25} /><p className="bf-kicker">{connected ? t("FAMILIE CONECTATĂ") : t("SINCRONIZARE")}</p><h2>{connected ? t("Sesiunea familiei este activă.") : t("Sincronizare criptată, în timp real, între telefoane.")}</h2><p>{t("Datele se criptează pe telefon. Serverul vede doar un pachet pe care nu-l poate citi.")}</p></div>
     {readAppMode() === "shop" ? <aside className="bf-sync-local-only" role="note">
       <p className="bf-kicker">{t("CE SE SINCRONIZEAZĂ")}</p>

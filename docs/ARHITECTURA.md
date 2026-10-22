@@ -43,23 +43,24 @@ Concurentul real e gratuit și de stat: **Monitorul Prețurilor la alimente** (C
 
 **Ales: BonAI**, cu titlul ASO în Play „BonAI: Listă de cumpărături și prețuri”. Disponibilitatea `bonut.ro` NU a putut fi verificată din cutie (whois-ul RoTLD nu răspunde). Pas manual: verificare și cumpărare pe rotld.ro. Rezervă: `bonut.app`.
 
-- **Paletă:** smarald `#0F7B5F` (primar; continuă paleta adoptată în #104), mentă `#E6F4EE` (fundal carduri), cerneală `#14231E` (text), chihlimbar `#F2A93B` (economie, promoții), coral `#E5533D` (scumpiri, alerte), hârtie `#FAFAF7` (fundal). Contrast AA verificat pentru textul pe primar (alb pe `#0F7B5F` ≈ 5,3:1).
-- **Tipografie:** Inter (deja locală) pentru UI; cifrele cu `tabular-nums`. Titlurile mari în Inter 800.
-- **Icon:** un bon fiscal stilizat cu marginea zimțată, cu un ✓ sau o săgeată în jos ca o bifă, alb pe smarald, colțuri rotunjite. Iconurile din UI rămân Lucide, cu linie de 2 px.
+- **Paletă (cea din aplicație, `client/src/pages/shop.css`, sursa de adevăr):** violet `#6D28D9` (accent, acțiunea principală), gradientul `#7C3AED → #4F46E5 → #0E7490` doar pe butonul principal și pe „Scanează”, petrol `#0E7490` (economisit, prețuri mai mici: `--bn-save`), roșu `#B42318` (scumpiri, alerte: `--bn-rise`), chihlimbar pentru avertismente, cerneală `#12142B` (text), lavandă `#F4F3FF` (fundal). Noaptea: fundal negru, accent `#C4B5FD`, economisit `#5EEAD4`. Contrastul se verifică automat în e2e (4,5:1 ziua, 7:1 noaptea). Paleta smarald de la început nu s-a mai folosit: iconița, capturile și magazinul urmează violetul.
+- **Culorile spun un singur lucru:** petrol = bani economisiți văzuți pe bon; roșu = s-a scumpit; estimările („Ai putea plăti mai puțin”) rămân neutre, fără culoarea economiei.
+- **Tipografie:** Inter pentru text, Space Grotesk pentru titluri și cifre mari; cifrele cu `tabular-nums`.
+- **Icon:** un bon fiscal stilizat pe violet închis, colțuri rotunjite. Iconurile din UI rămân Lucide, cu linie de 2 px.
 - **Ton:** tu, direct, cald, fără jargon financiar. Spunem „ai dat”, „mai ieftin la”, „s-a scumpit”, nu „cheltuieli discreționare” sau „alocare”.
 
 ## 4. Arhitectura informației (sitemap)
 
 Bara de jos are 5 locuri; „Scanează” e în centru, mai mare.
 
-1. **Acasă:** costurile lunii vs media pe 3 luni · „Economisit cu BonAI” · cel mult 3 alerte · lista (câte produse sunt de luat) · ultimele bonuri · un sfat pe săptămână.
+1. **Acasă:** costurile lunii vs media pe 3 luni · „Ai economisit la cumpărături” · cel mult 3 alerte · lista (câte produse sunt de luat) · ultimele bonuri · un sfat pe săptămână.
 2. **Cumpărături:** Listă (GRATUITĂ, comună, cu prețuri estimate din istoricul tău) | Stoc | Coș optimizat (PRO) | Meniul săptămânii (PRO).
 3. **Scanează:** camera direct · scanare cod de bare în magazin · galerie · PDF/e-mail · introducere rapidă → ecran de verificare → rezumat „aha”.
 4. **Prețuri:** Produsele mele | Magazine | Inflația mea | Promoții.
 5. **Cont:** profil + BonAI Pro | Bonuri | Toate costurile | Familie și membri | Garanții | Abonamente | Facturi | Export | Setări (Date și confidențialitate: „Descarcă datele vechi”) (în Setări: Arhiva veche, doar citire + export).
 
 ### Wireframe-uri (text)
-- **Acasă:** `[Octombrie: 1.284 lei · −6% față de media pe 3 luni]` `[Economisit cu BonAI: 142 lei ▸ Distribuie]` `[⚠ Ulei Floriol +18% · Garanție TV: retur până joi]` `[Lista: 7 de luat ▸]` `[Bonuri recente ×3]` `[Sfatul săptămânii]`
+- **Acasă:** `[Octombrie: 1.284 lei · −6% față de media pe 3 luni]` `[Ai economisit la cumpărături: 142 lei ▸ Distribuie]` `[⚠ Ulei Floriol +18% · Garanție TV: retur până joi]` `[Lista: 7 de luat ▸]` `[Bonuri recente ×3]` `[Sfatul săptămânii]`
 - **Scanare cod de bare:** cameră pe tot ecranul → card jos: `Lapte Zuzu 1,5% 1L · 7,49 lei aici` / `Tu: ultima dată 6,99 la Lidl (12 oct)` / `Alte magazine (din bonurile familiei): …` / `[Adaugă în listă]`
 - **Listă partajată:** produse grupate pe raion, cu estimare de preț ▸ `[Trimite pe WhatsApp]` → link `https://bonut.ro/l/<token>`; cine îl primește bifează din browser, fără cont.
 
@@ -119,7 +120,7 @@ Secretele se citesc o singură dată, la pornirea instanței (`defineSecret`, va
 | Plan | Preț | Ce include |
 |---|---|---|
 | GRATUIT | 0 | lista partajată + link web pe WhatsApp, widget, verificare cu codul de bare, ~15 scanări pe lună, rezumat lunar |
-| PRO | **9,99 lei/lună** · **79,99 lei/an** (accent pe anual) | Inflația mea, „Economisit cu BonAI”, alerte de preț pe produsele tale, coș optimizat, meniul săptămânii, scanări nelimitate |
+| PRO | **9,99 lei/lună** · **79,99 lei/an** (accent pe anual) | Inflația mea, „Ai economisit la cumpărături”, alerte de preț pe produsele tale, coș optimizat, meniul săptămânii, scanări nelimitate |
 | FAMILIE | **14,99 lei/lună** · **119,99 lei/an** | PRO + până la 6 membri, garanții, facturi, abonamente |
 
 Probă gratuită de **14 zile**, pornită automat după al **3-lea bon** scanat (omul a văzut deja valoarea).
