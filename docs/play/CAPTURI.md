@@ -1,15 +1,24 @@
-# Capturi de ecran pentru Play (telefon, 1080×2400, 9:20)
+# Capturi de ecran pentru Play (telefon, 1080×1920, 9:16)
 
-Ordinea contează: primele 3 apar în căutare. Folosește o familie demo, nu date reale.
+Se generează din aplicația de acum, cu o familie demo inventată (Andrei și Maria, Cluj-Napoca, 14 bonuri în trei luni de la Lidl, Kaufland, Profi și Mega Image), nu din date reale:
 
-1. **Acasă** — cardul „Economisit luna asta” + ultimele bonuri. Titlu: „Vezi cât ai economisit”.
-2. **Scanează** — previzualizarea unui bon citit, cu produsele recunoscute. Titlu: „Scanezi bonul, restul îl facem noi”.
-3. **Cumpărături → Listă** — listă cu 6–8 produse, câteva bifate, cu ultimul preț lângă fiecare. Titlu: „Lista familiei, cu prețuri reale”.
-4. **Trimite pe WhatsApp** — pagina web a listei (l.html) deschisă pe telefon. Titlu: „Trimite lista, fără cont”.
-5. **Prețuri** — istoricul unui produs pe magazine. Titlu: „Unde e mai ieftin, din bonurile tale”.
-6. **Cod de bare** — rezultatul unei scanări. Titlu: „Ai mai cumpărat? Vezi prețul pe loc”.
-7. **Stoc / Meniu** — meniul săptămânii. Titlu: „Meniu și stocul casei, legate de listă”.
-8. **Widget** — ecranul de pornire cu widgetul listei. Titlu: „Lista pe ecranul principal”.
+```
+CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node e2e/play-screens.mjs
+```
 
-Grafică recomandată (feature graphic, 1024×500): iconul BonAI + „Bonurile tale, prețuri reale”.
-Generare: `pnpm dev`, Chrome DevTools pe Pixel 7, cu un profil demo importat din backup.
+Ies în `docs/play-store-assets/screenshots/ro/` și `en/`. Fiecare captură e făcută la 390 px (×2) și pusă într-un cadru violet, cu titlul deasupra. Titlurile spun doar ce face ecranul, fără promisiuni („economisești sigur”, „cel mai ieftin din oraș”). Se refac după orice schimbare vizibilă a ecranelor.
+
+Ordinea contează: primele 3 apar în căutare.
+
+1. **Acasă**: „Bonurile tale, lunile tale, clar” (luna din bonuri, ce ai economisit văzut pe bon și ce ai putea plăti mai puțin, ca estimare).
+2. **Verifică bonul**: „Fotografiezi bonul. Citesc fiecare produs” (produsele cu prețul, comparate cu data trecută).
+3. **Magazine**: „Unde coșul tău iese mai ieftin”.
+4. **Lista**: „Lista familiei, cu prețurile plătite”.
+5. **Produse**: „Prețul fiecărui produs, în timp”.
+6. **În casă**: „Vezi ce ai în casă și ce se termină”.
+7. **Ai economisit la cumpărături**: „Reducerile de pe bonuri, adunate pentru tine” (cu rândul că reducerile sunt ale magazinelor).
+8. **Rapoarte**: „Unde se duc banii, lună de lună”.
+
+Capturile vechi „Buget Familie” (salariu, plicuri, jurnal) au fost scoase: nu mai descriu aplicația.
+
+Grafica recomandată (feature graphic, 1024×500): iconul BonAI și „Bonurile tale, prețuri reale”.

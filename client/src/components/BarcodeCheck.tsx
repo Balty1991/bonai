@@ -17,7 +17,7 @@ const perText = (per: string) => (per === "buc" ? t("bucata") : per);
 const pctText = (value: number) => Math.abs(value).toLocaleString("ro-RO", { maximumFractionDigits: 1 });
 const dayText = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 
-export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (next: AppData) => void }) {
+export function BarcodeCheck({ data, onChange, compact = false }: { data: AppData; onChange: (next: AppData) => void; /** Fără titlu și explicație cât nu verifici nimic: nu împinge produsele în jos. */ compact?: boolean }) {
   const [code, setCode] = useState("");
   const [ean, setEan] = useState<string>();
   const [offName, setOffName] = useState<string>();
@@ -95,10 +95,12 @@ export function BarcodeCheck({ data, onChange }: { data: AppData; onChange: (nex
     </> : <p className="sh-muted">{t("Încă nu ai bonuri cu produse. Scanează un bon și data viitoare îți spun dacă prețul e bun.")}</p>}
   </div>;
 
-  return <section className="sh-card bn-bc">
-    <p className="sh-kicker">{t("VERIFICĂ ÎN MAGAZIN")}</p>
-    <p className="bn-bc-lead">{t("Scanează un produs de pe raft și vezi cât l-ai plătit ultima dată și unde — afli pe loc dacă prețul e bun.")}</p>
+  const slim = compact && !ean && !busy;
+  return <section className={`sh-card bn-bc${slim ? " is-slim" : ""}`}>
+    {!slim && <p className="sh-kicker">{t("VERIFICĂ ÎN MAGAZIN")}</p>}
+    {!slim && <p className="bn-bc-lead">{t("Scanează un produs de pe raft și vezi cât l-ai plătit ultima dată și unde — afli pe loc dacă prețul e bun.")}</p>}
     <button type="button" className="sh-scan" onClick={() => setScanning(true)}><Barcode size={20} aria-hidden="true" /> {t("Scanează codul de bare")}</button>
+    {slim && <p className="sh-muted bn-bc-hint">{t("La raft: vezi cât ai dat ultima dată pe produs.")}</p>}
     {scanning && <BarcodeScanner onCode={scanned} onClose={() => setScanning(false)} />}
     <form className="sh-row-form" onSubmit={(event) => { event.preventDefault(); void check(code); }}>
       <input inputMode="numeric" aria-label={t("Codul de bare")} placeholder={t("sau scrie cifrele de sub cod")} value={code} onChange={(event) => { setCode(event.target.value); setTried(false); }} />

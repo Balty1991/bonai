@@ -82,3 +82,23 @@ export function shoppingListNames(list: ReadonlyArray<ShoppingItem>): string[] {
 
 /** Produsele unei liste; `undefined` e lista familiei. */
 export const itemsOfList = (list: ReadonlyArray<ShoppingItem>, name: string | undefined) => list.filter((item) => (item.list || undefined)?.toLocaleLowerCase("ro-RO") === name?.toLocaleLowerCase("ro-RO"));
+
+/**
+ * Pentru lista goală: produsele luate cel mai des în ultimele 90 de zile (cel puțin de două ori),
+ * care nu sunt deja pe listă. SGR-ul și sacoșele nu se pun pe listă.
+ */
+export function frequentProducts(observations: ReadonlyArray<{ key: string; label: string; date: string; category: string }>, todo: ReadonlyArray<Pick<ShoppingItem, "text">>, since: string, limit = 6): string[] {
+  const counts = new Map<string, { label: string; count: number; last: string }>();
+  for (const item of observations) {
+    if (item.date < since || item.category === "SGR" || item.category === "Sacoșe") continue;
+    const current = counts.get(item.key);
+    if (!current) counts.set(item.key, { label: item.label, count: 1, last: item.date });
+    else { current.count += 1; if (item.date >= current.last) { current.label = item.label; current.last = item.date; } }
+  }
+  const open = todo.map((item) => item.text.toLocaleLowerCase("ro-RO"));
+  return Array.from(counts.values())
+    .filter((entry) => entry.count >= 2 && !open.some((text) => entry.label.toLocaleLowerCase("ro-RO").includes(text) || text.includes(entry.label.toLocaleLowerCase("ro-RO"))))
+    .sort((a, b) => b.count - a.count || b.last.localeCompare(a.last))
+    .slice(0, limit)
+    .map((entry) => entry.label);
+}

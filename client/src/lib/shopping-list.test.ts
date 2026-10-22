@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeShoppingLists, normalizeShoppingList, splitShoppingText, visibleShopping } from "./shopping-list";
+import { frequentProducts, mergeShoppingLists, normalizeShoppingList, splitShoppingText, visibleShopping } from "./shopping-list";
 
 const at = (minutes: number) => new Date(Date.UTC(2026, 9, 2, 10, minutes)).toISOString();
 
@@ -46,5 +46,16 @@ describe("lista de cumpărături în sincronizare", () => {
     const merged = normalizeAppData(mergeFamilyData(mine, theirs));
     expect(merged.settings.shoppingList?.find((item) => item.id === "a")?.done).toBe(true);
     expect(merged.settings.shoppingList?.map((item) => item.id).sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("ce iei des, pentru lista goală", () => {
+  const o = (key: string, label: string, date: string, category = "Alimente") => ({ key, label, date, category });
+  it("produsele luate de cel puțin două ori, cele mai dese întâi, fără SGR și fără ce e deja pe listă", () => {
+    const obs = [o("lapte", "Lapte Zuzu", "2026-09-01"), o("lapte", "Lapte Zuzu 1L", "2026-10-01"), o("lapte", "Lapte Zuzu 1L", "2026-10-10"),
+      o("paine", "Pâine albă", "2026-10-02"), o("paine", "Pâine albă", "2026-10-12"), o("sgr", "Garanție SGR", "2026-10-02", "SGR"), o("sgr", "Garanție SGR", "2026-10-03", "SGR"),
+      o("cafea", "Cafea", "2026-10-05"), o("ulei", "Ulei", "2026-05-01"), o("ulei", "Ulei", "2026-05-02")];
+    expect(frequentProducts(obs, [], "2026-07-20")).toEqual(["Lapte Zuzu 1L", "Pâine albă"]);
+    expect(frequentProducts(obs, [{ text: "lapte zuzu" }], "2026-07-20")).toEqual(["Pâine albă"]);
   });
 });

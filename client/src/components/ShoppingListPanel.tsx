@@ -10,12 +10,12 @@ import { askConfirm } from "@/lib/confirm-dialog";
 import { nameScore, openFoodFactsName, readBarcodeLinks } from "@/lib/barcode-check";
 import { productObservations } from "@/lib/personal-inflation";
 const BarcodeScanner = lazy(() => import("@/components/BarcodeScanner").then((module) => ({ default: module.BarcodeScanner })));
-import { isoToday, newId, type AppData } from "@/lib/finance-data";
+import { addIsoDays, isoToday, newId, type AppData } from "@/lib/finance-data";
 import { lei } from "@/lib/money-format";
 import { estimateShopping } from "@/lib/shopping-price";
 import { t } from "@/lib/i18n";
 import { selfMemberIdOf } from "@/lib/member-identity";
-import { SHOPPING_LIMIT, itemsOfList, shoppingListNames, splitShoppingText, visibleShopping, type ShoppingItem } from "@/lib/shopping-list";
+import { SHOPPING_LIMIT, frequentProducts, itemsOfList, shoppingListNames, splitShoppingText, visibleShopping, type ShoppingItem } from "@/lib/shopping-list";
 
 const shortDay = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 
@@ -31,13 +31,15 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
   const names = useMemo(() => { const have = shoppingListNames(list); return [...have, ...fresh.filter((name) => !have.some((item) => item.toLocaleLowerCase("ro-RO") === name.toLocaleLowerCase("ro-RO")))]; }, [list, fresh]);
   const { todo, done } = visibleShopping(itemsOfList(list, active));
   const me = selfMemberIdOf(data);
+  // Lista goală propune ce iei des (din bonuri) sau, fără bonuri, câteva exemple: un produs dintr-o atingere.
+  const usual = useMemo(() => (todo.length ? [] : frequentProducts(productObservations(data), todo, addIsoDays(isoToday(), -90))), [todo, data]);
   const estimate = useMemo(() => estimateShopping(todo, data.receipts, isoToday()), [todo, data.receipts]);
   const nameOf = (id?: string) => (data.settings.members.length > 1 && id && id !== me ? data.settings.members.find((member) => member.id === id)?.name : undefined);
   const save = (next: ShoppingItem[]) => onChange({ ...data, settings: { ...data.settings, shoppingList: next.slice(0, SHOPPING_LIMIT) } });
   const touch = (id: string, patch: Partial<ShoppingItem>) => save(list.map((item) => item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item));
 
-  const add = () => {
-    const names = splitShoppingText(draft);
+  const add = () => addNames(splitShoppingText(draft));
+  const addNames = (names: string[]) => {
     if (!names.length) return;
     const now = Date.now();
     // Același produs încă de luat nu se dublează; unul golit demult revine ca nou.
@@ -118,7 +120,10 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
       <span>{estimate.known === todo.length ? t("după prețurile de pe bonurile voastre") : t("pentru {known} din {count} produse, după bonurile voastre", { known: estimate.known, count: todo.length })}</span>
       {estimate.bestVendor && <span className="is-tip">{t("La {vendor} ar ieși ~{total}, cu {saves} mai puțin.", { vendor: estimate.bestVendor.vendor, total: lei(estimate.bestVendor.total), saves: lei(estimate.bestVendor.saves) })}</span>}
     </div>}
-    {todo.length > 0 ? <ul className="bf-shop-list">{todo.map(row)}</ul> : <div className="bf-shop-empty"><ListChecks size={22} aria-hidden="true" /><p>{done.length ? t("Ai luat tot de pe listă.") : t("Lista e goală. Scrie mai multe deodată, despărțite prin virgulă.")}</p></div>}
+    {todo.length > 0 ? <ul className="bf-shop-list">{todo.map(row)}</ul> : <div className="bf-shop-empty"><ListChecks size={22} aria-hidden="true" /><p>{done.length ? t("Ai luat tot de pe listă.") : t("Lista e goală. Scrie mai multe deodată, despărțite prin virgulă.")}</p>
+      <div className="bf-shop-usual"><small>{usual.length ? t("Iei des:") : t("De exemplu:")}</small>
+        {(usual.length ? usual : [t("lapte"), t("pâine"), t("ouă"), t("cafea"), t("roșii")]).map((name) => <button key={name} type="button" className="bf-shop-chip" onClick={() => addNames([name])}><Plus size={14} aria-hidden="true" /> {name}</button>)}
+      </div></div>}
     {done.length > 0 && <>
       <p className="bf-kicker bf-shop-done-title">{t("ÎN COȘ · {count}", { count: done.length })}</p>
       <ul className="bf-shop-list is-done">{done.map(row)}</ul>
