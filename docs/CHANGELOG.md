@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.2 (245)
+
+- **„Economisit cu BonAI” devine „Ai economisit la cumpărături”**: suma vine din reducerile tipărite pe bonuri și din prețurile mai mici ale magazinelor, nu de la aplicație. Pe Acasă: „Ai economisit · luna asta, din reduceri”; cardul spune acum, într-un rând, că reducerile sunt ale magazinelor și BonAI doar le adună din bonuri.
+
 ## 2.8.1 (244)
 
 - **Scanarea pornește mai repede**: verificarea telefonului (identitatea anonimă și App Check) începe odată cu pregătirea pozei, nu după ea, iar cele două se așteaptă în paralel. Înainte se așteptau una după alta (până la 20 s pe web, mai ales în browsere cu blocare de urmărire, ca Brave). App Check, opțional pe server, are acum cel mult 3 s.

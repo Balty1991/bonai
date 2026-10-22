@@ -1,6 +1,6 @@
 /**
  * Funcțiile BonAI pe aplicația reală, cu bonuri de test (Vite + Chromium), în ambele teme, la 360 px:
- *   1. Economisit cu BonAI pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
+ *   1. „Ai economisit la cumpărături” pe Acasă — doar reduceri și alegeri mai ieftine din bonuri.
  *   0. Cheltuială fără bon: suma + categoria în 2 atingeri, repetare dintr-o atingere, apare în Toate costurile.
  *   2. Lista cu prețuri: ultimul preț pe bucată, unde și când, totalul estimat și magazinul mai ieftin.
  * Pică dacă cifra nu e cea calculată din bonuri, dacă un text iese din cutie sau dacă pagina aruncă erori.
@@ -120,8 +120,8 @@ const FEATURES = {
   async saved(page, theme) {
     const want = await expected(page);
     if (!(want.total > 0)) fail(`datele de test ar trebui să dea economii, nu ${want.total}`);
-    const card = page.locator(".sh-card", { hasText: "ECONOMISIT CU BONAI" }).first();
-    await waitFor(() => card.isVisible(), "cardul Economisit cu BonAI");
+    const card = page.locator(".sh-card", { hasText: "AI ECONOMISIT LA CUMPĂRĂTURI" }).first();
+    await waitFor(() => card.isVisible(), "cardul „Ai economisit la cumpărături”");
     const text = await card.innerText();
     if (!text.includes(leiRo(want.total))) fail(`cardul nu arată ${leiRo(want.total)}: ${text}`);
     for (const [label, value] of [["Reduceri pe bon", want.discounts], ["Magazin mai ieftin", want.store], ["Preț mai mic", want.drop]]) if (value > 0 && !text.includes(label)) fail(`lipsește „${label}”`);

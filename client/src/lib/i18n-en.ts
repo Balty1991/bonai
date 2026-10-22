@@ -5863,4 +5863,9 @@ export const en: Record<string, string> = {
   "/buc": "/pc",
   "Citit în {seconds} s": "Read in {seconds} s",
   "A durat mai mult: poza {photo} s · verificarea telefonului {id} s · citirea pe server {server} s · internetul {net} s.": "This took longer: photo {photo} s · phone check {id} s · server reading {server} s · internet {net} s.",
+  "Ai economisit": "You saved",
+  "luna asta, din reduceri": "this month, from discounts",
+  "Cât ai economisit la cumpărături": "How much you saved shopping",
+  "AI ECONOMISIT LA CUMPĂRĂTURI · {month}": "YOU SAVED SHOPPING · {month}",
+  "Reducerile și prețurile mai mici sunt ale magazinelor. BonAI doar le adună din bonurile tale, ca să vezi cât ai câștigat.": "The discounts and lower prices come from the stores. BonAI just adds them up from your receipts, so you can see what you gained.",
 };

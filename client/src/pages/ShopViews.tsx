@@ -184,7 +184,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
       ? { id: "debts", icon: <Landmark size={18} />, label: t("Datorii rămase"), value: lei(debts.remaining), hint: t("{amount} pe lună", { amount: lei(debts.monthly) }), onClick: onOpenCosts ? () => onOpenCosts("debts") : undefined }
       : { id: "receipts", icon: <ReceiptText size={18} />, label: t("Bonuri luna asta"), value: String(month.receipts), hint: month.loose ? looseLabel(month.loose) : t("scanate și citite"), onClick: () => onOpenMore("receipts") },
     { id: "inflation", icon: <ArrowUpRight size={18} />, label: t("Inflația ta"), value: !inflationOn ? "PRO" : inflation && inflation.products > 0 ? pct(inflation.percent) : "—", hint: !inflationOn ? t("deblochează cu Pro") : inflation && inflation.products > 0 ? t("{count} produse urmărite", { count: inflation.products }) : t("din bonurile tale"), tone: inflationOn && inflation && inflation.products > 0 ? (inflation.percent > 0 ? "up" : "down") : undefined, onClick: onOpenProducts },
-    { id: "saved", icon: <Sparkles size={18} />, label: t("Economisit"), value: savedNow.total > 0 && hasFeature(plan, "savedWithApp") ? lei(savedNow.total) : "—", hint: t("luna asta, cu BonAI"), tone: "down" },
+    { id: "saved", icon: <Sparkles size={18} />, label: t("Ai economisit"), value: savedNow.total > 0 && hasFeature(plan, "savedWithApp") ? lei(savedNow.total) : "—", hint: t("luna asta, din reduceri"), tone: "down" },
     { id: "save", icon: <Store size={18} />, label: t("Poți economisi"), value: canSave > 0 ? lei(canSave) : "—", hint: canSave > 0 ? (basket?.cheapest && basket.saving >= saving.total ? t("pe lună, la {vendor}", { vendor: basket.cheapest.vendor }) : t("luna asta, la alt magazin")) : t("compar magazinele"), tone: canSave > 0 ? "down" : undefined, onClick: onOpenStores },
   ];
   // Doar cifrele care au ceva de spus, în număr par, ca grila să rămână ordonată.
@@ -256,14 +256,15 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
 
     <UpcomingCard items={next} onCalendar={onOpenCosts ? () => onOpenCosts("calendar") : undefined} onOpen={(item) => { if (item.kind === "return" || item.kind === "warranty") onOpenMore("warranties"); else if (onOpenCosts) onOpenCosts(item.kind === "debt" ? "debts" : item.kind); }} />
 
-    {!fresh && (savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Economisit cu BonAI")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
-      <Card tone="accent" kicker={t("ECONOMISIT CU BONAI · {month}", { month: monthName(savedNow.month).toLocaleUpperCase("ro-RO") })} title={<span className="sh-saved-big">{lei(savedNow.total)}</span>}>
+    {!fresh && (savedNow.total > 0 || savedNow.allTime > 0) && <ProGate data={data} feature="savedWithApp" title={t("Cât ai economisit la cumpărături")} pitch={t("Vezi cât ai economisit din reducerile de pe bonuri și din magazinele mai ieftine, lună de lună.")}>
+      <Card tone="accent" kicker={t("AI ECONOMISIT LA CUMPĂRĂTURI · {month}", { month: monthName(savedNow.month).toLocaleUpperCase("ro-RO") })} title={<span className="sh-saved-big">{lei(savedNow.total)}</span>}>
         <ul className="sh-list sh-saved-split">
           {savedNow.discounts > 0 && <li><span><b>{t("Reduceri pe bon")}</b><small>{t("tipărite pe bonurile tale")}</small></span><b className="sh-down">{lei(savedNow.discounts)}</b></li>}
           {savedNow.store > 0 && <li><span><b>{t("Magazin mai ieftin")}</b><small>{t("față de ce ai dat ultima dată în alt magazin")}</small></span><b className="sh-down">{lei(savedNow.store)}</b></li>}
           {savedNow.drop > 0 && <li><span><b>{t("Preț mai mic")}</b><small>{t("același magazin, mai ieftin decât data trecută")}</small></span><b className="sh-down">{lei(savedNow.drop)}</b></li>}
         </ul>
         {savedNow.allTime > savedNow.total && <p className="sh-muted">{t("De la început: {amount}", { amount: lei(savedNow.allTime) })}</p>}
+        <p className="sh-muted sh-note">{t("Reducerile și prețurile mai mici sunt ale magazinelor. BonAI doar le adună din bonurile tale, ca să vezi cât ai câștigat.")}</p>
         {savedNow.total > 0 && <button type="button" className="sh-link" onClick={() => shareSaved(savedShareTextV2(savedNow.total, monthName(savedNow.month), PLAY_STORE_URL))}><Share2 size={16} aria-hidden="true" /> {t("Spune-le prietenilor")}</button>}
       </Card>
     </ProGate>}
