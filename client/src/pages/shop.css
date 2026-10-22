@@ -621,10 +621,20 @@ html[data-app="shop"] body .bf-utilities-workspace > .bf-sync::before, html[data
 .bn-report-sum b { font: 700 20px/1.15 var(--bn-head); color: var(--bn-ink); font-variant-numeric: tabular-nums; }
 .bn-report-sum .is-total b { font-size: 26px; }
 .bn-report-meta { font-size: 13px; }
-.bn-report-rows li > span { position: relative; padding-bottom: 6px; }
-.bn-report-rows li > span > i { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; transform-origin: left; background: linear-gradient(90deg, #8b5cf6, #22d3ee); opacity: .7; }
-.bn-report-rows li > b { display: grid; justify-items: end; gap: 1px; }
-.bn-report-rows li > b small { font-size: 12px; font-weight: 700; }
+.bn-report-rows li > span, .bn-report-row-btn > span { position: relative; padding-bottom: 6px; }
+.bn-report-rows li > span > i, .bn-report-row-btn > span > i { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; transform-origin: left; background: linear-gradient(90deg, #8b5cf6, #22d3ee); opacity: .7; }
+.bn-report-rows li > b, .bn-report-row-btn > b { display: grid; justify-items: end; gap: 1px; }
+.bn-report-rows li > b small, .bn-report-row-btn > b small { font-size: 12px; font-weight: 700; }
+/* Categoria apăsabilă: același rând, iar dedesubt produsele cumpărate în ea. */
+html[data-app="shop"] .sh-list.bn-report-rows > li.has-items { display: block; }
+.bn-report-row-btn { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.bn-report-row-btn > span { display: grid; gap: 2px; min-width: 0; }
+.bn-report-row-btn > span small { color: var(--bn-muted); }
+.bn-report-chev { display: block; color: var(--bn-muted); transform-origin: 50% 50%; transform-box: fill-box; transition: transform .2s ease; }
+/* Produsele categoriei stau într-o listă din rândul ei: fără liniile și spațiile rândurilor mari. */
+html[data-app="shop"] .sh-list .bn-report-items li { display: flex; padding: 0; border-top: 0; }
+html[data-app="shop"] .sh-list .bn-report-items li > span { display: block; min-width: 0; }
+html[data-app="shop"] .sh-list .bn-report-items li small { display: inline; color: var(--bn-muted); font-size: 13px; }
 .bn-report-group { display: block !important; }
 .bn-report-group > button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; min-height: 52px; padding: 0; border: 0; background: none; color: var(--bn-ink); text-align: left; cursor: pointer; }
 .bn-report-group > button > span { display: grid; gap: 2px; }

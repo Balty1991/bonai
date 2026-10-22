@@ -72,3 +72,16 @@ describe("rapoarte", () => {
     expect(report.total).toBe(1065);
   });
 });
+
+describe("categoria își arată produsele", () => {
+  it("același produs de pe bonuri diferite e un rând, cel mai scump întâi; fără bon apare cu titlul", () => {
+    const d = createEmptyAppData();
+    const L = (id: string, label: string, amount: number, category = "Alimente") => ({ id, label, amount, category });
+    d.receipts = [
+      { id: "a", vendor: "Lidl", amount: 0, category: "Cumpărături", date: "2026-10-03", lines: [L("1", "Lapte Zuzu", 7), L("2", "Pâine", 5), L("3", "Detergent", 40, "Casă & facturi")] },
+      { id: "b", vendor: "Profi", amount: 0, category: "Cumpărături", date: "2026-10-10", lines: [L("4", "lapte zuzu", 8), L("5", "", 2)] },
+    ];
+    const alimente = buildReport(d, "month", "2026-10-20").categories.find((row) => row.key === "Alimente")!;
+    expect(alimente.items).toEqual([{ label: "Lapte Zuzu", amount: 15, count: 2 }, { label: "Pâine", amount: 5, count: 1 }, { label: "Rând fără nume", amount: 2, count: 1 }]);
+  });
+});

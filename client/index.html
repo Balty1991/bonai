@@ -253,6 +253,16 @@
           var schedule = localStorage.getItem("buget-familie:theme-schedule");
           if (schedule === "system" || !localStorage.getItem("bonai:look-v1") || (!schedule && !localStorage.getItem("buget-familie:setup-complete"))) {
             theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "white";
+            // „Automat”: noaptea (implicit 21:00–6:00) e închisă și cu telefonul pe luminos, ca în useThemeChrome.
+            try {
+              var nowS = new Date();
+              var minS = nowS.getHours() * 60 + nowS.getMinutes();
+              var timesS = JSON.parse(localStorage.getItem("buget-familie:theme-schedule-times") || "null") || {};
+              var partS = function (value, fallback) { var p = String(value || "").split(":"); var h = Number(p[0]); var m = Number(p[1]); return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : fallback; };
+              var dayS = partS(timesS.dayStart, 360);
+              var nightS = partS(timesS.nightStart, 1260);
+              if (dayS < nightS ? minS >= nightS || minS < dayS : minS >= nightS && minS < dayS) theme = "dark";
+            } catch (e) {}
           } else if (schedule === "auto") {
             var now = new Date();
             var minutes = now.getHours() * 60 + now.getMinutes();

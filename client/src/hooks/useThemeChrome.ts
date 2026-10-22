@@ -6,6 +6,7 @@ import {
   LIGHT_THEMES,
   automaticTheme,
   backgroundOptions,
+  isNightMinutes,
   currentLocalMinutes,
   defaultScheduleTimes,
   type BackgroundId,
@@ -69,7 +70,8 @@ export function useThemeChrome() {
    */
   const [clockMinutes, setClockMinutes] = useState(() => currentLocalMinutes());
   useEffect(() => {
-    if (themeSchedule !== "auto") return;
+    // „Automat” (system) ține și el ceasul: noaptea trece pe tema închisă și cu telefonul pe luminos.
+    if (themeSchedule !== "auto" && themeSchedule !== "system") return;
     const tick = () => setClockMinutes(currentLocalMinutes());
     const timer = window.setInterval(tick, 60_000);
     const onVisible = () => { if (document.visibilityState === "visible") tick(); };
@@ -78,7 +80,7 @@ export function useThemeChrome() {
     tick();
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("focus", tick); };
   }, [themeSchedule]);
-  const activeTheme = themeSchedule === "auto" ? automaticTheme(clockMinutes, scheduleTimes) : themeSchedule === "system" ? (prefersDark ? "dark" : "white") : theme;
+  const activeTheme = themeSchedule === "auto" ? automaticTheme(clockMinutes, scheduleTimes) : themeSchedule === "system" ? (prefersDark || isNightMinutes(clockMinutes, scheduleTimes) ? "dark" : "white") : theme;
   const previousThemeRef = useRef<ThemeId>(activeTheme);
   const themeTransitionReady = useRef(false);
 
