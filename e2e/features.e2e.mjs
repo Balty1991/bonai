@@ -309,6 +309,46 @@ const FEATURES = {
     const cut = await clipped(page, ".bn-city-offer");
     if (cut.length) fail(`text tăiat: ${cut.join(" | ")}`);
   },
+  /** 6e. Lista goală: „Iei des” cu nume lungi din bonuri nu împinge ecranul în lateral; o atingere pune produsul pe listă. */
+  async emptylist(page, theme) {
+    await page.evaluate(async () => {
+      const s = await import("/src/lib/app-storage.ts");
+      const d = await s.readAppData();
+      const long = "Apă minerală naturală carbogazoasă Perla Harghitei 2 l SGR";
+      d.settings.shoppingList = [];
+      d.receipts = d.receipts.map((receipt, index) => index < 2 ? { ...receipt, lines: [...(receipt.lines || []), { id: `long${index}`, label: long, amount: 6.5, category: "Apă" }] } : receipt);
+      const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(d, later); s.writeLocalStorageSnapshot(JSON.stringify(d), later);
+    });
+    await page.reload(); await page.waitForTimeout(2000);
+    await page.locator(".os-dock-v2 > button").nth(1).click(); await page.waitForTimeout(900);
+    const chips = page.locator(".bf-shop-chip");
+    await waitFor(() => chips.first().isVisible(), "butoanele „Iei des”");
+    // Pagina nu se derulează în lateral (e tăiată), așa că se verifică marginea dreaptă a fiecărui element.
+    const out = await page.evaluate(() => Array.from(document.querySelectorAll(".sh-page *")).filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.right > window.innerWidth + 1; }).map((el) => `${el.className || el.tagName}: ${(el.textContent || "").trim().slice(0, 30)}`).slice(0, 4));
+    if (out.length) fail(`lista goală iese din ecran: ${out.join(" | ")}`);
+    await shot(page, `empty-list-${theme}`, page.locator(".bf-shop-empty"));
+    const first = (await chips.first().innerText()).trim();
+    await chips.first().click();
+    await waitFor(() => page.evaluate(async (name) => ((await (await import("/src/lib/app-storage.ts")).readAppData()).settings.shoppingList || []).some((item) => item.text === name), first), `„${first}” pus pe listă`);
+  },
+  /** 6f. Rapoarte: apeși pe o categorie și vezi produsele cumpărate în ea, fără să iasă din ecran. */
+  async reportcat(page, theme) {
+    await page.locator(".os-dock-v2 > button").nth(3).click(); await page.waitForTimeout(800);
+    await page.getByRole("tab", { name: /^Rapoarte$/ }).click(); await page.waitForTimeout(900);
+    const row = page.locator(".bn-report-row-btn", { hasText: "Alimente" }).first();
+    await waitFor(() => row.isVisible(), "categoria Alimente în Rapoarte");
+    await row.click();
+    const items = page.locator(".bn-report-items").first();
+    await waitFor(() => items.isVisible(), "produsele din Alimente");
+    const text = await items.innerText();
+    if (!/Lapte Zuzu/.test(text) || !/Pâine albă/.test(text)) fail(`produsele categoriei lipsesc: ${text}`);
+    if ((await row.getAttribute("aria-expanded")) !== "true") fail("rândul nu spune că e deschis");
+    const out = await page.evaluate(() => Array.from(document.querySelectorAll(".bn-report-items *")).filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1).length);
+    if (out) fail(`produsele ies din ecran (${out})`);
+    await shot(page, `report-category-${theme}`, items);
+    await row.click();
+    await waitFor(async () => !(await items.isVisible()), "a doua atingere închide lista");
+  },
   /** 6c. Prețuri față de data trecută la verificare, bonul în euro salvat în lei, și listele multiple. */
   async pricesfx(page, theme) {
     await page.evaluate(async () => {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1 (247)
+
+- **Lista goală nu mai iese din ecran**: butoanele „Iei des” cu nume lungi din bonuri („Apă minerală carbogazoasă Perla Harghitei 2 l”) împingeau tot ecranul Cumpărături în dreapta (titlul, fila Meniu și „Adaugă” erau tăiate). Acum fiecare buton e cât textul lui, iar numele lungi se termină cu „…”. Testul nou din e2e verifică marginea dreaptă a fiecărui element.
+- **Rapoarte → Pe categorii**: apeși pe o categorie și vezi ce ai cumpărat în ea în perioada aleasă: fiecare produs o singură dată (același produs de pe mai multe bonuri se adună), cu suma și de câte ori; cheltuielile fără bon apar cu titlul lor. A doua atingere închide lista.
+- **Tema „Automat”** trece pe închis și noaptea (21:00–6:00, după orele din programul temei), nu doar când telefonul e pe tema închisă; se schimbă singură la ora respectivă, și la pornire, fără clipire.
+
 ## 2.9.0 (246)
 
 Din auditul de produs și UI (22.10.2026):

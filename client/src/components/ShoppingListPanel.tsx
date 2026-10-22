@@ -122,7 +122,7 @@ export function ShoppingListPanel({ data, onChange }: { data: AppData; onChange:
     </div>}
     {todo.length > 0 ? <ul className="bf-shop-list">{todo.map(row)}</ul> : <div className="bf-shop-empty"><ListChecks size={22} aria-hidden="true" /><p>{done.length ? t("Ai luat tot de pe listă.") : t("Lista e goală. Scrie mai multe deodată, despărțite prin virgulă.")}</p>
       <div className="bf-shop-usual"><small>{usual.length ? t("Iei des:") : t("De exemplu:")}</small>
-        {(usual.length ? usual : [t("lapte"), t("pâine"), t("ouă"), t("cafea"), t("roșii")]).map((name) => <button key={name} type="button" className="bf-shop-chip" onClick={() => addNames([name])}><Plus size={14} aria-hidden="true" /> {name}</button>)}
+        {(usual.length ? usual : [t("lapte"), t("pâine"), t("ouă"), t("cafea"), t("roșii")]).map((name) => <button key={name} type="button" className="bf-shop-chip" title={name} onClick={() => addNames([name])}><Plus size={14} aria-hidden="true" /><span>{name}</span></button>)}
       </div></div>}
     {done.length > 0 && <>
       <p className="bf-kicker bf-shop-done-title">{t("ÎN COȘ · {count}", { count: done.length })}</p>

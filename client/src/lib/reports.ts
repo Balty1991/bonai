@@ -13,7 +13,9 @@ import { fixedCostEntries, spendEntries } from "./quick-expense";
 
 export type ReportGrain = "day" | "week" | "month" | "quarter" | "year";
 export type FixedGroupId = "rates" | "loans" | "bank" | "subscriptions" | "bills";
-export type ReportRow = { key: string; label: string; amount: number; previous: number; count: number };
+/** Ce s-a cumpărat într-o categorie: produsul (sau cheltuiala fără bon), cât s-a dat și de câte ori. */
+export type ReportItem = { label: string; amount: number; count: number };
+export type ReportRow = { key: string; label: string; amount: number; previous: number; count: number; items?: ReportItem[] };
 export type FixedItem = { id: string; title: string; amount: number; date: string };
 export type FixedGroup = { id: FixedGroupId; total: number; previous: number; items: FixedItem[] };
 export type Report = {
@@ -62,19 +64,29 @@ export function reportTitle(grain: ReportGrain, from: string, to: string): strin
 
 const inRange = <T extends { date: string }>(list: T[], from: string, to: string) => list.filter((item) => item.date >= from && item.date <= to);
 
-function rows(now: Map<string, { label: string; amount: number; count: number }>, before: Map<string, number>): ReportRow[] {
-  return Array.from(now, ([key, row]) => ({ key, label: row.label, amount: r2(row.amount), previous: r2(before.get(key) || 0), count: row.count })).sort((a, b) => b.amount - a.amount);
+type RowAcc = { label: string; amount: number; count: number; items?: Map<string, ReportItem> };
+
+function rows(now: Map<string, RowAcc>, before: Map<string, number>): ReportRow[] {
+  return Array.from(now, ([key, row]) => ({ key, label: row.label, amount: r2(row.amount), previous: r2(before.get(key) || 0), count: row.count,
+    ...(row.items ? { items: Array.from(row.items.values()).map((item) => ({ ...item, amount: r2(item.amount) })).sort((a, b) => b.amount - a.amount) } : {}) })).sort((a, b) => b.amount - a.amount);
 }
 
+/** Pe categorii, cu produsele din fiecare: același produs de pe bonuri diferite se adună într-un rând. */
 function byCategory(list: Receipt[]) {
-  const out = new Map<string, { label: string; amount: number; count: number }>();
+  const out = new Map<string, RowAcc>();
   for (const entry of list) {
-    const lines = entry.lines?.length ? entry.lines : [{ category: entry.category, amount: entry.amount }];
+    // Cheltuiala fără bon apare cu titlul ei; rândul de bon fără nume, ca „rând fără nume”.
+    const lines = entry.lines?.length ? entry.lines : [{ category: entry.category, amount: entry.amount, label: entry.vendor || "" }];
     for (const line of lines) {
       if (!(line.amount > 0)) continue;
       const key = line.category || "Altele";
-      const row = out.get(key) || { label: key, amount: 0, count: 0 };
+      const row = out.get(key) || { label: key, amount: 0, count: 0, items: new Map<string, ReportItem>() };
       row.amount += line.amount; row.count += 1;
+      const name = (line.label || "").trim() || "Rând fără nume";
+      const itemKey = foldRomanian(name).toLowerCase();
+      const item = row.items!.get(itemKey) || { label: name, amount: 0, count: 0 };
+      item.amount += line.amount; item.count += 1;
+      row.items!.set(itemKey, item);
       out.set(key, row);
     }
   }

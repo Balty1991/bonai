@@ -47,12 +47,20 @@ function Donut({ rows, total, label }: { rows: ReportRow[]; total: number; label
 
 function Rows({ rows, limit, icon }: { rows: Array<ReportRow & { extra?: string }>; limit: number; icon?: (label: string) => string }) {
   const [all, setAll] = useState(false);
+  // O categorie apăsată își arată produsele cumpărate în perioada raportului.
+  const [open, setOpen] = useState<string>();
   const shown = all ? rows : rows.slice(0, limit);
   const max = Math.max(1, ...rows.map((row) => row.amount));
+  const head = (row: ReportRow & { extra?: string }) => <>
+    <span><b>{icon ? `${icon(row.label)} ` : ""}{t(row.label)}</b><small>{row.extra || (row.count === 1 ? t("o dată") : t("{count} ori", { count: row.count }))}</small><i aria-hidden="true" style={{ transform: `scaleX(${row.amount / max})` }} /></span>
+    <b>{lei(row.amount)}<Delta now={row.amount} before={row.previous} /></b>
+  </>;
   return <>
-    <ul className="sh-list bn-report-rows">{shown.map((row) => <li key={row.key}>
-      <span><b>{icon ? `${icon(row.label)} ` : ""}{t(row.label)}</b><small>{row.extra || (row.count === 1 ? t("o dată") : t("{count} ori", { count: row.count }))}</small><i aria-hidden="true" style={{ transform: `scaleX(${row.amount / max})` }} /></span>
-      <b>{lei(row.amount)}<Delta now={row.amount} before={row.previous} /></b>
+    <ul className="sh-list bn-report-rows">{shown.map((row) => <li key={row.key} className={row.items?.length ? "has-items" : undefined}>
+      {row.items?.length ? <button type="button" className="bn-report-row-btn" aria-expanded={open === row.key} onClick={() => setOpen(open === row.key ? undefined : row.key)}>{head(row)}<ChevronDown size={16} aria-hidden="true" className="bn-report-chev" style={{ transform: open === row.key ? "rotate(180deg)" : undefined }} /></button> : head(row)}
+      {open === row.key && row.items && <ul className="bn-report-items" aria-label={t("Ce ai luat la {category}", { category: t(row.label) })}>{row.items.slice(0, 30).map((item) => <li key={item.label}>
+        <span>{item.label === "Rând fără nume" ? t(item.label) : item.label}{item.count > 1 && <small> · {t("{count} ori", { count: item.count })}</small>}</span><b>{lei(item.amount)}</b>
+      </li>)}{row.items.length > 30 && <li className="sh-muted">{t("și încă {count}", { count: row.items.length - 30 })}</li>}</ul>}
     </li>)}</ul>
     {rows.length > limit && <button type="button" className="sh-link" aria-expanded={all} onClick={() => setAll(!all)}>{all ? t("Arată mai puțin") : t("Vezi toate ({count})", { count: rows.length })} <ChevronDown size={16} aria-hidden="true" style={{ transform: all ? "rotate(180deg)" : undefined }} /></button>}
   </>;

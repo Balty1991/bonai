@@ -33,8 +33,11 @@ html body .bf-shopping .bf-shop-lists button.is-new{border-style:dashed;color:va
 .bf-shop-newlist{flex:none}
 html body .bf-shopping .bf-shop-newlist input{width:180px;min-height:40px;padding:0 14px;border:1px solid var(--cf-primary);border-radius:999px;background:var(--cf-surface);color:var(--cf-ink)}
 html body .bf-shopping button.bf-shop-droplist{justify-self:start;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0;border:0;background:none;color:var(--cf-muted);font-size:13px;box-shadow:none}
-.bf-shop-empty{flex-wrap:wrap}
-.bf-shop-usual{display:flex;flex-basis:100%;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.bf-shop-empty{flex-wrap:wrap;min-width:0}
+.bf-shop-empty p{flex:1 1 0;min-width:0}
+/* Numele lungi din bonuri („Apă minerală … 2 l”) se scurtează cu „…”, nu împing ecranul în lateral. */
+.bf-shop-usual{display:flex;flex:1 1 100%;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;max-width:100%}
 .bf-shop-usual small{flex-basis:100%;font-weight:650}
-.bf-shop-chip{display:inline-flex;align-items:center;gap:4px;max-width:100%;min-height:40px;padding:0 14px;border:1px solid var(--cf-line);border-radius:999px;background:transparent;color:var(--bn-accent,currentColor);font:inherit;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.bf-shop-chip{display:inline-flex;flex:0 1 auto;width:auto;justify-content:flex-start;align-items:center;gap:4px;min-width:0;max-width:100%;min-height:40px;padding:0 14px;border:1px solid var(--cf-line);border-radius:999px;background:transparent;color:var(--bn-accent,currentColor);font:inherit;font-weight:650;cursor:pointer}
+.bf-shop-chip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bf-shop-chip svg{flex:none}

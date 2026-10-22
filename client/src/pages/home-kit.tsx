@@ -38,6 +38,8 @@ export const defaultScheduleTimes: ThemeScheduleTimes = { dayStart: "06:00", eve
 export const timeToMinutes = (value: string, fallback: number) => { const [hours, minutes] = value.split(":").map(Number); return Number.isFinite(hours) && Number.isFinite(minutes) && hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60 ? hours * 60 + minutes : fallback; };
 export const currentLocalMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
 export const visibleThemeOptions = themeOptions.filter((option) => option.id === "white" || option.id === "dark" || option.id === "navy");
+/** Noaptea, după programul temei (implicit 21:00–6:00): „Automat” trece pe tema închisă și cu telefonul pe luminos. */
+export const isNightMinutes = (minutes: number, times: ThemeScheduleTimes): boolean => { const dayStart = timeToMinutes(times.dayStart, 360); const nightStart = timeToMinutes(times.nightStart, 1260); return dayStart < nightStart ? minutes >= nightStart || minutes < dayStart : minutes >= nightStart && minutes < dayStart; };
 export const automaticTheme = (minutes: number, times: ThemeScheduleTimes): ThemeId => { const dayStart = timeToMinutes(times.dayStart, 360); const eveningStart = timeToMinutes(times.eveningStart, 1020); const nightStart = timeToMinutes(times.nightStart, 1260); if (dayStart < eveningStart && eveningStart < nightStart) return minutes >= dayStart && minutes < eveningStart ? "white" : minutes >= eveningStart && minutes < nightStart ? "navy" : "dark"; return minutes >= 6 * 60 && minutes < 17 * 60 ? "white" : minutes >= 17 * 60 && minutes < 21 * 60 ? "navy" : "dark"; };
 /**
  * Formatarea se face la fiecare apel, nu o dată la încărcarea modulului: altfel
