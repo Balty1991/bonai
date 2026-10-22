@@ -152,8 +152,12 @@ public class MainActivity extends BridgeActivity {
       /* Edge-to-edge (targetSdk 36): WebView-ul nu primește inset-uri fiabile prin env()/JS
          (injecția se pierde la reîncărcarea paginii). Mutăm WebView-ul nativ între bara de
          stare și bara de navigare; pagina primește inset 0 și nu mai e acoperită. */
+      /* Tastatura: în edge-to-edge Android nu mai micșorează fereastra, iar tastatura acoperea
+         câmpul în care scrii (asistentul, lista). Partea de jos ține cât e mai înalt dintre bara
+         de navigare și tastatură, așa că pagina se scurtează și câmpul rămâne deasupra ei. */
+      final int ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
       if (view.getParent() instanceof View) {
-        ((View) view.getParent()).setPadding(bars.left, bars.top, bars.right, bars.bottom);
+        ((View) view.getParent()).setPadding(bars.left, bars.top, bars.right, Math.max(bars.bottom, ime));
       }
       injectSafeArea(webView, Insets.NONE);
       return WindowInsetsCompat.CONSUMED;

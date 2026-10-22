@@ -9,6 +9,7 @@ Din auditul de produs și UI (22.10.2026):
 - **Prețuri → Produse**: titlul și produsele tale vin primele; verificarea la raft e un card scurt (butonul de scanare și cifrele), care se deschide complet doar când verifici un cod.
 - **Lista goală**: butoane cu produsele pe care le iei des (din bonurile ultimelor 90 de zile) sau, fără bonuri, câteva exemple; o atingere și sunt pe listă.
 - **Abonamentele vechi scoase**: ecranele cu prețurile vechiului plan „Familia” (19,99 lei/lună, 149 lei/an) nu mai există; sincronizarea pe al doilea telefon arată prețul BonAI Familie.
+- **Tastatura nu mai acoperă câmpul în care scrii** (asistentul, lista, formularele): în aplicația Android pagina se scurtează cât e înaltă tastatura (edge-to-edge nu mai făcea asta singur); în browser, la fel (`interactive-widget=resizes-content`).
 - **Documentație**: paleta reală (violet, petrol pentru economisit, roșu pentru scumpiri) în `docs/ARHITECTURA.md`; `docs/play/CAPTURI.md` descrie capturile noi.
 
 ## 2.8.2 (245)
