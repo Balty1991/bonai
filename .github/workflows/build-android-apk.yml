@@ -98,7 +98,7 @@ jobs:
         with:
           name: BonAI-${{ steps.versiune.outputs.value }}
           path: android/app/build/outputs/apk/release/BonAI-${{ steps.versiune.outputs.value }}.apk
-          retention-days: 5
+          retention-days: 1
       - name: Dovadă că APK-ul a ieșit din acest workflow
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:

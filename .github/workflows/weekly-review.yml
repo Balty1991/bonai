@@ -109,4 +109,4 @@ jobs:
         with:
           name: revizie-loguri
           path: review/
-          retention-days: 14
+          retention-days: 1

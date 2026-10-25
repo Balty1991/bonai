@@ -95,7 +95,7 @@ jobs:
           # archivesBaseName = "BonAI", deci fișierul e BonAI-release.aab, nu app-release.aab.
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
-          retention-days: 5
+          retention-days: 1
       - name: Dovadă că AAB-ul a ieșit din acest workflow
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
