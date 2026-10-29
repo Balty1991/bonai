@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.9.2 (248)
+
+- **Tema „Automat” urmează din nou telefonul**: în aplicația Android, pagina vedea telefonul mereu „luminos” (WebView ia prefers-color-scheme din tema aplicației, care e luminoasă ca splash-ul să nu se deschidă pe negru). Acum aplicația întreabă Android direct (`BugetFamilieSplash.systemDark`) și află pe loc când telefonul trece pe închis sau luminos (`onConfigurationChanged` și la revenirea în aplicație), inclusiv la pornire. Noaptea (21–6) rămâne închisă. Test e2e nou: `autotheme`.
+- **Securitate (raportul săptămânal din 29.10.2026)**: scos `jspdf`, nefolosit de mult, care aducea DOMPurify cu o vulnerabilitate critică și două grave; actualizate body-parser 1.20.9, qs 6.16.1 și re2js 2.9.1 (`pnpm.overrides`), iar în funcțiile de pe server proxy-addr și body-parser (`npm audit fix`). `pnpm audit --prod` și `npm audit --omit=dev` din `functions/` nu mai găsesc nimic.
+
 ## 2.9.1 (247)
 
 - **Lista goală nu mai iese din ecran**: butoanele „Iei des” cu nume lungi din bonuri („Apă minerală carbogazoasă Perla Harghitei 2 l”) împingeau tot ecranul Cumpărături în dreapta (titlul, fila Meniu și „Adaugă” erau tăiate). Acum fiecare buton e cât textul lui, iar numele lungi se termină cu „…”. Testul nou din e2e verifică marginea dreaptă a fiecărui element.

@@ -349,6 +349,22 @@ const FEATURES = {
     await row.click();
     await waitFor(async () => !(await items.isVisible()), "a doua atingere închide lista");
   },
+  /** 6g. Tema „Automat” în aplicația Android: urmează tema telefonului (puntea nativă), și când se schimbă din mers. */
+  async autotheme(page) {
+    await page.clock.install({ time: new Date("2026-10-29T12:00:00") });
+    await page.context().addInitScript(() => {
+      window.__systemDark = true;
+      window.BugetFamilieSplash = { systemDark: () => window.__systemDark, hide() {}, setChrome() {}, persistTheme() {} };
+      try { localStorage.setItem("buget-familie:theme-schedule", "system"); } catch { /* about:blank */ }
+    });
+    await page.reload(); await page.waitForTimeout(1500);
+    const dark = () => page.evaluate(() => document.documentElement.classList.contains("dark"));
+    await waitFor(dark, "tema închisă cu telefonul pe închis, la prânz");
+    await page.evaluate(() => { window.__systemDark = false; window.dispatchEvent(new CustomEvent("buget-familie:system-theme", { detail: { dark: false } })); });
+    await waitFor(async () => !(await dark()), "tema luminoasă după ce telefonul a trecut pe luminos");
+    await page.evaluate(() => { window.__systemDark = true; window.dispatchEvent(new CustomEvent("buget-familie:system-theme", { detail: { dark: true } })); });
+    await waitFor(dark, "din nou închisă, fără repornire");
+  },
   /** 6c. Prețuri față de data trecută la verificare, bonul în euro salvat în lei, și listele multiple. */
   async pricesfx(page, theme) {
     await page.evaluate(async () => {

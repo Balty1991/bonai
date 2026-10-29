@@ -1,6 +1,6 @@
 {
   "name": "buget-familie",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "type": "module",
   "license": "UNLICENSED",
   "private": true,
@@ -46,7 +46,6 @@
     "clsx": "^2.1.1",
     "express": "^4.22.3",
     "firebase": "^12.18.0",
-    "jspdf": "^4.2.1",
     "lucide-react": "^0.453.0",
     "qrcode-generator": "^2.0.4",
     "react": "^19.2.1",
@@ -97,8 +96,10 @@
     "overrides": {
       "tailwindcss>nanoid": "3.3.7",
       "proxy-addr": "^2.0.8",
-      "dompurify": "^3.4.16",
-      "@grpc/grpc-js@<1.13.6": "^1.14.5"
+      "@grpc/grpc-js@<1.13.6": "^1.14.5",
+      "body-parser@<1.20.9": "^1.20.9",
+      "qs@>=6.7.0 <6.16.1": "^6.16.1",
+      "re2js@<2.8.7": "^2.8.7"
     }
   }
 }

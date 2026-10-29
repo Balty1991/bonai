@@ -252,7 +252,9 @@
           if (legacy[theme]) theme = legacy[theme];
           var schedule = localStorage.getItem("buget-familie:theme-schedule");
           if (schedule === "system" || !localStorage.getItem("bonai:look-v1") || (!schedule && !localStorage.getItem("buget-familie:setup-complete"))) {
-            theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "white";
+            var nativeDark;
+            try { if (window.BugetFamilieSplash && typeof window.BugetFamilieSplash.systemDark === "function") nativeDark = window.BugetFamilieSplash.systemDark(); } catch (e) {}
+            theme = (typeof nativeDark === "boolean" ? nativeDark : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "white";
             // „Automat”: noaptea (implicit 21:00–6:00) e închisă și cu telefonul pe luminos, ca în useThemeChrome.
             try {
               var nowS = new Date();
