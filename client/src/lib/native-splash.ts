@@ -14,7 +14,18 @@ export type SplashBridge = {
   hide?: () => void;
   setChrome?: (navHex: string, lightIcons: boolean) => void;
   persistTheme?: (dark: boolean) => void;
+  /** Tema telefonului, de la Android: în WebView, prefers-color-scheme rămâne „light” (tema aplicației). */
+  systemDark?: () => boolean;
 };
+
+/** Telefonul e pe tema închisă? În aplicația Android întreabă sistemul; în browser, prefers-color-scheme. */
+export function systemPrefersDark(): boolean {
+  try {
+    const native = typeof window !== "undefined" ? window.BugetFamilieSplash?.systemDark : undefined;
+    if (typeof native === "function") return Boolean(native.call(window.BugetFamilieSplash));
+  } catch { /* punte indisponibilă: browserul */ }
+  try { return window.matchMedia("(prefers-color-scheme: dark)").matches; } catch { return false; }
+}
 
 declare global {
   interface Window {

@@ -16,7 +16,7 @@ import {
 } from "@/pages/home-kit";
 import { ALL_THEME_CLASS_IDS, resolveInitialTheme } from "@/lib/theme-default";
 import { safeSetItem } from "@/lib/safe-storage";
-import { syncAndroidChrome } from "@/lib/native-splash";
+import { syncAndroidChrome, systemPrefersDark } from "@/lib/native-splash";
 import { applyTint, readTint } from "@/lib/theme-tint";
 
 export function useThemeChrome() {
@@ -30,15 +30,21 @@ export function useThemeChrome() {
     // Cine a ales deja o temă o păstrează; cine vine acum urmează telefonul (luminos/întunecat).
     return window.localStorage.getItem("buget-familie:setup-complete") ? "manual" : "system";
   });
-  const [prefersDark, setPrefersDark] = useState(() => { try { return window.matchMedia("(prefers-color-scheme: dark)").matches; } catch { return false; } });
+  const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
   useEffect(() => {
     if (themeSchedule !== "system") return;
+    // În aplicația Android tema telefonului vine de la sistem (evenimentul nativ la schimbare și la revenire);
+    // în browser, din prefers-color-scheme.
+    const onChange = () => setPrefersDark(systemPrefersDark());
+    const onNative = (event: Event) => { const dark = (event as CustomEvent<{ dark?: boolean }>).detail?.dark; setPrefersDark(typeof dark === "boolean" ? dark : systemPrefersDark()); };
+    const onVisible = () => { if (document.visibilityState === "visible") onChange(); };
     let query: MediaQueryList | undefined;
-    try { query = window.matchMedia("(prefers-color-scheme: dark)"); } catch { return; }
-    const onChange = () => setPrefersDark(query!.matches);
+    try { query = window.matchMedia("(prefers-color-scheme: dark)"); } catch { /* fără matchMedia */ }
     onChange();
-    query.addEventListener?.("change", onChange);
-    return () => query?.removeEventListener?.("change", onChange);
+    query?.addEventListener?.("change", onChange);
+    window.addEventListener("buget-familie:system-theme", onNative);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { query?.removeEventListener?.("change", onChange); window.removeEventListener("buget-familie:system-theme", onNative); document.removeEventListener("visibilitychange", onVisible); };
   }, [themeSchedule]);
   const [background, setBackground] = useState<BackgroundId>(() => {
     const saved = window.localStorage.getItem("buget-familie:background");

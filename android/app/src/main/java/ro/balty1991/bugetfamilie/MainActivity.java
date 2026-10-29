@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentCallbacks2;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -273,10 +274,31 @@ public class MainActivity extends BridgeActivity {
       webView.onResume();
     }
     activityResumed = true;
+    // Tema telefonului s-a putut schimba cât aplicația era în fundal (ex. „Întunecat la apus”).
+    notifyWebSystemTheme();
     if (quickActionNotifyPending && pendingQuickAction != null) {
       quickActionNotifyPending = false;
       notifyWebQuickAction();
     }
+  }
+
+  private boolean isSystemDark() {
+    return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+  }
+
+  /** Telefonul a trecut pe tema închisă sau luminoasă (activitatea nu se recreează: configChanges=uiMode). */
+  private void notifyWebSystemTheme() {
+    final WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+    if (webView == null) return;
+    final String js = "try{window.dispatchEvent(new CustomEvent('buget-familie:system-theme',{detail:{dark:"
+      + (isSystemDark() ? "true" : "false") + "}}))}catch(e){}";
+    webView.post(() -> webView.evaluateJavascript(js, null));
+  }
+
+  @Override
+  public void onConfigurationChanged(@NonNull Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    notifyWebSystemTheme();
   }
 
   @Override
@@ -361,6 +383,13 @@ public class MainActivity extends BridgeActivity {
           /* hex invalid din JS — păstrăm culoarea curentă */
         }
       });
+    }
+
+    /** Tema telefonului (luminoasă / întunecată). Pagina n-o află din prefers-color-scheme: WebView-ul
+        o ia din tema aplicației, care e mereu luminoasă (splash-ul nu se deschide pe negru). */
+    @JavascriptInterface
+    public boolean systemDark() {
+      return isSystemDark();
     }
 
     @JavascriptInterface
