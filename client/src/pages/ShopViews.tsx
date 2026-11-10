@@ -136,7 +136,7 @@ function UpcomingCard({ items, onOpen, onCalendar }: { items: ReadonlyArray<Upco
   </Card>;
 }
 
-export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores, onOpenMore, onOpenCosts }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "calendar") => void }) {
+export function ShopHome({ data, onScan, onManual, onOpenStats, onOpenProducts, onOpenStores, onOpenMore, onOpenCosts }: { data: AppData; onScan: () => void; onManual?: () => void; onOpenStats?: () => void; onOpenProducts: () => void; onOpenStores: () => void; onOpenMore: (tab: MoreView) => void; onOpenCosts?: (kind: "sub" | "bill" | "debts" | "calendar") => void }) {
   const today = isoToday();
   const month = useMemo(() => monthShopping(data, today), [data, today]);
   const top = useMemo(() => topProducts(data, today), [data, today]);
@@ -173,7 +173,7 @@ export function ShopHome({ data, onScan, onManual, onOpenProducts, onOpenStores,
   const me = data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];
   const hour = new Date().getHours();
   const hello = hour < 11 ? t("Bună dimineața") : hour < 18 ? t("Bună ziua") : t("Bună seara");
-  const openReports = () => { openPricesTab("stats"); onOpenProducts(); };
+  const openReports = () => { if (onOpenStats) onOpenStats(); else { openPricesTab("stats"); onOpenProducts(); } };
   const toPay = upcomingTotal(next);
   const payCount = next.filter((item) => item.amount).length;
   const canSave = Math.max(saving.total, basket?.cheapest ? basket.saving : 0);
@@ -419,7 +419,7 @@ export function HouseView({ data, onOpenMore, onOpenJournal, onOpenCosts, onOpen
     <div className="sh-rows">
       <Row icon={<ReceiptText size={20} />} title={t("Bonuri")} hint={t("toate bonurile scanate")} onClick={() => (onOpenCosts ? onOpenCosts("receipts") : onOpenMore("receipts"))} />
       <Row icon={<ShoppingBasket size={20} />} title={t("Toate cheltuielile")} hint={t("cu bon și fără bon")} onClick={() => (onOpenCosts ? onOpenCosts("costs") : onOpenJournal())} />
-      <Row icon={<BarChart3 size={20} />} title={t("Rapoarte")} hint={t("pe ce se duc banii, pe zi, lună sau an")} onClick={() => { openPricesTab("stats"); onOpenReports?.(); }} />
+      <Row icon={<BarChart3 size={20} />} title={t("Rapoarte")} hint={t("pe ce se duc banii, pe zi, lună sau an")} onClick={() => onOpenReports?.()} />
     </div>
     <p className="sh-kicker sh-group-title">{t("PLĂȚI ȘI DATORII")}</p>
     <div className="sh-rows">

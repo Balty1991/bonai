@@ -77,6 +77,7 @@ import { labelWithQty } from "@/lib/receipt-review-model";
 
 const QuickExpenseSheet = lazy(safeImport(() => import("@/components/QuickExpenseSheet").then((module) => ({ default: module.QuickExpenseSheet }))));
 const ReceiptReview = lazy(safeImport(() => import("@/components/ReceiptReview").then((module) => ({ default: module.ReceiptReview }))));
+const ReceiptStats = lazy(safeImport(() => import("@/components/ReceiptStats").then((module) => ({ default: module.ReceiptStats }))));
 const MoreViewScreen = lazy(safeImport(() => import("@/pages/home-secondary").then((module) => ({ default: module.MoreView }))));
 const ShopHome = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.ShopHome }))));
 const StoresView = lazy(safeImport(() => import("@/pages/ShopViews").then((module) => ({ default: module.StoresView }))));
@@ -96,7 +97,7 @@ const ReceiptScanButton = lazy(safeImport(() => import("@/components/ReceiptScan
  * „habits” și „calendar” cădeau tăcut înapoi pe Astăzi, deși ecranele există — un link
  * dintr-o notificare sau o scurtătură ducea în altă parte decât spunea.
  */
-const MAIN_VIEWS: MainView[] = ["shop", "list", "products", "stores", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
+const MAIN_VIEWS: MainView[] = ["shop", "list", "products", "stores", "receipt-stats", "house", "today", "journal", "plan", "obligations", "goals", "habits", "calendar", "insights", "utilities"];
 const initialMainView = (): MainView => {
   const requested = new URLSearchParams(window.location.search).get("view") as MainView | null;
   return requested && MAIN_VIEWS.includes(requested) ? requested : "today";
@@ -118,8 +119,9 @@ const warmedViews = new Set<MainView>(["today"]);
 const preloadView = (id: MainView): Promise<void> => {
   // Fiecare filă are învelișul ei leneș: îl pregătim pe al ei, nu doar pe cel al Acasă, altfel
   // prima apăsare pe Cumpărături, Prețuri sau Cont arăta „Pregătim…” o clipă.
-  const shopView = { shop: ShopHome, list: ListView, products: PricesView, stores: StoresView, house: HouseView } as Partial<Record<MainView, object>>;
+  const shopView = { shop: ShopHome, list: ListView, products: PricesView, stores: StoresView, "receipt-stats": ReceiptStats, house: HouseView } as Partial<Record<MainView, object>>;
   const task = id === "utilities" ? warmLazy(MoreViewScreen)
+    : id === "receipt-stats" ? warmLazy(ReceiptStats)
     : shopView[id] ? warmLazy(shopView[id]!).then(() => import("@/pages/ShopViews")).then((module) => module.warmShopViews())
     : Promise.resolve();
   return task.then(() => { warmedViews.add(id); });
@@ -312,7 +314,7 @@ export default function Home() {
     const id = window.setTimeout(() => {
       void ensureDeferredStyles();
       // Filele BonAI întâi: sunt cele din meniul de jos.
-      for (const tab of ["list", "products", "house", "stores"] as MainView[]) void preloadView(tab);
+      for (const tab of ["list", "products", "house", "stores", "receipt-stats"] as MainView[]) void preloadView(tab);
       void preloadView("plan");
       void preloadView("journal");
       void preloadView("utilities");
@@ -586,8 +588,8 @@ export default function Home() {
     { id: "utilities", label: t("Mai mult"), icon: MoreHorizontal },
   ];
   const shopMode = appMode === "shop" && !memberModeActive;
-  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "list" as MainView, label: t("Cumpărături"), icon: ShoppingBasket }, { id: "products" as MainView, label: t("Prețuri"), icon: Store }, { id: "house" as MainView, label: t("Cont"), icon: UserRound }];
-  const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], shopNav[1], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[3]];
+  const shopNav = [{ id: "shop" as MainView, label: t("Acasă"), icon: HomeIcon }, { id: "list" as MainView, label: t("Cumpărături"), icon: ShoppingBasket }, { id: "products" as MainView, label: t("Prețuri"), icon: Store }, { id: "receipt-stats" as MainView, label: t("Statistici"), icon: BarChart3 }, { id: "house" as MainView, label: t("Cont"), icon: UserRound }];
+  const shopDock: Array<{ id: MainView | "add"; label: string; icon: typeof LayoutGrid }> = [shopNav[0], { ...shopNav[1], label: t("Listă") }, shopNav[3], { id: "add", label: t("Scanează"), icon: ScanLine }, shopNav[2], shopNav[4]];
   /** Prima pornire în aplicația nouă s-a încheiat: nu mai întrebăm de salariu și plicuri. */
   // Orice drum spre „Notează” vechi (widget, scurtătură, tastatură) duce în BonAI la ecranul de bon.
   useEffect(() => { if (modal === "quick" && shopMode) setModal("expense"); }, [modal, shopMode]);
@@ -610,7 +612,7 @@ export default function Home() {
   openTxRef.current = () => openTx();
   // Schimbarea aplicației (Casa → Buget vechi și înapoi) duce pe ecranul de start al celei alese.
   useEffect(() => {
-    const shopViews: MainView[] = ["shop", "list", "products", "stores", "house"];
+    const shopViews: MainView[] = ["shop", "list", "products", "stores", "receipt-stats", "house"];
     if (appMode === "shop" && view === "today") setView("shop");
     if (appMode === "budget" && shopViews.includes(view)) setView("today");
   }, [appMode, view]);
@@ -623,12 +625,13 @@ export default function Home() {
   const onSyncScreen = view === "utilities" && more === "sync";
   const rawView = view;
   const current = () => {
-    const view = (["shop", "list", "products", "stores", "house", "utilities"] as MainView[]).includes(rawView) ? rawView : "shop";
-    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onManual={() => openTx()} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenCosts={setCostsKind} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
+    const view = (["shop", "list", "products", "stores", "receipt-stats", "house", "utilities"] as MainView[]).includes(rawView) ? rawView : "shop";
+    if (view === "receipt-stats") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim statisticile…")}</div>}><ReceiptStats data={data} onScan={openScan} /></Suspense>;
+    if (view === "shop") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim cumpărăturile…")}</div>}><ShopHome data={data} onScan={openScan} onManual={() => openTx()} onOpenStats={() => go("receipt-stats")} onOpenProducts={() => go("products")} onOpenStores={() => go("stores")} onOpenCosts={setCostsKind} onOpenMore={(tab) => { if (tab === "receipts") { setCostsKind("receipts"); return; } setMoreReturn({ view: "shop", label: t("Înapoi la Acasă") }); setMore(tab); go("utilities"); }} /></Suspense>;
     if (view === "list") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim lista…")}</div>}><ListView data={data} onChange={applyData} /></Suspense>;
     if (view === "products") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim prețurile…")}</div>}><PricesView data={data} onChange={applyData} /></Suspense>;
     if (view === "stores") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim magazinele…")}</div>}><StoresView data={data} /></Suspense>;
-    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenCosts={setCostsKind} onOpenReports={() => go("products")} onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
+    if (view === "house") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim contul…")}</div>}><HouseView data={data} onOpenCosts={setCostsKind} onOpenReports={() => go("receipt-stats") } onOpenMore={(tab) => { setMoreReturn({ view: "house", label: t("Înapoi la Cont") }); setMore(tab); go("utilities"); }} onOpenJournal={() => go("journal")} onOpenBudget={() => { setAppMode("budget"); }} look={themeSchedule === "system" ? "auto" : activeTheme === "white" ? "light" : "dark"} onLook={(look) => { if (look === "auto") { setThemeSchedule("system"); return; } setTheme(look === "light" ? "white" : "dark"); setThemeSchedule("manual"); }} /></Suspense>;
     if (view === "utilities") return <Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim instrumentele…")}</div>}><MoreViewScreen tab={more} setTab={(value) => { if (value !== more) { if (value === "charts") void import("@/components/ChartsPanel"); setMore(value); } if (value === "overview") setMoreReturn(null); }} backTo={moreReturn ? { label: moreReturn.label, go: () => { const target = moreReturn.view; setMoreReturn(null); setMore("overview"); go(target); } } : undefined} data={data} onChange={applyData} onAddReceipt={() => setModal("receipt")} onSaveReceipt={saveReceipt} onDeleteReceipt={(id) => { const found = data.receipts.find((item) => item.id === id); if (found) void deleteReceipt(found); }} onOpenCalendar={() => go("calendar")} onGo={go} receiptStorageNotice={receiptStorageNotice} sync={syncPanelProps} /></Suspense>;
     return null;
   };
@@ -655,7 +658,7 @@ export default function Home() {
     <div className="os-nav-fill" aria-hidden="true" />
     {/* Meniul de jos: Astăzi · Plicuri · ＋ Notează · Mișcări · Mai mult. „Notează” stă mereu în același loc, la mijloc;
         Obligațiile și Analiza sunt în „Mai mult”, ca pe telefon să rămână 4 file și butonul care contează. */}
-    {nav.length > 0 && !(shopMode && setupOpen) && <nav className="os-dock os-dock-v2" aria-label={t("Navigație mobilă")}>{(shopMode ? shopDock : dockNav).map((item) => {
+    {nav.length > 0 && !(shopMode && setupOpen) && <nav className={"os-dock os-dock-v2" + (shopMode ? " os-dock-shop" : "")} aria-label={t("Navigație mobilă")}>{(shopMode ? shopDock : dockNav).map((item) => {
       if (item.id === "add" && shopMode) return <button key="add" type="button" className="os-dock-add" onPointerDown={() => void import("@/components/ReceiptScanButton")} onClick={openScan}><span className="os-dock-add-disc"><ScanLine size={24} aria-hidden="true" /></span><span>{t("Scanează")}</span></button>;
       if (item.id === "add") return <button key="add" type="button" className="os-dock-add" onClick={() => openTx()}><span className="os-dock-add-disc"><Plus size={24} aria-hidden="true" /></span><span>{t("Notează")}</span></button>;
       const Icon = item.icon;
