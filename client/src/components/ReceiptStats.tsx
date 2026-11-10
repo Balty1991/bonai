@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3, ChevronLeft, ChevronRight, ScanLine, Store, X } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
-import { filterReceiptStatsData, periodStats, receiptStoreKey, type Grain } from "@/lib/shop-stats";
+import { filterReceiptStatsData, periodRange, periodStats, receiptStoreKey, type Grain } from "@/lib/shop-stats";
 import { CATEGORY_COLORS } from "@/lib/receipt-review-model";
 import { receiptsLabel, t } from "@/lib/i18n";
 
@@ -11,15 +11,20 @@ const PERIODS: Array<[Grain, string]> = [
   ["year", "An"],
 ];
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
+const monthAnchor = (month: string) => `${month}-15`;
 
 type CategoryPart = { category: string; amount: number; color: string };
 type StorePart = { key: string; vendor: string; amount: number; count: number };
+type ComparedCategory = { category: string; first: number; second: number };
 
 export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => void }) {
   const [grain, setGrain] = useState<Grain>("month");
   const [offset, setOffset] = useState(0);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [firstMonth, setFirstMonth] = useState(() => periodRange("month", isoToday(), -1).from.slice(0, 7));
+  const [secondMonth, setSecondMonth] = useState(() => isoToday().slice(0, 7));
   const today = isoToday();
   const selectedCategories = selectedCategory ? [selectedCategory] : undefined;
   const filteredReceipts = useMemo(
@@ -77,6 +82,28 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
   const selectedStoreLabel = selectedStore
     ? data.receipts.find((receipt) => receiptStoreKey(receipt.vendor) === selectedStore)?.vendor.trim() || t("Magazin necunoscut")
     : "";
+  const firstMonthStats = useMemo(
+    () => periodStats(filteredReceipts, "month", monthAnchor(firstMonth)),
+    [filteredReceipts, firstMonth],
+  );
+  const secondMonthStats = useMemo(
+    () => periodStats(filteredReceipts, "month", monthAnchor(secondMonth)),
+    [filteredReceipts, secondMonth],
+  );
+  const compareCategories: ComparedCategory[] = useMemo(() => {
+    const first = new Map(firstMonthStats.categories.map((item) => [item.category, item.amount]));
+    const second = new Map(secondMonthStats.categories.map((item) => [item.category, item.amount]));
+    const categories = Array.from(new Set(firstMonthStats.categories.map((item) => item.category).concat(secondMonthStats.categories.map((item) => item.category))));
+    return categories
+      .map((category) => ({ category, first: first.get(category) || 0, second: second.get(category) || 0 }))
+      .sort((a, b) => Math.max(b.first, b.second) - Math.max(a.first, a.second))
+      .slice(0, 6);
+  }, [firstMonthStats.categories, secondMonthStats.categories]);
+  const compareMaxTotal = Math.max(1, firstMonthStats.total, secondMonthStats.total);
+  const compareMaxCategory = Math.max(1, ...compareCategories.map((item) => Math.max(item.first, item.second)));
+  const compareDifference = secondMonthStats.total - firstMonthStats.total;
+  const comparePercent = firstMonthStats.total > 0 ? Math.round(compareDifference / firstMonthStats.total * 100) : undefined;
+  const monthsAreDifferent = firstMonth !== secondMonth;
   const toggleCategory = (category: string) => setSelectedCategory((current) => current === category ? null : category);
 
   return <div className="sh-page bn-receipt-stats">
@@ -95,6 +122,9 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
         <b>{stats.title}</b>
         <button type="button" className="bn-icon-btn" aria-label={t("Perioada următoare")} disabled={offset >= 0} onClick={() => setOffset((value) => Math.min(0, value + 1))}><ChevronRight size={20} /></button>
       </div>
+      <button type="button" className="bn-rs-compare-toggle" aria-expanded={compareOpen} onClick={() => setCompareOpen((open) => !open)}>
+        <BarChart3 size={16} aria-hidden="true" />{t(compareOpen ? "Ascunde comparația" : "Compară lunile")}
+      </button>
     </section>
 
     {(selectedStore || selectedCategory) && <div className="bn-rs-active-filters" aria-label={t("Filtre active")}>
@@ -107,6 +137,40 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
       </button>}
       <button type="button" className="bn-rs-clear-filters" onClick={() => { setSelectedStore(null); setSelectedCategory(null); }}>{t("Șterge filtrele")}</button>
     </div>}
+
+    {compareOpen && <section className="sh-card bn-rs-compare" aria-label={t("Comparație între două luni")}>
+      <div className="bn-rs-compare-heading">
+        <div><p className="sh-kicker">{t("COMPARAȚIE")}</p><h2 className="sh-title">{t("Comparație între două luni")}</h2></div>
+        <p className="sh-muted">{t("Comparația ține cont de filtrele active.")}</p>
+      </div>
+      <div className="bn-rs-compare-controls">
+        <label><span>{t("Prima lună")}</span><input type="month" value={firstMonth} max={today.slice(0, 7)} onChange={(event) => { if (event.target.value) setFirstMonth(event.target.value); }} /></label>
+        <label><span>{t("A doua lună")}</span><input type="month" value={secondMonth} max={today.slice(0, 7)} onChange={(event) => { if (event.target.value) setSecondMonth(event.target.value); }} /></label>
+      </div>
+      {!monthsAreDifferent ? <p className="bn-rs-compare-warning" role="alert">{t("Alege două luni diferite pentru a compara cheltuielile.")}</p> : <>
+        <div className="bn-rs-compare-summary">
+          <div className="bn-rs-compare-delta"><span>{t("Diferență totală")}</span><strong className={compareDifference > 0 ? "is-up" : compareDifference < 0 ? "is-down" : ""}>{compareDifference > 0 ? "+" : ""}{lei(compareDifference)}</strong>
+            <small>{comparePercent !== undefined ? `${comparePercent > 0 ? "+" : ""}${comparePercent}% ${t("față de luna de referință")}` : t("Nu există bază de comparație")}</small></div>
+          <div className="bn-rs-compare-total"><span>{firstMonthStats.title}</span><strong>{lei(firstMonthStats.total)}</strong></div>
+          <div className="bn-rs-compare-total"><span>{secondMonthStats.title}</span><strong>{lei(secondMonthStats.total)}</strong></div>
+        </div>
+        <div className="bn-rs-compare-bars" role="img" aria-label={t("Cheltuieli în {first} față de {second}", { first: firstMonthStats.title, second: secondMonthStats.title })}>
+          {[{ title: firstMonthStats.title, total: firstMonthStats.total, tone: "first" }, { title: secondMonthStats.title, total: secondMonthStats.total, tone: "second" }].map((item) => <div className="bn-rs-compare-bar" key={item.tone}>
+            <span>{item.title}</span><strong>{lei(item.total)}</strong><i className={`is-${item.tone}`}><b style={{ width: `${item.total / compareMaxTotal * 100}%` }} /></i>
+          </div>)}
+        </div>
+        {compareCategories.length > 0 && <div className="bn-rs-compare-category-section">
+          <p className="sh-kicker">{t("COMPARAȚIE PE CATEGORII")}</p>
+          <div className="bn-rs-compare-category-head"><span>{t("Categorie")}</span><span>{firstMonthStats.title}</span><span>{secondMonthStats.title}</span></div>
+          <ul className="bn-rs-compare-categories">{compareCategories.map((item, index) => <li key={item.category}>
+            <b><i style={{ background: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }} />{t(item.category)}</b>
+            <span>{lei(item.first)}</span><span>{lei(item.second)}</span>
+            <div className="bn-rs-compare-category-bars"><i className="is-first"><b style={{ width: `${item.first / compareMaxCategory * 100}%` }} /></i><i className="is-second"><b style={{ width: `${item.second / compareMaxCategory * 100}%` }} /></i></div>
+          </li>)}</ul>
+        </div>}
+        {firstMonthStats.total === 0 && secondMonthStats.total === 0 && <p className="bn-rs-compare-empty">{t("Nu există bonuri în lunile selectate.")}</p>}
+      </>}
+    </section>}
 
     <section className="bn-rs-hero" aria-label={t("Totalul bonurilor din perioada aleasă")}>
       <span className="bn-rs-hero-kicker">{t("CHELTUIELI DIN BONURI")}</span>

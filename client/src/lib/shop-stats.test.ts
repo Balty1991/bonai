@@ -8,6 +8,13 @@ const list = [r("a", "Lidl Discount", "2026-10-18", 50, "18:00"), r("b", "Mega I
 describe("statistici pe perioade", () => {
   it("săptămâna începe luni", () => { expect(periodRange("week", "2026-10-18")).toEqual({ from: "2026-10-12", to: "2026-10-18" }); });
   it("navighează înapoi", () => { expect(periodRange("month", "2026-10-18", -1)).toEqual({ from: "2026-09-01", to: "2026-09-30" }); expect(periodRange("year", "2026-03-01", -1).from).toBe("2025-01-01"); });
+  it("compară totalurile a două luni selectate independent", () => {
+    const september = periodStats(list, "month", "2026-09-15");
+    const october = periodStats(list, "month", "2026-10-15");
+    expect(september.total).toBe(10);
+    expect(october.total).toBe(100.5);
+    expect(september.title).not.toBe(october.title);
+  });
   it("Zi / Săptămână / Lună / An adună doar bonurile din perioadă", () => {
     expect(periodStats(list, "day", "2026-10-18").total).toBe(50);
     const week = periodStats(list, "week", "2026-10-18");
