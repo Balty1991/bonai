@@ -115,7 +115,15 @@ export function ReceiptReview({ data, prefill, onSave, onCancel, onRescan, onWar
     const split = groupRows(saved.rows);
     return <Layer><div className="bn-review" role="dialog" aria-modal="true" aria-label={t("Bon salvat")}>
       <div className="bn-review-scroll bn-aha">
-        <div className="bn-aha-badge" aria-hidden="true"><Check size={34} /></div>
+        <div className="bn-aha-badge" aria-hidden="true">
+          <span className="bn-confetti is-1" /><span className="bn-confetti is-2" />
+          <span className="bn-confetti is-3" /><span className="bn-confetti is-4" />
+          <span className="bn-confetti is-5" /><span className="bn-confetti is-6" />
+          <span className="bn-confetti is-7" /><span className="bn-confetti is-8" />
+          <span className="bn-confetti is-9" /><span className="bn-confetti is-10" />
+          <span className="bn-confetti is-11" /><span className="bn-confetti is-12" />
+          <Check size={34} />
+        </div>
         <p className="sh-kicker">{t("BON SALVAT")}</p>
         <h2 className="bn-aha-total">{lei(saved.total)}</h2>
         <p className="sh-muted">{saved.store} · {fmtDate(saved.date)}</p>
