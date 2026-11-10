@@ -223,6 +223,7 @@ export default function Home() {
   }, []);
   const [scanPrefill, setScanPrefill] = useState<ScanPrefill>();
   const [editReceipt, setEditReceipt] = useState<Receipt>();
+  const [editTransaction, setEditTransaction] = useState<Transaction>();
   const receiptStorageNotice = "";
   const legacyReceiptMigrationStarted = useRef(false);
   const setupOffered = useRef(setupOpen);
@@ -504,6 +505,17 @@ export default function Home() {
     deleteWithUndo(t("Bonul a fost șters."), (current) => removeReceipt(current, receipt.id), 5000);
     return true;
   };
+  const deleteManualTransaction = async (transaction: Transaction): Promise<boolean> => {
+    const ok = await askConfirm(t("Cheltuiala {title} ({amount}) va fi ștearsă din istoric, statistici și de pe telefoanele familiei.", { title: transaction.title || transaction.category, amount: money(transaction.amount) }), { title: t("Ștergi cheltuiala?"), confirmLabel: t("Șterge cheltuiala"), danger: true });
+    if (!ok) return false;
+    deleteWithUndo(t("Cheltuiala a fost ștearsă."), (current) => {
+      const removed = current.transactions.filter((item) => item.id === transaction.id);
+      if (!removed.length) return { next: current, removed: { transactions: [] } };
+      const now = new Date().toISOString();
+      return { next: { ...current, transactions: current.transactions.filter((item) => item.id !== transaction.id), deleted: [...current.deleted, { entity: "transactions" as const, id: transaction.id, deletedAt: now }].slice(-TOMBSTONE_MAX) }, removed: { transactions: removed } };
+    }, 5000);
+    return true;
+  };
   const openTx = (item?: Transaction) => {
     // În BonAI, „notează de mână” e același ecran de bon, gol: fără surse, plicuri sau venituri.
     // Fără bon: foaia rapidă (sumă + categorie); „Adaugă produse” deschide bonul pe rânduri.
@@ -652,7 +664,7 @@ export default function Home() {
     })}</nav>}
     {shopMode && costsKind === "debts" && <Suspense fallback={null}><DebtsPanel data={data} onChange={applyData} onClose={() => setCostsKind(undefined)} onOpenCalendar={() => setCostsKind("calendar")} /></Suspense>}
     {shopMode && costsKind === "calendar" && <Suspense fallback={null}><PaymentCalendar data={data} onClose={() => setCostsKind(undefined)} onOpen={setCostsKind} onChange={applyData} /></Suspense>}
-    {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} onEdit={setEditReceipt} onDelete={deleteReceipt} /></Suspense>}
+    {shopMode && (costsKind === "receipts" || costsKind === "costs") && <Suspense fallback={null}><ShopHistory data={data} initialTab={costsKind} onClose={() => setCostsKind(undefined)} onEdit={setEditReceipt} onDelete={deleteReceipt} onEditTransaction={setEditTransaction} onDeleteTransaction={deleteManualTransaction} /></Suspense>}
     {shopMode && editReceipt && <Suspense fallback={null}><ReceiptReview key={editReceipt.id} mode="edit" receiptId={editReceipt.id} data={data} prefill={prefillFromReceipt(editReceipt)} onCancel={() => setEditReceipt(undefined)} onSave={(review) => update((current) => applyReceiptEdit(current, editReceipt.id, review))} /></Suspense>}
     {shopMode && (costsKind === "sub" || costsKind === "bill") && <Suspense fallback={null}><HouseCostsPanel data={data} kind={costsKind} onChange={applyData} onClose={() => setCostsKind(undefined)} /></Suspense>}
     {shopMode && guideOn && <Suspense fallback={null}><BonAIAssistant data={data} onChange={applyData} onClose={() => setGuideOn(false)} onGo={(screen) => { setGuideOn(false); if (screen === "scan") { openScan(); return; } if (screen === "prices") { go("products"); return; } go("list"); if (screen !== "list") window.setTimeout(() => window.dispatchEvent(new CustomEvent("bonai:list-tab", { detail: screen })), 0); }} /></Suspense>}
@@ -665,6 +677,7 @@ export default function Home() {
     {modal === "scan" && !memberModeActive && shopMode && createPortal(<ScanHubFrame onClose={() => setModal(null)}><Suspense fallback={<div className="bf-lazy-panel">{t("Pregătim camera…")}</div>}><ReceiptScanButton hub data={data} onManual={() => { setModal(null); openTx(); }} onResult={(prefill) => { setScanPrefill(prefill); setModal("review"); }} /></Suspense></ScanHubFrame>, document.body)}
     
     {modal === "expense" && !memberModeActive && <Suspense fallback={null}><QuickExpenseSheet data={data} onClose={() => setModal((current) => (current === "expense" ? null : current))} onSave={(tx) => saveTx(tx)} onItemize={() => { setScanPrefill({ title: "", amount: 0, category: "Alimente", lines: [], discount: 0, count: 0 }); setModal("review"); }} /></Suspense>}
+    {editTransaction && shopMode && !memberModeActive && <Suspense fallback={null}><QuickExpenseSheet key={editTransaction.id} data={data} initial={editTransaction} onClose={() => setEditTransaction(undefined)} onSave={(tx) => { applyData((current) => ({ ...current, transactions: current.transactions.map((item) => item.id === tx.id ? tx : item) })); setEditTransaction(undefined); }} onItemize={() => undefined} /></Suspense>}
     {modal === "review" && scanPrefill && !memberModeActive && <Suspense fallback={<div className="bf-modal-backdrop"><div className="bf-lazy-panel">{t("Pregătim bonul…")}</div></div>}><ReceiptReview data={data} prefill={scanPrefill} onWarranty={(warranty) => update((current) => upsertWarranty(current, warranty))} onRescan={() => { setScanPrefill(undefined); setModal("scan"); }} onCancel={() => { setModal(null); setScanPrefill(undefined); }} onSave={(review) => {
       // Bonul nou: o cheltuială simplă (fără plic, fără alegerea sursei), cu rândurile verificate. Aceeași formă ca înainte, deci sincronizarea rămâne compatibilă.
       const member = data.settings.members.find((item) => item.id === review.memberId) || data.settings.members.find((item) => item.id === data.settings.selfMemberId) || data.settings.members[0];

@@ -50,6 +50,23 @@ export function quickExpenseTransaction(data: AppData, input: QuickExpense, now 
   };
 }
 
+/** Corectează o cheltuială manuală păstrând ID-ul și metadatele de registru existente. */
+export function editQuickExpenseTransaction(data: AppData, initial: Transaction, input: QuickExpense, now = new Date().toISOString()): Transaction {
+  const edited = quickExpenseTransaction(data, input, now);
+  const debt = initial.debtId ? data.debts.find((item) => item.id === initial.debtId) : undefined;
+  const debtRemainingAfter = initial.debtRemainingAfter === undefined || debt?.openEnded
+    ? initial.debtRemainingAfter
+    : Math.max(0, round2(initial.debtRemainingAfter + initial.amount - edited.amount));
+  return {
+    ...initial,
+    ...edited,
+    id: initial.id,
+    createdAt: initial.createdAt || edited.createdAt,
+    updatedAt: now,
+    ...(debtRemainingAfter === undefined ? {} : { debtRemainingAfter }),
+  };
+}
+
 /** Ce s-a notat recent fără bon: categoriile și „Taxi 25 lei” pentru repetare dintr-o atingere. */
 export function quickSuggestions(data: AppData, limit = 4): { repeats: Array<{ category: string; place?: string; amount: number; count: number }>; categories: string[] } {
   // Fără transferuri, corecții de sold, rate și facturi: în grilă stau doar cumpărăturile fără bon.

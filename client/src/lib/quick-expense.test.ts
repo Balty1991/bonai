@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyAppData } from "./finance-data";
-import { parseAmount, quickExpenseTransaction, quickSuggestions, spendEntries } from "./quick-expense";
+import { editQuickExpenseTransaction, parseAmount, quickExpenseTransaction, quickSuggestions, spendEntries } from "./quick-expense";
 import { periodStats } from "./shop-stats";
 
 describe("cheltuiala fără bon", () => {
@@ -21,6 +21,13 @@ describe("cheltuiala fără bon", () => {
     const s = quickSuggestions(data);
     expect(s.repeats[0]).toMatchObject({ category: "Taxi", place: "Bolt", amount: 25, count: 2 });
     expect(s.categories[0]).toBe("Taxi");
+  });
+  it("editează costul păstrând ID-ul, data creării și legătura la datorie", () => {
+    const data = createEmptyAppData();
+    data.debts = [{ id: "d1", name: "Credit", remaining: 700, monthly: 100, due: "", tone: "forest" }];
+    const initial = { id: "tx1", title: "Rată — Credit", amount: 100, kind: "expense" as const, category: "Rate produse", debtId: "d1", debtRemainingAfter: 700, source: "", person: "", date: "2026-10-10", createdAt: "2026-10-10T10:00:00.000Z" };
+    const edited = editQuickExpenseTransaction(data, initial, { amount: 80, category: "Rate produse", place: "Rată — Credit", date: "2026-10-11" }, "2026-10-11T10:00:00.000Z");
+    expect(edited).toMatchObject({ id: "tx1", amount: 80, date: "2026-10-11", debtId: "d1", debtRemainingAfter: 720, createdAt: initial.createdAt, updatedAt: "2026-10-11T10:00:00.000Z" });
   });
 });
 
