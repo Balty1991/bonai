@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Receipt } from "./finance-data";
-import { periodRange, periodStats, receiptsByMonth, storeInitials } from "./shop-stats";
+import { filterReceiptStatsData, periodRange, periodStats, receiptStoreKey, receiptsByMonth, storeInitials } from "./shop-stats";
 
 const r = (id: string, vendor: string, date: string, amount: number, time?: string): Receipt => ({ id, vendor, date, amount, category: "Alimente", time });
 const list = [r("a", "Lidl Discount", "2026-10-18", 50, "18:00"), r("b", "Mega Image", "2026-10-13", 30.5), r("c", "Kaufland", "2026-10-02", 20), r("d", "Lidl", "2026-09-28", 10), r("e", "Profi", "2025-12-31", 5)];
@@ -20,6 +20,21 @@ describe("statistici pe perioade", () => {
     const g = receiptsByMonth(list);
     expect(g.map((x) => x.month)).toEqual(["2026-10", "2026-09", "2025-12"]);
     expect(g[0].total).toBe(100.5); expect(g[0].receipts[0].id).toBe("a");
+  });
+  it("filtrează după magazin și categorie, folosind subtotalul din liniile bonului", () => {
+    const split: Receipt = { ...r("f", "Lídl", "2026-10-18", 60), lines: [
+      { id: "food", category: "Alimente", amount: 40 },
+      { id: "care", category: "Îngrijire", amount: 20 },
+    ] };
+    const category = filterReceiptStatsData([split], { categories: ["Îngrijire"] });
+    expect(category).toHaveLength(1);
+    expect(category[0]).toMatchObject({ amount: 20, category: "Îngrijire" });
+    expect(periodStats(category, "month", "2026-10-18").total).toBe(20);
+    const both = filterReceiptStatsData([split, list[2]], { storeKey: receiptStoreKey("Lidl"), categories: ["Alimente"] });
+    expect(both.map((receipt) => receipt.amount)).toEqual([40]);
+    expect(receiptStoreKey("Lídl")).toBe(receiptStoreKey("Lidl"));
+    expect(filterReceiptStatsData([list[0]], { categories: ["Alimente"] })[0].amount).toBe(50);
+    expect(split.amount).toBe(60);
   });
   it("inițialele magazinului", () => {
     expect(storeInitials("Mega Image")).toBe("MI"); expect(storeInitials("Lidl Discount")).toBe("LI"); expect(storeInitials("Kaufland")).toBe("KA");

@@ -13,6 +13,31 @@ const MONTHS_LONG = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie
 const DAYS = ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
+export function receiptStoreKey(vendor: string): string {
+  const clean = vendor.trim();
+  if (!clean) return "__unknown_store__";
+  return clean.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("ro-RO");
+}
+export type ReceiptStatsFilter = { storeKey?: string; categories?: readonly string[] };
+/** Filtrează bonurile fără a modifica sursa; pe categorie calculează subtotalul liniilor selectate. */
+export function filterReceiptStatsData(receipts: readonly Receipt[], filter: ReceiptStatsFilter = {}): Receipt[] {
+  const categories = filter.categories?.length ? new Set(filter.categories) : null;
+  const result: Receipt[] = [];
+  for (const receipt of receipts) {
+    if (receipt.amount <= 0) continue;
+    if (filter.storeKey && receiptStoreKey(receipt.vendor) !== filter.storeKey) continue;
+    if (!categories) { result.push(receipt); continue; }
+    if (receipt.lines?.length) {
+      const lines = receipt.lines.filter((line) => line.amount > 0 && categories.has(line.category));
+      const amount = r2(lines.reduce((sum, line) => sum + line.amount, 0));
+      if (amount > 0) result.push({ ...receipt, amount, category: lines[0]?.category || receipt.category, lines });
+    } else if (categories.has(receipt.category)) {
+      result.push(receipt);
+    }
+  }
+  return result;
+}
+
 /** Intervalul perioadei care conține `anchor`, mutat cu `offset` perioade. */
 export function periodRange(grain: Grain, anchor: string, offset = 0): { from: string; to: string } {
   const d = at(anchor);
