@@ -126,7 +126,7 @@ function LocalAlertsSettings({ data }: { data: AppData }) {
     if (active) void scheduleFinancialReminders(data);
   };
   const kindText: Record<NotifyKind, [string, string]> = {
-    bills: [t("Abonamente, facturi și rate"), t("Cu câte zile alegi la fiecare; ratele cu 3 zile înainte și în ziua plății.")],
+    bills: [t("Abonamente, facturi și rate"), t("Facturile: după avansul ales; ratele: cu 1–3 zile înainte și în ziua scadenței.")],
     backup: [t("Copia de siguranță"), t("Dacă n-ai mai salvat o copie de peste 30 de zile.")],
     warranty: [t("Garanții și retururi"), t("Cu o zi înainte de ultima zi de retur și cu 30 de zile înainte să expire garanția.")],
     prices: [t("Unde e mai ieftin"), t("Sâmbătă dimineața, produsul tău care e mai ieftin în alt magazin.")],

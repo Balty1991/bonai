@@ -334,7 +334,7 @@ function atLocalHour(daysFromToday: number, hour: number, minute = 0): Date {
 /**
  * Alertele BonAI, toate calculate pe telefon:
  * - abonamente și facturi cu amintire aleasă (N zile înainte, la 9:00);
- * - rate, credite, dobânzi și comisioane din Datorii: cu 3 zile înainte și în ziua plății, dacă nu e bifată;
+ * - rate, credite, dobânzi și comisioane din Datorii: cu 1–3 zile înainte și în ziua plății, dacă nu e bifată;
  * - copia de siguranță mai veche de 30 de zile;
  * - garanții: ultima zi de retur și garanția care expiră;
  * - „Unde e mai ieftin”, sâmbătă dimineața.
@@ -367,7 +367,11 @@ function buildAlerts(data: AppData): PlannedAlert[] {
     const bank = isBankCost(debt);
     alerts.push({
       id: id++,
-      title: days === 0 ? (bank ? t("Comision / dobândă azi") : t("Rată azi")) : t("Rată în {days} zile", { days }),
+      title: days === 0
+        ? (bank ? t("Comision / dobândă azi") : t("Rată azi"))
+        : days === 1
+          ? (bank ? t("Comision / dobândă mâine") : t("Rată scadentă mâine"))
+          : t("Rată în {days} zile", { days }),
       body: `${debt.creditor || debt.name} · ${money(amount)} · ${formatDate(due)}`,
       at: when,
       tag: `debt-${debt.id}-${due}`,

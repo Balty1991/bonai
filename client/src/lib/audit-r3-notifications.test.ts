@@ -93,7 +93,7 @@ const rateData = (paid: boolean) => {
 };
 
 describe("N: reamintiri pe Android", () => {
-  it("N1: o reamintire e programată pe un singur canal (nu WorkManager + Capacitor)", async () => {
+  it("N1: rata de mâine e anunțată explicit la 18:30, pe un singur canal", async () => {
     stubWindow({ native: true, permission: true });
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-14T08:00:00"));
@@ -103,6 +103,8 @@ describe("N: reamintiri pe Android", () => {
     const viaWorkManager = bridge.schedule.mock.calls.length > 0;
     const viaCapacitor = (LocalNotifications.schedule as unknown as ReturnType<typeof vi.fn>).mock.calls.length > 0;
     expect(viaWorkManager && viaCapacitor).toBe(false); // primit: true => aceeași alertă apare de două ori
+    const planned = JSON.parse(String(bridge.schedule.mock.calls[0][0])) as Array<{ tag: string; title: string; at: number }>;
+    expect(planned.find((item) => item.tag === "debt-d1-2026-09-15")).toMatchObject({ title: "Rată scadentă mâine", at: new Date("2026-09-14T18:30:00").getTime() });
   });
 
   it("N2: avizul unei rate se anulează când rata e bifată ca plătită", async () => {
