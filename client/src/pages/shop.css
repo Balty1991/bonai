@@ -696,8 +696,9 @@ html[data-app="shop"] .bn-community-what { display: grid; gap: 6px; margin: 0; p
 .bn-cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .bn-cal-dayview .sh-kicker { text-transform: none; }
 .bn-cal-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.bn-cal-list li { animation: bn-rise-in .35s ease both; }
+.bn-cal-list li { display: grid; gap: 6px; animation: bn-rise-in .35s ease both; }
 .bn-cal-list button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 56px; padding: 10px 12px; border: 1px solid var(--bn-edge); border-left: 4px solid #7c5cff; border-radius: 16px; background: var(--bn-glass); color: var(--bn-ink); text-align: left; cursor: pointer; }
+.bn-cal-list .bn-cal-pay { display: flex; justify-content: center; gap: 8px; min-height: 42px; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
 .bn-cal-list .is-bank button { border-left-color: #ff6fa8; } .bn-cal-list .is-sub button { border-left-color: #2ec5d3; } .bn-cal-list .is-bill button { border-left-color: #ffb547; }
 .bn-cal-list span { display: grid; gap: 2px; min-width: 0; }
 .bn-cal-list small { color: var(--bn-muted); }

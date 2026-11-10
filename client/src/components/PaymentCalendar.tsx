@@ -8,6 +8,7 @@ import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { isoToday, type AppData } from "@/lib/finance-data";
 import { paymentCalendar, shiftMonth, type CalendarKind } from "@/lib/payment-calendar";
+import { payInstallment } from "@/lib/debts-tracker";
 import { t } from "@/lib/i18n";
 
 const lei = (v: number) => `${v.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
@@ -25,7 +26,7 @@ function Ring({ value, label }: { value: number; label: string }) {
   </svg>;
 }
 
-export function PaymentCalendar({ data, onClose, onOpen }: { data: AppData; onClose: () => void; onOpen?: (kind: "debts" | "sub" | "bill") => void }) {
+export function PaymentCalendar({ data, onClose, onOpen, onChange }: { data: AppData; onClose: () => void; onOpen?: (kind: "debts" | "sub" | "bill") => void; onChange?: (next: AppData) => void }) {
   const today = isoToday();
   const [month, setMonth] = useState(today.slice(0, 7));
   const cal = useMemo(() => paymentCalendar(data, month), [data, month]);
@@ -71,6 +72,7 @@ export function PaymentCalendar({ data, onClose, onOpen }: { data: AppData; onCl
             <span><b>{item.name}</b><small>{t(KIND_LABEL[item.kind])}{item.paid ? ` · ${t("plătit")}` : item.date < today ? ` · ${t("întârziată?")}` : ""}</small></span>
             <b>{item.estimate ? "~" : ""}{lei(item.amount)}</b>
           </button>
+          {onChange && !item.paid && (item.kind === "debt" || item.kind === "bank") && item.date.slice(0, 7) === today.slice(0, 7) && item.date <= today && <button type="button" className="bn-cal-pay" aria-label={t("Marchează rata plătită")} onClick={() => onChange(payInstallment(data, item.sourceId, today))}><Check size={16} aria-hidden="true" /> {t("Marchează rata plătită")}</button>}
         </li>)}</ul> : <p className="sh-muted">{t("Nicio plată în ziua asta.")}</p>}
       </section>}
 

@@ -2,9 +2,9 @@
  * Scadențarul: luna cu toate plățile ei — rate, credite, dobânzi și comisioane bancare, abonamente,
  * facturi — fiecare în ziua ei, cu ce e deja plătit și cât mai e. Totul din ce a notat omul.
  */
-import { foldRomanian, type AppData } from "./finance-data";
+import { foldRomanian, isoToday, type AppData } from "./finance-data";
 import { kindOf, nextDue } from "./house-costs";
-import { debtDueDay, isBankCost, isOpenCost } from "./debts-tracker";
+import { debtDueDay, isBankCost, isOpenCost, paidThisCycle } from "./debts-tracker";
 
 export type CalendarKind = "debt" | "bank" | "sub" | "bill";
 export type CalendarPayment = { id: string; kind: CalendarKind; name: string; date: string; amount: number; estimate?: boolean; paid: boolean; sourceId: string };
@@ -20,7 +20,7 @@ export function shiftMonth(month: string, by: number): string {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
 }
 
-export function paymentCalendar(data: AppData, month: string): CalendarMonth {
+export function paymentCalendar(data: AppData, month: string, asOf = isoToday()): CalendarMonth {
   const first = `${month}-01`;
   const end = `${month}-${pad(lastDay(month))}`;
   const payments: CalendarPayment[] = [];
@@ -40,7 +40,7 @@ export function paymentCalendar(data: AppData, month: string): CalendarMonth {
     if (!(debt.monthly > 0) || !(debt.remaining > 0 || isOpenCost(debt) || debt.lastPaid?.slice(0, 7) === month)) continue;
     if (debt.endDate && debt.endDate < first) continue;
     const date = `${month}-${pad(Math.min(debtDueDay(debt), lastDay(month)))}`;
-    const paid = debt.lastPaid?.slice(0, 7) === month || expenses.some((tx) => tx.debtId === debt.id);
+    const paid = debt.lastPaid?.slice(0, 7) === month || expenses.some((tx) => tx.debtId === debt.id) || (month === asOf.slice(0, 7) && paidThisCycle(debt, asOf, data));
     const amount = isOpenCost(debt) ? debt.monthly : Math.min(debt.monthly, Math.max(debt.remaining, paid ? debt.monthly : 0));
     if (!(amount > 0)) continue;
     payments.push({ id: `d:${debt.id}`, kind: isBankCost(debt) ? "bank" : "debt", name: debt.creditor || debt.name, date, amount: r2(amount), paid, sourceId: debt.id });
