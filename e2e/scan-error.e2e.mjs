@@ -33,7 +33,7 @@ try {
     const page = await context.newPage();
     try {
       await page.goto(BASE); await page.waitForTimeout(1500);
-      await page.locator(".os-dock-v2 > button").nth(2).click(); await page.waitForTimeout(800);
+      await page.locator(".os-dock-v2 > button").nth(3).click(); await page.waitForTimeout(800);
       const chooser = page.waitForEvent("filechooser");
       await page.locator(".bn-tile", { hasText: "Galerie" }).click(); await page.waitForTimeout(400);
       const ok = page.getByRole("button", { name: "Am înțeles, scanez" }); if (await ok.isVisible().catch(() => false)) await ok.click();
@@ -58,7 +58,7 @@ try {
     const page = await context.newPage();
     try {
       await page.goto(BASE); await page.waitForTimeout(1500);
-      await page.locator(".os-dock-v2 > button").nth(2).click(); await page.waitForTimeout(800);
+      await page.locator(".os-dock-v2 > button").nth(3).click(); await page.waitForTimeout(800);
       const chooser = page.waitForEvent("filechooser");
       await page.locator(".bn-tile", { hasText: "Galerie" }).click(); await page.waitForTimeout(400);
       const ok = page.getByRole("button", { name: "Am înțeles, scanez" }); if (await ok.isVisible().catch(() => false)) await ok.click();

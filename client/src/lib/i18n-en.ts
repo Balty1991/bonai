@@ -5936,4 +5936,7 @@ export const en: Record<string, string> = {
   "Vezi articolele din {category}": "View items in {category}",
   "Rând fără nume": "Unnamed line",
   "și încă {count}": "and {count} more",
+  "1 articol": "1 item",
+  "Atinge o categorie ca să vezi ce ai cumpărat.": "Tap a category to see what you bought.",
+  "{receipts} luna asta": "{receipts} this month",
 };

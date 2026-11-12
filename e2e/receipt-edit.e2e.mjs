@@ -40,7 +40,7 @@ async function open(browser, theme) {
     await storage.writeAppData(data, later); storage.writeLocalStorageSnapshot(JSON.stringify(data), later);
   });
   await page.reload(); await page.waitForTimeout(2000);
-  await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(800);
+  await page.locator(".os-dock-v2 > button").nth(5).click(); await page.waitForTimeout(800);
   await page.getByRole("button", { name: /^Bonuri/ }).first().click(); await page.waitForTimeout(800);
   return { context, page, errors };
 }

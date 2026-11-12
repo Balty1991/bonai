@@ -110,7 +110,7 @@ const FEATURES = {
     await sheet.getByRole("button", { name: /Taxi · 25 lei/ }).click();
     await waitFor(async () => (await after()).tx.length === 2, "repetarea salvată");
     // Toate costurile o arată, cu categoria.
-    await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(600);
+    await page.locator(".os-dock-v2 > button").nth(5).click(); await page.waitForTimeout(600);
     await page.getByRole("button", { name: /^Bonuri/ }).first().click();
     const history = page.getByRole("dialog", { name: "Istoric" });
     await history.getByRole("tab", { name: "Toate costurile" }).click();
@@ -155,7 +155,7 @@ const FEATURES = {
       const later = new Date(Date.now() + 3_600_000).toISOString(); await s.writeAppData(d, later); s.writeLocalStorageSnapshot(JSON.stringify(d), later);
     });
     await page.reload(); await page.waitForTimeout(2000);
-    await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(600);
+    await page.locator(".os-dock-v2 > button").nth(5).click(); await page.waitForTimeout(600);
     await page.getByRole("button", { name: /^Bonuri/ }).first().click();
     const history = page.getByRole("dialog", { name: "Istoric" });
     // Firma de pe bon („LIDL DISCOUNT SCS”) se arată ca marcă: „Lidl”.
@@ -333,7 +333,7 @@ const FEATURES = {
   },
   /** 6f. Rapoarte: apeși pe o categorie și vezi produsele cumpărate în ea, fără să iasă din ecran. */
   async reportcat(page, theme) {
-    await page.locator(".os-dock-v2 > button").nth(3).click(); await page.waitForTimeout(800);
+    await page.locator(".os-dock-v2 > button").nth(4).click(); await page.waitForTimeout(800);
     await page.getByRole("tab", { name: /^Rapoarte$/ }).click(); await page.waitForTimeout(900);
     const row = page.locator(".bn-report-row-btn", { hasText: "Alimente" }).first();
     await waitFor(() => row.isVisible(), "categoria Alimente în Rapoarte");
@@ -346,6 +346,23 @@ const FEATURES = {
     const out = await page.evaluate(() => Array.from(document.querySelectorAll(".bn-report-items *")).filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1).length);
     if (out) fail(`produsele ies din ecran (${out})`);
     await shot(page, `report-category-${theme}`, items);
+    await row.click();
+    await waitFor(async () => !(await items.isVisible()), "a doua atingere închide lista");
+  },
+  /** 6f'. Statistici: atingi o categorie și vezi articolele cumpărate în ea, fără să iasă din ecran. */
+  async statscat(page, theme) {
+    await page.locator(".os-dock-v2 > button").nth(2).click(); await page.waitForTimeout(900);
+    const row = page.locator(".bn-rs-category-bar", { hasText: "Alimente" }).first();
+    await waitFor(() => row.isVisible(), "categoria Alimente în Statistici");
+    await row.click();
+    const items = page.locator(".bn-rs-items").first();
+    await waitFor(() => items.isVisible(), "articolele din Alimente");
+    const text = await items.innerText();
+    if (!/Lapte Zuzu/.test(text) || !/Pâine albă/.test(text)) fail(`articolele categoriei lipsesc: ${text}`);
+    if ((await row.getAttribute("aria-expanded")) !== "true") fail("categoria nu spune că e deschisă");
+    const out = await page.evaluate(() => Array.from(document.querySelectorAll(".bn-receipt-stats *")).filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.right > window.innerWidth + 1; }).map((el) => `${el.className || el.tagName}`).slice(0, 4));
+    if (out.length) fail(`Statistici iese din ecran: ${out.join(" | ")}`);
+    await shot(page, `stats-category-${theme}`, page.locator(".bn-rs-categories"));
     await row.click();
     await waitFor(async () => !(await items.isVisible()), "a doua atingere închide lista");
   },
@@ -419,7 +436,7 @@ const FEATURES = {
   async contrast(page, theme) {
     const bad = [];
     const dock = page.locator(".os-dock-v2 > button");
-    for (const [label, open] of [["Acasă", () => dock.nth(0).click()], ["Cumpărături", () => dock.nth(1).click()], ["Prețuri", () => dock.nth(3).click()], ["Cont", () => dock.nth(4).click()], ["Scanează", () => dock.nth(2).click()]]) {
+    for (const [label, open] of [["Acasă", () => dock.nth(0).click()], ["Cumpărături", () => dock.nth(1).click()], ["Statistici", () => dock.nth(2).click()], ["Prețuri", () => dock.nth(4).click()], ["Cont", () => dock.nth(5).click()], ["Scanează", () => dock.nth(3).click()]]) {
       await open(); await page.waitForTimeout(900);
       for (let y = 0; y < 4; y++) { bad.push(...(await contrastOffenders(page, "body", Number(process.env.MIN_CONTRAST || (theme === "dark" ? 7 : 4.5)))).map((x) => `${label}: ${x}`)); await page.mouse.wheel(0, 700); await page.waitForTimeout(250); }
       await shot(page, `contrast-${label}-${theme}`);

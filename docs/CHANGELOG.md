@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.3 (249)
+
+- **Statistici → Pe categorii**: atingi o categorie și vezi ce ai cumpărat în ea în perioada aleasă: fiecare produs o singură dată (același produs de pe mai multe bonuri se adună), cu suma și de câte ori. Sub fiecare categorie scrie câte articole are; a doua atingere închide lista. Test e2e nou: `statscat`.
+- **Culorile noului Acasă / Statistici / Scanează**: cardurile verde-lime se potriveau prost cu restul aplicației, care e violet. Acum folosesc paleta BonAI (violet închis cu accent lavandă) în ambele teme. Textele de pe cardurile închise (vizorul Scanează, totalul din Statistici, butonul „Scanează bonul”) se citesc și în tema albă.
+- **Raportul săptămânal din 12.11.2026 (#133)**: testele de layout apăsau butoane greșite după ce bara de jos a primit „Statistici” (6 butoane). Ecranul Statistici intră acum în testele de layout și contrast. Pe server, dulciurile evidente (napolitane, ciocolată, Milka, Kinder, biscuiți…) pe care modelul le lăsa la „Altele” trec la „Dulciuri”.
+- „1 bonuri luna asta” → „1 bon luna asta”.
+- Server: `fast-xml-parser` 5.12.0 (`npm audit fix`; avertizare de consum CPU). Rămân 6 avertizări moderate în `glob`/`minimatch`, aduse de biblioteca Google din `firebase-admin`; nu au încă o versiune compatibilă.
+
 ## 2.9.2 (248)
 
 - **Tema „Automat” urmează din nou telefonul**: în aplicația Android, pagina vedea telefonul mereu „luminos” (WebView ia prefers-color-scheme din tema aplicației, care e luminoasă ca splash-ul să nu se deschidă pe negru). Acum aplicația întreabă Android direct (`BugetFamilieSplash.systemDark`) și află pe loc când telefonul trece pe închis sau luminos (`onConfigurationChanged` și la revenirea în aplicație), inclusiv la pornire. Noaptea (21–6) rămâne închisă. Test e2e nou: `autotheme`.

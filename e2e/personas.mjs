@@ -57,7 +57,7 @@ async function saveReview(page, review, ctx) {
 }
 
 async function scan(page, files) {
-  await dock(page, 2); await sleep(900);
+  await dock(page, 3); await sleep(900);
   const chooser = page.waitForEvent("filechooser", { timeout: 15_000 });
   await page.locator(".bn-tile", { hasText: "Galerie" }).click();
   await sleep(500); await confirmIfAsked(page, "Am înțeles, scanez");
@@ -83,7 +83,7 @@ const FLOWS = {
     if (await sheet.isVisible()) ctx.issues.push("cheltuiala fără bon nu s-a salvat");
   },
   async edit(page, P, ctx) {
-    await dock(page, 4); await sleep(800);
+    await dock(page, 5); await sleep(800);
     await page.getByRole("button", { name: /^Bonuri/ }).first().click(); await sleep(900);
     const history = page.getByRole("dialog", { name: "Istoric" });
     await history.locator("li button, .bn-costs-row, button").filter({ hasText: /lei/ }).first().click(); await sleep(800);
@@ -101,7 +101,7 @@ const FLOWS = {
     if (await history.isVisible().catch(() => false)) { ctx.issues.push("Istoric: nu se închide cu Esc"); await history.getByRole("button", { name: "Înapoi" }).click(); }
   },
   async del(page, P, ctx) {
-    await dock(page, 4); await sleep(800);
+    await dock(page, 5); await sleep(800);
     await page.getByRole("button", { name: /^Bonuri/ }).first().click(); await sleep(900);
     const history = page.getByRole("dialog", { name: "Istoric" });
     const rows = history.locator("li button, .bn-costs-row, button").filter({ hasText: /lei/ });
@@ -139,7 +139,7 @@ const FLOWS = {
     const manual = sc.getByRole("button", { name: /Scriu cifrele/ });
     if (await manual.isVisible().catch(() => false)) { await manual.click(); await sleep(600); const digits = sc.locator("#bn-barcode-digits"); if (!(await digits.isVisible().catch(() => false))) ctx.issues.push("Listă: „Scriu cifrele” nu arată câmpul pentru cifre"); else { await digits.fill("5942247100868"); await digits.press("Enter"); await sleep(1500); ctx.note(`listă, cifre scrise: scanerul ${await sc.isVisible().catch(() => false) ? "încă deschis" : "închis, codul trimis"}`); } }
     if (await sc.isVisible().catch(() => false)) await page.keyboard.press("Escape");
-    await dock(page, 3); await sleep(900);
+    await dock(page, 4); await sleep(900);
     const input = page.locator("input[aria-label='Codul de bare']").first(); await input.scrollIntoViewIfNeeded();
     await input.fill("5942247100868"); await input.press("Enter");
     await waitFor(() => page.locator(".bn-bc-card, .bn-bc-found, .bn-bc-pick, .bn-bc").filter({ hasText: /Ultima dată|Alege|Nu am|Tușnad|TUSNAD|produs/i }).first().isVisible(), "rezultatul codului", 20_000).catch(() => ctx.issues.push("codul 5942247100868 nu a dat niciun rezultat"));
@@ -158,12 +158,12 @@ const FLOWS = {
     await page.getByRole("tab", { name: "Listă" }).click();
   },
   async prices(page, P, ctx) {
-    await dock(page, 3); await sleep(900);
+    await dock(page, 4); await sleep(900);
     for (const tab of ["Produse", "Magazine", "Rapoarte"]) { await page.getByRole("tab", { name: tab }).click(); await sleep(700); ctx.issues.push(...await audit(page, `Prețuri/${tab}`)); }
     await page.getByRole("tab", { name: "Produse" }).click(); await sleep(500); await ctx.shot("prices");
   },
   async costs(page, P, ctx) {
-    await dock(page, 4); await sleep(800);
+    await dock(page, 5); await sleep(800);
     for (const row of [/^Datorii/, /^Abonamente/, /^Facturi/]) {
       const b = page.getByRole("button", { name: row }).first();
       if (!(await b.isVisible().catch(() => false))) { ctx.issues.push(`Cont: lipsește rândul ${row}`); continue; }
@@ -175,16 +175,16 @@ const FLOWS = {
   },
   async next(page, P, ctx) { await dock(page, 0); await sleep(800); const card = page.locator(".sh-card", { hasText: "CE URMEAZĂ" }).first(); if (await card.count()) { await card.scrollIntoViewIfNeeded(); await ctx.shot("next"); } else ctx.note("Ce urmează: nimic programat (card ascuns)"); },
   async theme(page, P, ctx) {
-    await dock(page, 4); await sleep(700);
+    await dock(page, 5); await sleep(700);
     const other = P.theme === "dark" ? "Luminos" : "Noapte";
     await page.getByRole("button", { name: other, exact: true }).click(); await sleep(900);
     const dark = await page.evaluate(() => document.documentElement.classList.contains("theme-dark") || document.documentElement.classList.contains("dark"));
     if (dark !== (other === "Noapte")) ctx.issues.push(`tema nu s-a schimbat în ${other}`);
     await dock(page, 0); await sleep(700); ctx.issues.push(...await audit(page, `Acasă (${other})`)); await ctx.shot(`theme-${other}`);
-    await dock(page, 4); await sleep(500); await page.getByRole("button", { name: P.theme === "dark" ? "Noapte" : "Luminos", exact: true }).click();
+    await dock(page, 5); await sleep(500); await page.getByRole("button", { name: P.theme === "dark" ? "Noapte" : "Luminos", exact: true }).click();
   },
-  async paywall(page, P, ctx) { await dock(page, 4); await sleep(800); const acct = await page.locator("main, body").first().innerText(); ctx.note(`Cont plan: ${(/(Plan gratuit|BonAI Pro|BonAI Familie)/.exec(acct) || ["?"])[0]}; „Treci la BonAI Pro” ${/Treci la BonAI Pro/.test(acct) ? "vizibil" : "absent"}`); const up = page.getByRole("button", { name: /Treci la BonAI Pro|BonAI Pro|BonAI Familie|Abonament/ }).first(); if (await up.isVisible().catch(() => false)) { await up.click(); await sleep(1500); ctx.issues.push(...await audit(page, "Paywall/abonament")); await ctx.shot("paywall"); ctx.note(`ecran abonament: ${(await page.locator("[role=dialog]").last().innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 260)}`); await page.keyboard.press("Escape"); await sleep(600); } await dock(page, 3); await sleep(800); const locked = await page.locator(".sh-lock, [data-pro-gate]").count(); ctx.note(locked ? `paywall: ${locked} carduri blocate` : "paywall: nevizibil (plățile nu sunt pornite, toată lumea are Familie)"); },
-  async family(page, P, ctx) { await dock(page, 4); await sleep(700); const b = page.getByRole("button", { name: /Familie|Invită|Sincronizare/ }).first(); if (await b.isVisible().catch(() => false)) { await b.click(); await sleep(1200); ctx.issues.push(...await audit(page, "Familie")); await ctx.shot("family"); await page.keyboard.press("Escape"); await sleep(500); } else ctx.issues.push("Cont: nu găsesc intrarea pentru Familie / invitație"); },
+  async paywall(page, P, ctx) { await dock(page, 5); await sleep(800); const acct = await page.locator("main, body").first().innerText(); ctx.note(`Cont plan: ${(/(Plan gratuit|BonAI Pro|BonAI Familie)/.exec(acct) || ["?"])[0]}; „Treci la BonAI Pro” ${/Treci la BonAI Pro/.test(acct) ? "vizibil" : "absent"}`); const up = page.getByRole("button", { name: /Treci la BonAI Pro|BonAI Pro|BonAI Familie|Abonament/ }).first(); if (await up.isVisible().catch(() => false)) { await up.click(); await sleep(1500); ctx.issues.push(...await audit(page, "Paywall/abonament")); await ctx.shot("paywall"); ctx.note(`ecran abonament: ${(await page.locator("[role=dialog]").last().innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 260)}`); await page.keyboard.press("Escape"); await sleep(600); } await dock(page, 4); await sleep(800); const locked = await page.locator(".sh-lock, [data-pro-gate]").count(); ctx.note(locked ? `paywall: ${locked} carduri blocate` : "paywall: nevizibil (plățile nu sunt pornite, toată lumea are Familie)"); },
+  async family(page, P, ctx) { await dock(page, 5); await sleep(700); const b = page.getByRole("button", { name: /Familie|Invită|Sincronizare/ }).first(); if (await b.isVisible().catch(() => false)) { await b.click(); await sleep(1200); ctx.issues.push(...await audit(page, "Familie")); await ctx.shot("family"); await page.keyboard.press("Escape"); await sleep(500); } else ctx.issues.push("Cont: nu găsesc intrarea pentru Familie / invitație"); },
   async demoHome(page, P, ctx) { await waitFor(() => page.getByText("datele sunt inventate").isVisible(), "banda exemplului"); ctx.issues.push(...await audit(page, "Acasă exemplu")); await ctx.shot("demo"); },
   async leaveDemo(page) { await page.getByRole("button", { name: "Încep cu datele mele" }).click(); await sleep(400); await confirmIfAsked(page, "Încep cu datele mele"); await sleep(1500); const welcome = page.getByRole("button", { name: /Mă uit întâi/ }); if (await welcome.isVisible().catch(() => false)) await welcome.click(); await sleep(1000); },
   async keyboard(page, P, ctx) {

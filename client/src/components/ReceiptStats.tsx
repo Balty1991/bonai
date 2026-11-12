@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3, ChevronLeft, ChevronRight, ScanLine, Store, X } from "lucide-react";
 import { isoToday, type AppData } from "@/lib/finance-data";
-import { filterReceiptStatsData, periodRange, periodStats, receiptStoreKey, type Grain } from "@/lib/shop-stats";
+import { filterReceiptStatsData, periodRange, periodStats, receiptStoreKey, type CategoryItem, type Grain } from "@/lib/shop-stats";
 import { CATEGORY_COLORS } from "@/lib/receipt-review-model";
 import { receiptsLabel, t } from "@/lib/i18n";
 
@@ -13,7 +13,7 @@ const PERIODS: Array<[Grain, string]> = [
 const lei = (value: number) => `${value.toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0lei`;
 const monthAnchor = (month: string) => `${month}-15`;
 
-type CategoryPart = { category: string; amount: number; color: string };
+type CategoryPart = { category: string; amount: number; color: string; items: CategoryItem[] };
 type StorePart = { key: string; vendor: string; amount: number; count: number };
 type ComparedCategory = { category: string; first: number; second: number };
 
@@ -48,6 +48,7 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
     category: item.category,
     amount: item.amount,
     color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+    items: item.items,
   }));
   const ringStops: string[] = [];
   let cursor = 0;
@@ -180,8 +181,8 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
         {average > 0 && <span>{t("bonul mediu {amount}", { amount: lei(average) })}</span>}
       </div>
       {delta !== undefined
-        ? <p className={`bn-rs-delta${delta < 0 ? " is-down" : delta > 0 ? " is-up" : ""}`}>{delta > 0 ? "+" : ""}{delta}% {t("față de perioada trecută")}</p>
-        : <p className="bn-rs-delta">{stats.total > 0 ? t("Prima perioadă cu bonuri") : t("Din bonurile salvate în aplicație")}</p>}
+        ? <span className={`bn-rs-delta${delta < 0 ? " is-down" : delta > 0 ? " is-up" : ""}`}>{delta > 0 ? "+" : ""}{delta}% {t("față de perioada trecută")}</span>
+        : <span className="bn-rs-delta">{stats.total > 0 ? t("Prima perioadă cu bonuri") : t("Din bonurile salvate în aplicație")}</span>}
     </section>
 
     <section className="sh-card bn-rs-chart-card">
@@ -201,7 +202,7 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
     </section>
 
     {categoryParts.length > 0 && <section className="sh-card bn-rs-categories">
-      <div className="bn-rs-section-heading"><p className="sh-kicker">{t("PE CATEGORII")}</p><span>{t("Atinge o categorie pentru a filtra.")}</span></div>
+      <div className="bn-rs-section-heading"><p className="sh-kicker">{t("PE CATEGORII")}</p><span>{t("Atinge o categorie ca să vezi ce ai cumpărat.")}</span></div>
       <div className="bn-rs-category-overview">
         <div className="bn-rs-ring" role="img" aria-label={t("Cheltuielile pe categorii, {period}", { period: stats.title })} style={{ background: ring }}>
           <span><b>{lei(categoryTotal)}</b><small>{t("pe bonuri")}</small></span>
@@ -215,11 +216,17 @@ export function ReceiptStats({ data, onScan }: { data: AppData; onScan: () => vo
         </li>)}</ul>
       </div>
       <ul className="bn-rs-category-list" aria-label={t("Filtrează după categorie")}>{categoryParts.map((part) => <li key={part.category}>
-        <button type="button" className="bn-rs-category-bar" aria-pressed={selectedCategory === part.category} aria-label={t("Filtrează după categoria {category}", { category: t(part.category) })} onClick={() => toggleCategory(part.category)}>
+        <button type="button" className="bn-rs-category-bar" aria-pressed={selectedCategory === part.category} aria-expanded={selectedCategory === part.category} aria-label={t("Vezi articolele din {category}", { category: t(part.category) })} onClick={() => toggleCategory(part.category)}>
           <span><i style={{ background: part.color }} aria-hidden="true" /><b>{t(part.category)}</b></span>
           <strong>{lei(part.amount)}</strong>
+          <small className="bn-rs-category-count">{selectedCategory === part.category
+            ? (part.items.length === 1 ? t("1 articol") : t("{count} articole", { count: part.items.length }))
+            : (part.items.length === 1 ? t("1 articol · atinge pentru detalii") : t("{count} articole · atinge pentru detalii", { count: part.items.length }))}</small>
           <span className="bn-rs-category-track" aria-hidden="true"><i style={{ width: `${Math.min(100, part.amount / Math.max(1, categoryTotal) * 100)}%`, background: part.color }} /></span>
         </button>
+        {selectedCategory === part.category && part.items.length > 0 && <ul className="bn-rs-items" aria-label={t("Ce ai luat la {category}", { category: t(part.category) })}>{part.items.slice(0, 30).map((item) => <li key={item.label}>
+          <span>{item.label === "Rând fără nume" ? t(item.label) : item.label}{item.count > 1 && <small> · {t("{count} ori", { count: item.count })}</small>}</span><b>{lei(item.amount)}</b>
+        </li>)}{part.items.length > 30 && <li className="bn-rs-items-more">{t("și încă {count}", { count: part.items.length - 30 })}</li>}</ul>}
       </li>)}</ul>
     </section>}
 

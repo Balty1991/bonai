@@ -1,9 +1,11 @@
 /** Statisticile cumpărăturilor pe Zi / Săptămână / Lună / An, din bonuri. Doar sume tipărite pe bon. */
-import type { Receipt } from "./finance-data";
+import { foldRomanian, type Receipt } from "./finance-data";
 
 export type Grain = "day" | "week" | "month" | "year";
 export type Bucket = { key: string; label: string; total: number };
-export type PeriodStats = { from: string; to: string; title: string; total: number; previous: number; count: number; buckets: Bucket[]; categories: Array<{ category: string; amount: number }> };
+export type PeriodStats = { from: string; to: string; title: string; total: number; previous: number; count: number; buckets: Bucket[]; categories: Array<{ category: string; amount: number; items: CategoryItem[] }> };
+/** Un produs dintr-o categorie: același nume de pe bonuri diferite se adună într-un rând. */
+export type CategoryItem = { label: string; amount: number; count: number };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const at = (s: string) => new Date(`${s}T12:00:00Z`);
@@ -70,9 +72,23 @@ export function periodStats(receipts: Receipt[], grain: Grain, anchor: string, o
   } else {
     for (let m = 0; m < 12; m++) { const key = `${from.slice(0, 4)}-${String(m + 1).padStart(2, "0")}`; buckets.push({ key, label: MONTHS[m], total: r2(scoped.filter((r) => r.date.startsWith(key)).reduce((s, r) => s + r.amount, 0)) }); }
   }
-  const cats = new Map<string, number>();
-  for (const r of scoped) { const lines = r.lines?.length ? r.lines : [{ category: r.category, amount: r.amount }]; for (const l of lines) if (l.amount > 0) cats.set(l.category || "Altele", (cats.get(l.category || "Altele") || 0) + l.amount); }
-  return { from, to, title: title(grain, from, to), total: r2(scoped.reduce((s, r) => s + r.amount, 0)), previous: r2(sumIn(receipts, prev.from, prev.to).reduce((s, r) => s + r.amount, 0)), count: scoped.length, buckets, categories: Array.from(cats.entries()).map(([category, amount]) => ({ category, amount: r2(amount) })).sort((a, b) => b.amount - a.amount) };
+  const cats = new Map<string, { amount: number; items: Map<string, CategoryItem> }>();
+  for (const r of scoped) {
+    const lines = r.lines?.length ? r.lines : [{ category: r.category, amount: r.amount, label: r.vendor || "" }];
+    for (const l of lines) {
+      if (!(l.amount > 0)) continue;
+      const key = l.category || "Altele";
+      const cat = cats.get(key) || { amount: 0, items: new Map<string, CategoryItem>() };
+      cat.amount += l.amount;
+      const name = (l.label || "").trim() || "Rând fără nume";
+      const itemKey = foldRomanian(name).toLowerCase();
+      const item = cat.items.get(itemKey) || { label: name, amount: 0, count: 0 };
+      item.amount += l.amount; item.count += 1;
+      cat.items.set(itemKey, item);
+      cats.set(key, cat);
+    }
+  }
+  return { from, to, title: title(grain, from, to), total: r2(scoped.reduce((s, r) => s + r.amount, 0)), previous: r2(sumIn(receipts, prev.from, prev.to).reduce((s, r) => s + r.amount, 0)), count: scoped.length, buckets, categories: Array.from(cats.entries()).map(([category, cat]) => ({ category, amount: r2(cat.amount), items: Array.from(cat.items.values()).map((item) => ({ ...item, amount: r2(item.amount) })).sort((a, b) => b.amount - a.amount) })).sort((a, b) => b.amount - a.amount) };
 }
 
 /** Bonurile pe luni (cea mai nouă prima), cu totalul lunii. */
