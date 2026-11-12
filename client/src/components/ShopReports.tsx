@@ -52,12 +52,12 @@ function Rows({ rows, limit, icon }: { rows: Array<ReportRow & { extra?: string 
   const shown = all ? rows : rows.slice(0, limit);
   const max = Math.max(1, ...rows.map((row) => row.amount));
   const head = (row: ReportRow & { extra?: string }) => <>
-    <span><b>{icon ? `${icon(row.label)} ` : ""}{t(row.label)}</b><small>{row.extra || (row.count === 1 ? t("o dată") : t("{count} ori", { count: row.count }))}</small><i aria-hidden="true" style={{ transform: `scaleX(${row.amount / max})` }} /></span>
+    <span><b>{icon ? `${icon(row.label)} ` : ""}{t(row.label)}</b><small>{row.extra || (row.items?.length ? (row.items.length === 1 ? t("1 articol · atinge pentru detalii") : t("{count} articole · atinge pentru detalii", { count: row.items.length })) : row.count === 1 ? t("o dată") : t("{count} ori", { count: row.count }))}</small><i aria-hidden="true" style={{ transform: `scaleX(${row.amount / max})` }} /></span>
     <b>{lei(row.amount)}<Delta now={row.amount} before={row.previous} /></b>
   </>;
   return <>
     <ul className="sh-list bn-report-rows">{shown.map((row) => <li key={row.key} className={row.items?.length ? "has-items" : undefined}>
-      {row.items?.length ? <button type="button" className="bn-report-row-btn" aria-expanded={open === row.key} onClick={() => setOpen(open === row.key ? undefined : row.key)}>{head(row)}<ChevronDown size={16} aria-hidden="true" className="bn-report-chev" style={{ transform: open === row.key ? "rotate(180deg)" : undefined }} /></button> : head(row)}
+      {row.items?.length ? <button type="button" className="bn-report-row-btn" aria-label={t("Vezi articolele din {category}", { category: t(row.label) })} aria-expanded={open === row.key} onClick={() => setOpen(open === row.key ? undefined : row.key)}>{head(row)}<ChevronDown size={16} aria-hidden="true" className="bn-report-chev" style={{ transform: open === row.key ? "rotate(180deg)" : undefined }} /></button> : head(row)}
       {open === row.key && row.items && <ul className="bn-report-items" aria-label={t("Ce ai luat la {category}", { category: t(row.label) })}>{row.items.slice(0, 30).map((item) => <li key={item.label}>
         <span>{item.label === "Rând fără nume" ? t(item.label) : item.label}{item.count > 1 && <small> · {t("{count} ori", { count: item.count })}</small>}</span><b>{lei(item.amount)}</b>
       </li>)}{row.items.length > 30 && <li className="sh-muted">{t("și încă {count}", { count: row.items.length - 30 })}</li>}</ul>}

@@ -74,6 +74,25 @@ describe("rapoarte", () => {
 });
 
 describe("categoria își arată produsele", () => {
+  it("Dulciuri arată ce produse au format suma și cât s-a dat pe fiecare", () => {
+    const d = createEmptyAppData();
+    d.receipts = [
+      { id: "s1", vendor: "Lidl", amount: 18, category: "Cumpărături", date: "2026-10-03", lines: [
+        { id: "1", category: "Dulciuri", amount: 7.5, label: "Ciocolată cu lapte" },
+        { id: "2", category: "Dulciuri", amount: 4.5, label: "Biscuiți" },
+      ] },
+      { id: "s2", vendor: "Profi", amount: 7.5, category: "Cumpărături", date: "2026-10-10", lines: [
+        { id: "3", category: "Dulciuri", amount: 7.5, label: "Ciocolată cu lapte" },
+      ] },
+    ];
+    const sweets = buildReport(d, "month", "2026-10-20").categories.find((row) => row.key === "Dulciuri")!;
+    expect(sweets.amount).toBe(19.5);
+    expect(sweets.items).toEqual([
+      { label: "Ciocolată cu lapte", amount: 15, count: 2 },
+      { label: "Biscuiți", amount: 4.5, count: 1 },
+    ]);
+  });
+
   it("același produs de pe bonuri diferite e un rând, cel mai scump întâi; fără bon apare cu titlul", () => {
     const d = createEmptyAppData();
     const L = (id: string, label: string, amount: number, category = "Alimente") => ({ id, label, amount, category });

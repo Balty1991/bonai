@@ -5606,6 +5606,8 @@ export const en: Record<string, string> = {
   "Mă uit întâi prin aplicație": "Let me look around first",
   "o dată": "once",
   "{count} ori": "{count} times",
+  "1 articol · atinge pentru detalii": "1 item · tap for details",
+  "{count} articole · atinge pentru detalii": "{count} items · tap for details",
   "Plăți fixe": "Fixed payments",
   "Total cheltuit": "Total spent",
   "Pe categorii": "By category",
@@ -5931,6 +5933,7 @@ export const en: Record<string, string> = {
   "Al doilea telefon intră în BonAI Familie: {year} lei/an sau {month} lei/lună. Pe un singur telefon, totul rămâne gratuit.": "A second phone needs BonAI Family: {year} lei/year or {month} lei/month. On a single phone, everything stays free.",
   "Automat: tema închisă seara după ora 21 și până dimineața la 6, sau când telefonul e pe tema închisă.": "Automatic: dark from 9 pm until 6 am, or when your phone uses dark mode.",
   "Ce ai luat la {category}": "What you bought in {category}",
+  "Vezi articolele din {category}": "View items in {category}",
   "Rând fără nume": "Unnamed line",
   "și încă {count}": "and {count} more",
 };
