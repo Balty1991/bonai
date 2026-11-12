@@ -1315,6 +1315,14 @@ const roundLei = (value: unknown) => {
   return Number.isFinite(num) ? Math.round(num * 100) / 100 : 0;
 };
 
+/** Dulciurile evidente pe care modelul (mai ales cel de rezervă) le lasă la „Altele”: doar pe „Altele”, și doar dacă familia are „Dulciuri”. */
+const OBVIOUS_SWEETS = /\b(napolitan\w*|ciocolat\w*|cioc\.?|milka|kinder|oreo|biscui\w*|bomboan\w*|inghetat\w*|m&m'?s?)(?![a-z])/;
+function obviousCategory(chosen: string, text: string, categories: string[]): string {
+  if (chosen !== "Altele" || !categories.includes("Dulciuri")) return chosen;
+  const folded = text.toLocaleLowerCase("ro-RO").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return OBVIOUS_SWEETS.test(folded) ? "Dulciuri" : chosen;
+}
+
 function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt {
   const body = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const fallback = categories.includes("Altele") ? "Altele" : categories[0] || "Altele";
@@ -1325,7 +1333,8 @@ function cleanScannedReceipt(raw: unknown, categories: string[]): ScannedReceipt
     const amount = roundLei(item.amount);
     const name = clip(item.name, 80) || clip(item.rawName, 80);
     if (!name || amount === 0 || Math.abs(amount) > 100_000) return [];
-    const category = typeof item.category === "string" && categories.includes(item.category) ? item.category : fallback;
+    const chosen = typeof item.category === "string" && categories.includes(item.category) ? item.category : fallback;
+    const category = obviousCategory(chosen, `${name} ${typeof item.rawName === "string" ? item.rawName : ""}`, categories);
     const quantity = roundLei(item.quantity);
     const discount = roundLei(item.discount);
     return [{ name, rawName: clip(typeof item.rawName === "string" ? item.rawName.replace(/\s+/g, " ") : "", 80) || name, quantity: quantity > 0 ? quantity : 1, amount, discount: discount > 0 && discount < 100_000 ? discount : 0, category, ...cleanProductFacts(item) }];

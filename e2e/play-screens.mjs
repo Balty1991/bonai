@@ -107,19 +107,19 @@ const scrollTo = async (page, selector, gap = 90) => { await page.locator(select
 const SCREENS = [
   { id: "01-acasa", go: async (page) => { await top(page); }, ro: ["Bonurile tale,", "lunile tale, clar"], en: ["Your receipts,", "your month, clearly"] },
   { id: "02-bonul", go: async (page, lang) => {
-    await dock(page, 4); await page.getByRole("button", { name: lang === "en" ? /^Receipts/ : /^Bonuri/ }).first().click(); await page.waitForTimeout(900);
+    await dock(page, 5); await page.getByRole("button", { name: lang === "en" ? /^Receipts/ : /^Bonuri/ }).first().click(); await page.waitForTimeout(900);
     const history = page.getByRole("dialog").first();
     await history.getByRole("button", { name: /Lidl/ }).first().click(); await page.waitForTimeout(700);
     await history.getByRole("button", { name: lang === "en" ? "Edit" : "Editează" }).click(); await page.waitForTimeout(1200);
     // Produsele bonului, nu doar antetul: prima grupă sus, sub bara de titlu.
     await page.locator(".bn-item").first().evaluate((el) => { el.scrollIntoView({ block: "start" }); el.closest(".bn-review-scroll")?.scrollBy(0, -150); }); await page.waitForTimeout(500);
   }, ro: ["Fotografiezi bonul.", "Citesc fiecare produs"], en: ["Snap the receipt.", "Every item, with its price"] },
-  { id: "03-magazine", go: async (page, lang) => { await dock(page, 3); await tab(page, lang === "en" ? /^Stores$/ : /^Magazine$/); await top(page); }, ro: ["Unde coșul tău", "iese mai ieftin"], en: ["Where your basket", "costs less"] },
+  { id: "03-magazine", go: async (page, lang) => { await dock(page, 4); await tab(page, lang === "en" ? /^Stores$/ : /^Magazine$/); await top(page); }, ro: ["Unde coșul tău", "iese mai ieftin"], en: ["Where your basket", "costs less"] },
   { id: "04-lista", go: async (page) => { await dock(page, 1); await scrollTo(page, ".bf-shop-add", 150); }, ro: ["Lista familiei,", "cu prețurile plătite"], en: ["The family list,", "with prices you paid"] },
-  { id: "05-produs", go: async (page) => { await dock(page, 3); await page.locator(".bn-pw-item, .bf-price-row, [data-product]").first().click().catch(async () => { await page.getByRole("button", { name: /Lapte Zuzu/ }).first().click(); }); await page.waitForTimeout(1200); }, ro: ["Prețul fiecărui", "produs, în timp"], en: ["Every product's", "price over time"] },
+  { id: "05-produs", go: async (page) => { await dock(page, 4); await page.locator(".bn-pw-item, .bf-price-row, [data-product]").first().click().catch(async () => { await page.getByRole("button", { name: /Lapte Zuzu/ }).first().click(); }); await page.waitForTimeout(1200); }, ro: ["Prețul fiecărui", "produs, în timp"], en: ["Every product's", "price over time"] },
   { id: "06-in-casa", go: async (page, lang) => { await dock(page, 1); await tab(page, lang === "en" ? /^At home$/ : /^În casă$/); await top(page); }, ro: ["Vezi ce ai în casă", "și ce se termină"], en: ["See what's at home", "and what runs out"] },
   { id: "07-economisit", go: async (page) => { await top(page); await scrollTo(page, ".sh-card:has(.sh-saved-big)", 80); }, ro: ["Reducerile de pe bonuri,", "adunate pentru tine"], en: ["Your receipt discounts,", "added up for you"] },
-  { id: "08-rapoarte", go: async (page, lang) => { await dock(page, 3); await tab(page, lang === "en" ? /^Reports$/ : /^Rapoarte$/); await top(page); }, ro: ["Unde se duc banii,", "lună de lună"], en: ["Where the money goes,", "month by month"] },
+  { id: "08-rapoarte", go: async (page, lang) => { await dock(page, 4); await tab(page, lang === "en" ? /^Reports$/ : /^Rapoarte$/); await top(page); }, ro: ["Unde se duc banii,", "lună de lună"], en: ["Where the money goes,", "month by month"] },
 ];
 
 const font = (file) => `data:font/woff2;base64,${readFileSync(new URL(`../client/src/assets/fonts/${file}`, import.meta.url)).toString("base64")}`;

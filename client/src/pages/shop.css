@@ -850,43 +850,45 @@ html[data-app="shop"] .sh-steps-bar i { display: block; height: 100%; border-rad
 /* Cont: grupele au un titlu mic deasupra, ca lista să se citească pe bucăți. */
 html[data-app="shop"] .sh-group-title { margin: 6px 4px -6px; }
 
-/* BonAI 2026 — dashboard mai editorial: cerneală, pin și lime cald; logica e neschimbată. */
+/* BonAI 2026 — dashboard mai editorial, pe paleta violet BonAI; logica e neschimbată. */
 html[data-app="shop"] .sh-dash {
-  --dash-pine: #143c36;
-  --dash-pine-deep: #102f2a;
-  --dash-lime: #c4e58f;
-  --dash-paper: #f8f5e9;
+  --dash-ink: #2e1065;
+  --dash-deep: #1e1b4b;
+  --dash-accent: #c4b5fd;
+  --dash-paper: #f5f3ff;
 }
 html[data-app="shop"] .sh-dash .sh-greet-avatar {
-  color: #163b31;
-  background: linear-gradient(145deg, #d4eaa9, #a9d17f);
-  box-shadow: 0 6px 18px rgba(20, 60, 54, .16);
+  color: #2e1065;
+  background: linear-gradient(145deg, #ddd6fe, #a78bfa);
+  box-shadow: 0 6px 18px rgba(46, 16, 101, .16);
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero {
   isolation: isolate;
   gap: 7px;
   padding: 24px 20px 18px;
-  border: 1px solid rgba(196, 229, 143, .26);
+  border: 1px solid rgba(196, 181, 253, .26);
   border-radius: 28px;
   color: var(--dash-paper);
   background:
-    radial-gradient(80% 110% at 100% 0%, rgba(196, 229, 143, .17), transparent 68%),
-    linear-gradient(145deg, var(--dash-pine), var(--dash-pine-deep));
-  box-shadow: 0 18px 42px -28px rgba(16, 47, 42, .64), inset 0 1px 0 rgba(255, 255, 255, .12);
+    radial-gradient(80% 110% at 100% 0%, rgba(196, 181, 253, .17), transparent 68%),
+    linear-gradient(145deg, var(--dash-ink), var(--dash-deep));
+  background-color: var(--dash-deep);
+  box-shadow: 0 18px 42px -28px rgba(30, 27, 75, .64), inset 0 1px 0 rgba(255, 255, 255, .12);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero::before {
   inset: -52% -14% auto auto;
   width: 68%;
-  background: radial-gradient(circle, rgba(196, 229, 143, .2), transparent 67%);
+  background: radial-gradient(circle, rgba(196, 181, 253, .2), transparent 67%);
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero > * {
   position: relative;
   z-index: 1;
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-kicker {
-  color: var(--dash-lime);
+  /* Eticheta e un <p>: fără !important câștiga regula generală „.os-shell p” (gri pe violetul închis, 1,4:1). */
+  color: var(--dash-accent) !important;
   font-size: 11px;
   letter-spacing: .12em;
 }
@@ -898,24 +900,28 @@ html[data-app="shop"] .sh-dash .sh-dash-hero .sh-big {
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-sub,
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-scans-left {
-  color: rgba(248, 245, 233, .78) !important;
+  color: rgba(245, 243, 255, .78) !important;
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-chip {
-  color: #f8f5e9;
+  color: #f5f3ff;
   background: rgba(255, 255, 255, .11);
   border: 1px solid rgba(255, 255, 255, .13);
+}
+/* „media pe … luni” din cardul violet: regula generală pentru pastilele de sub total o făcea gri (1:1). */
+html[data-app="shop"] .sh-dash .sh-dash-hero .sh-dash-meta .sh-chip:not(.sh-up):not(.sh-down) {
+  color: #f5f3ff;
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-chip.sh-up {
   color: #ffd0b9;
 }
 html[data-app="shop"] .sh-dash .sh-dash-hero .sh-chip.sh-down {
-  color: var(--dash-lime);
+  color: var(--dash-accent);
 }
 html[data-app="shop"] .sh-dash .sh-dash-actions .sh-scan {
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 16px;
-  color: #17372e;
-  background: linear-gradient(135deg, #d3eaa5, #b9dc83);
+  color: #2e1065;
+  background: #c4b5fd linear-gradient(135deg, #ddd6fe, #c4b5fd);
   box-shadow: 0 8px 20px -12px rgba(0, 0, 0, .58), inset 0 1px 0 rgba(255, 255, 255, .58);
   font-weight: 700;
   transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
@@ -925,7 +931,7 @@ html[data-app="shop"] .sh-dash .sh-dash-actions .sh-scan:active {
   filter: brightness(.97);
 }
 html[data-app="shop"] .sh-dash .sh-dash-manual {
-  border-color: rgba(248, 245, 233, .24);
+  border-color: rgba(245, 243, 255, .24);
   border-radius: 16px;
   color: var(--dash-paper);
   background: rgba(255, 255, 255, .075);
@@ -935,25 +941,25 @@ html[data-app="shop"] .sh-dash .sh-dash-manual:active {
 }
 html[data-app="shop"] .sh-dash .sh-kpi,
 html[data-app="shop"] .sh-dash .sh-shortcuts button {
-  border-color: color-mix(in srgb, var(--bn-edge) 72%, #78977c 28%);
-  box-shadow: 0 8px 22px -20px rgba(20, 60, 54, .55), inset 0 1px 0 var(--bn-edge-hi);
+  border-color: color-mix(in srgb, var(--bn-edge) 72%, #8b7fc7 28%);
+  box-shadow: 0 8px 22px -20px rgba(46, 16, 101, .55), inset 0 1px 0 var(--bn-edge-hi);
 }
 html[data-app="shop"] .sh-dash .sh-kpi-icon,
 html[data-app="shop"] .sh-dash .sh-shortcuts button > span {
-  color: #285b48;
-  background: #e6efdc;
+  color: #5b21b6;
+  background: #ede9fe;
 }
 html[data-app="shop"].theme-dark .sh-dash .sh-kpi-icon,
 html[data-app="shop"].theme-dark .sh-dash .sh-shortcuts button > span,
 html[data-app="shop"].theme-navy .sh-dash .sh-kpi-icon,
 html[data-app="shop"].theme-navy .sh-dash .sh-shortcuts button > span {
-  color: #c4e58f;
-  background: rgba(196, 229, 143, .12);
+  color: #c4b5fd;
+  background: rgba(196, 181, 253, .12);
 }
 html[data-app="shop"] .sh-dash .sh-shortcuts button:focus-visible,
 html[data-app="shop"] .sh-dash .sh-kpi:focus-visible,
 html[data-app="shop"] .sh-dash .sh-dash-actions button:focus-visible {
-  outline: 3px solid #7eaa59;
+  outline: 3px solid #8b5cf6;
   outline-offset: 3px;
 }
 @media (min-width: 720px) {
@@ -981,14 +987,14 @@ html[data-app="shop"] .sh-dash .sh-dash-actions button:focus-visible {
   }
 }
 
-/* BonAI 2026 — scanare și detalii: aceeași identitate pin/lime ca pe Acasă. */
+/* BonAI 2026 — scanare și detalii: aceeași identitate violet ca pe Acasă. */
 html[data-app="shop"] .bn-review {
-  --receipt-pine: #143c36;
-  --receipt-pine-deep: #102f2a;
-  --receipt-lime: #c4e58f;
-  --receipt-paper: #f8f5e9;
+  --receipt-ink: #2e1065;
+  --receipt-deep: #1e1b4b;
+  --receipt-accent: #c4b5fd;
+  --receipt-paper: #f5f3ff;
   background:
-    radial-gradient(100% 42% at 100% 0%, rgba(196, 229, 143, .12), transparent 72%),
+    radial-gradient(100% 42% at 100% 0%, rgba(196, 181, 253, .12), transparent 72%),
     var(--bn-bg);
 }
 html[data-app="shop"] .bn-review-top {
@@ -1000,19 +1006,19 @@ html[data-app="shop"] .bn-review-top .bn-icon-btn {
   height: 46px;
   border-radius: 15px;
   background: var(--bn-glass-strong);
-  box-shadow: 0 4px 14px -12px rgba(20, 60, 54, .45);
+  box-shadow: 0 4px 14px -12px rgba(46, 16, 101, .45);
 }
 html[data-app="shop"] .bn-review-top .bn-store-pill {
   min-height: 54px;
   border-radius: 18px;
   background: var(--bn-glass-strong);
-  box-shadow: 0 4px 14px -12px rgba(20, 60, 54, .45);
+  box-shadow: 0 4px 14px -12px rgba(46, 16, 101, .45);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 html[data-app="shop"] .bn-review .bn-avatar {
-  color: #17372e;
-  background: linear-gradient(145deg, #d3eaa5, #b9dc83);
+  color: #2e1065;
+  background: linear-gradient(145deg, #ddd6fe, #c4b5fd);
   box-shadow: none;
 }
 html[data-app="shop"] .bn-review-scroll {
@@ -1023,13 +1029,13 @@ html[data-app="shop"] .bn-review-scroll {
 html[data-app="shop"] .bn-review .bn-review-hero {
   gap: 12px;
   padding: 20px;
-  border: 1px solid rgba(196, 229, 143, .26);
+  border: 1px solid rgba(196, 181, 253, .26);
   border-radius: 26px;
   color: var(--receipt-paper);
   background:
-    radial-gradient(80% 90% at 100% 0%, rgba(196, 229, 143, .16), transparent 68%),
-    linear-gradient(145deg, var(--receipt-pine), var(--receipt-pine-deep));
-  box-shadow: 0 16px 38px -28px rgba(16, 47, 42, .62), inset 0 1px 0 rgba(255, 255, 255, .12);
+    radial-gradient(80% 90% at 100% 0%, rgba(196, 181, 253, .16), transparent 68%),
+    linear-gradient(145deg, var(--receipt-ink), var(--receipt-deep));
+  box-shadow: 0 16px 38px -28px rgba(30, 27, 75, .62), inset 0 1px 0 rgba(255, 255, 255, .12);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -1038,9 +1044,9 @@ html[data-app="shop"] .bn-review .bn-review-when {
   gap: 8px;
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid rgba(248, 245, 233, .18);
+  border: 1px solid rgba(245, 243, 255, .18);
   border-radius: 13px;
-  color: var(--receipt-lime);
+  color: var(--receipt-accent);
   background: rgba(255, 255, 255, .075);
 }
 html[data-app="shop"] .bn-review .bn-review-when .sh-kicker {
@@ -1058,17 +1064,17 @@ html[data-app="shop"] .bn-review .bn-review-total {
 }
 html[data-app="shop"] .bn-review .bn-review-fx,
 html[data-app="shop"] .bn-review .bn-review-hero > .sh-note {
-  color: rgba(248, 245, 233, .78) !important;
+  color: rgba(245, 243, 255, .78) !important;
 }
 html[data-app="shop"] .bn-review .bn-chips .bn-chip {
   min-height: 32px;
-  border-color: rgba(248, 245, 233, .18);
+  border-color: rgba(245, 243, 255, .18);
   color: var(--receipt-paper);
   background: rgba(255, 255, 255, .095);
 }
 html[data-app="shop"] .bn-review .bn-chips .bn-chip.is-ok,
 html[data-app="shop"] .bn-review .bn-chips .bn-chip.is-save {
-  color: var(--receipt-lime);
+  color: var(--receipt-accent);
 }
 html[data-app="shop"] .bn-review .bn-chips .bn-chip.is-warn {
   color: #ffd0b9;
@@ -1078,23 +1084,23 @@ html[data-app="shop"] .bn-review .bn-chips .bn-chip.is-warn {
 html[data-app="shop"] .bn-review .bn-review-details {
   gap: 10px;
   padding: 14px;
-  border-color: rgba(248, 245, 233, .16);
+  border-color: rgba(245, 243, 255, .16);
   border-radius: 18px;
   background: rgba(255, 255, 255, .075);
 }
 html[data-app="shop"] .bn-review .bn-review-details label {
-  color: rgba(248, 245, 233, .82);
+  color: rgba(245, 243, 255, .82);
 }
 html[data-app="shop"] .bn-review .bn-review-details :is(input, select) {
   min-height: 48px;
-  border-color: rgba(248, 245, 233, .2);
+  border-color: rgba(245, 243, 255, .2);
   border-radius: 12px;
-  color: #18372f;
-  background: #f8f5e9;
+  color: #1e1b4b;
+  background: #f5f3ff;
 }
 html[data-app="shop"] .bn-review .bn-review-details .bn-btn {
-  color: #17372e;
-  background: var(--receipt-lime);
+  color: #2e1065;
+  background: var(--receipt-accent);
 }
 html[data-app="shop"] .bn-review .bn-prices,
 html[data-app="shop"] .bn-review .bn-dupe,
@@ -1105,7 +1111,7 @@ html[data-app="shop"] .bn-review .bn-who {
 html[data-app="shop"] .bn-review .bn-items > li {
   border-radius: 18px;
   background: var(--bn-glass-strong);
-  box-shadow: 0 8px 22px -22px rgba(20, 60, 54, .6), inset 0 1px 0 var(--bn-edge-hi);
+  box-shadow: 0 8px 22px -22px rgba(46, 16, 101, .6), inset 0 1px 0 var(--bn-edge-hi);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -1116,35 +1122,35 @@ html[data-app="shop"] .bn-review .bn-item {
 }
 html[data-app="shop"] .bn-review .bn-item:focus-visible,
 html[data-app="shop"] .bn-review :is(.bn-btn, .bn-add, .bn-review-when, .bn-icon-btn):focus-visible {
-  outline: 3px solid #7eaa59;
+  outline: 3px solid #8b5cf6;
   outline-offset: 3px;
 }
 html[data-app="shop"] .bn-review .bn-item-price {
-  color: #285b48;
+  color: #5b21b6;
   font-size: 18px;
 }
 html[data-app="shop"].theme-dark .bn-review .bn-item-price,
 html[data-app="shop"].theme-navy .bn-review .bn-item-price {
-  color: #c4e58f;
+  color: #c4b5fd;
 }
 html[data-app="shop"] .bn-review .bn-add {
   min-height: 58px;
-  border-color: color-mix(in srgb, #6c9b5c 55%, var(--bn-edge));
+  border-color: color-mix(in srgb, #7c3aed 55%, var(--bn-edge));
   border-radius: 18px;
-  color: #285b48;
-  background: color-mix(in srgb, #e6efdc 64%, var(--bn-glass));
+  color: #5b21b6;
+  background: color-mix(in srgb, #ede9fe 64%, var(--bn-glass));
 }
 html[data-app="shop"].theme-dark .bn-review .bn-add,
 html[data-app="shop"].theme-navy .bn-review .bn-add {
-  color: #c4e58f;
-  background: rgba(196, 229, 143, .08);
+  color: #c4b5fd;
+  background: rgba(196, 181, 253, .08);
 }
 html[data-app="shop"] .bn-review .bn-review-bar {
   gap: 10px;
   padding: 12px max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 14px) max(16px, env(safe-area-inset-left));
   border-top-color: var(--bn-edge);
   background: color-mix(in srgb, var(--bn-bg) 92%, transparent);
-  box-shadow: 0 -12px 30px -28px rgba(20, 60, 54, .5);
+  box-shadow: 0 -12px 30px -28px rgba(46, 16, 101, .5);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
@@ -1154,82 +1160,89 @@ html[data-app="shop"] .bn-review .bn-bar-total b {
 html[data-app="shop"] .bn-review .bn-btn.is-primary {
   min-height: 50px;
   border-radius: 15px;
-  color: #17372e;
-  background: linear-gradient(135deg, #d3eaa5, #b9dc83);
-  box-shadow: 0 8px 20px -14px rgba(20, 60, 54, .7), inset 0 1px 0 rgba(255, 255, 255, .55);
+  color: #2e1065;
+  background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+  box-shadow: 0 8px 20px -14px rgba(46, 16, 101, .7), inset 0 1px 0 rgba(255, 255, 255, .55);
 }
 html[data-app="shop"] .bn-review .bn-btn.is-primary:disabled {
-  color: #315243;
-  background: #dbe5d2;
+  color: #3b2a6b;
+  background: #e4ddf8;
   box-shadow: none;
 }
 /* Scan Hub și citirea OCR: vizor mai calm, bonul virtual arată ca hârtie reală. */
 html[data-app="shop"] .bn-scan-hub .bn-hub-pill {
   min-height: 34px;
-  border-color: color-mix(in srgb, #6c9b5c 28%, var(--bn-edge));
-  color: #285b48;
-  background: #eaf1e2;
+  border-color: color-mix(in srgb, #7c3aed 28%, var(--bn-edge));
+  color: #5b21b6;
+  background: #f3f0fd;
 }
 html[data-app="shop"].theme-dark .bn-scan-hub .bn-hub-pill,
 html[data-app="shop"].theme-navy .bn-scan-hub .bn-hub-pill {
-  color: #c4e58f;
-  background: rgba(196, 229, 143, .1);
+  color: #c4b5fd;
+  background: rgba(196, 181, 253, .1);
 }
 html[data-app="shop"] .bn-scan-hub .bn-viewfinder {
   min-height: 300px;
-  border-color: rgba(196, 229, 143, .34);
+  border-color: rgba(196, 181, 253, .34);
   border-radius: 28px;
   background:
-    radial-gradient(80% 65% at 50% 0%, rgba(196, 229, 143, .2), transparent 75%),
-    linear-gradient(145deg, #143c36, #102f2a);
-  box-shadow: 0 18px 40px -28px rgba(16, 47, 42, .75), inset 0 1px 0 rgba(255, 255, 255, .1);
+    radial-gradient(80% 65% at 50% 0%, rgba(196, 181, 253, .2), transparent 75%),
+    linear-gradient(145deg, #2e1065, #1e1b4b);
+  background-color: #1e1b4b;
+  box-shadow: 0 18px 40px -28px rgba(30, 27, 75, .75), inset 0 1px 0 rgba(255, 255, 255, .1);
 }
 html[data-app="shop"] .bn-scan-hub .bn-vf-corner {
-  border-color: #c4e58f;
+  border-color: #c4b5fd;
 }
-html[data-app="shop"] .bn-scan-hub .bn-vf-copy small {
-  color: rgba(248, 245, 233, .78);
+/* Vizorul e închis în ambele teme: textul rămâne deschis și în tema albă (regulile „html:not(.dark)” îl făceau bleumarin pe violet închis). */
+html[data-app="shop"] body .bn-scan-hub .bn-viewfinder,
+html[data-app="shop"] body .bn-scan-hub .bn-viewfinder .bn-vf-copy b,
+html[data-app="shop"] body .bn-scan-hub .bn-viewfinder .bn-vf-copy svg {
+  color: #f5f3ff;
+}
+html[data-app="shop"] body .bn-scan-hub .bn-viewfinder .bn-vf-copy small {
+  color: rgba(245, 243, 255, .82);
 }
 html[data-app="shop"] .bn-scan-hub .bn-tile {
   min-height: 110px;
   border-radius: 20px;
-  box-shadow: 0 8px 22px -22px rgba(20, 60, 54, .55), inset 0 1px 0 var(--bn-edge-hi);
+  box-shadow: 0 8px 22px -22px rgba(46, 16, 101, .55), inset 0 1px 0 var(--bn-edge-hi);
 }
 html[data-app="shop"] .bn-scan-hub .bn-tile > svg {
-  color: #397253;
+  color: #5b21b6;
 }
 html[data-app="shop"].theme-dark .bn-scan-hub .bn-tile > svg,
 html[data-app="shop"].theme-navy .bn-scan-hub .bn-tile > svg {
-  color: #c4e58f;
+  color: #c4b5fd;
 }
 html[data-app="shop"] .bn-scan-hub .bn-vr {
   color: #26362d;
-  border-color: rgba(20, 60, 54, .13);
+  border-color: rgba(46, 16, 101, .13);
   background: linear-gradient(180deg, #fffefa, #f4f1e7);
   box-shadow: 0 18px 42px rgba(0, 0, 0, .25), inset 0 1px 0 #fff;
 }
 html[data-app="shop"] .bn-scan-hub .bn-vr-head,
 html[data-app="shop"] .bn-scan-hub .bn-vr-total {
-  border-color: rgba(20, 60, 54, .2);
+  border-color: rgba(46, 16, 101, .2);
 }
 html[data-app="shop"] .bn-scan-hub .bn-vr-sk {
-  background-image: linear-gradient(90deg, rgba(71, 105, 79, .1) 0%, rgba(196, 229, 143, .62) 50%, rgba(71, 105, 79, .1) 100%);
+  background-image: linear-gradient(90deg, rgba(91, 70, 160, .1) 0%, rgba(196, 181, 253, .62) 50%, rgba(91, 70, 160, .1) 100%);
 }
 html[data-app="shop"] .bn-scan-hub .bn-scan-thumbs li.is-done {
-  border-color: #91bd69;
+  border-color: #a78bfa;
 }
 html[data-app="shop"] .bn-scan-hub .bn-scan-thumbs li.is-done span {
-  background: #477d4c;
+  background: #6d28d9;
 }
 html[data-app="shop"] .bn-scan-hub .bn-scan-stages li.is-done,
 html[data-app="shop"] .bn-scan-hub .bn-scan-stages li.is-on {
-  color: #397253;
+  color: #5b21b6;
 }
 html[data-app="shop"] .bn-scan-hub .bn-scan-term li b {
-  color: #285b48;
+  color: #5b21b6;
 }
 html[data-app="shop"] .bn-scan-hub .bn-scan-term {
-  border-color: color-mix(in srgb, #6c9b5c 24%, var(--bn-edge));
+  border-color: color-mix(in srgb, #7c3aed 24%, var(--bn-edge));
 }
 @media (max-width: 400px) {
   html[data-app="shop"] .bn-review .bn-review-scroll {
@@ -1327,12 +1340,12 @@ html[data-app="shop"] .bn-receipt-stats { gap: 14px; }
 .bn-rs-period { gap: 10px; }
 .bn-rs-period .bn-stats-nav { margin-top: 1px; }
 .bn-rs-period .bn-stats-nav b { text-transform: capitalize; }
-.bn-rs-hero { display: grid; gap: 8px; padding: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,.12); border-radius: 24px; background: linear-gradient(135deg, #14382b 0%, #1d5b41 55%, #28714d 100%); color: #f4fff7; box-shadow: 0 16px 36px -24px rgba(18, 64, 43, .72); }
-.bn-rs-hero-kicker { color: rgba(238,255,244,.78); font: 750 11px/1.1 var(--bn-body); letter-spacing: .11em; }
+.bn-rs-hero { display: grid; gap: 8px; padding: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,.12); border-radius: 24px; background: #3b2a8a linear-gradient(135deg, #4c1d95 0%, #4338ca 55%, #155e75 100%); color: #faf8ff; box-shadow: 0 16px 36px -24px rgba(46, 16, 101, .72); }
+.bn-rs-hero-kicker { color: rgba(245,243,255,.92); font: 750 11px/1.1 var(--bn-body); letter-spacing: .11em; }
 .bn-rs-hero > strong { color: #fff; font: 750 clamp(31px, 8vw, 44px)/1.08 var(--bn-head); letter-spacing: -.045em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.bn-rs-hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 13px; color: rgba(238,255,244,.88); font-size: 13px; font-weight: 600; }
-.bn-rs-hero-meta > span + span::before { content: "·"; margin-right: 13px; color: rgba(238,255,244,.58); }
-.bn-rs-delta { justify-self: start; margin: 0; padding: 6px 9px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(255,255,255,.1); color: #effff3; font-size: 12px; font-weight: 700; }
+.bn-rs-hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 13px; color: rgba(245,243,255,.88); font-size: 13px; font-weight: 600; }
+.bn-rs-hero-meta > span + span::before { content: "·"; margin-right: 13px; color: rgba(245,243,255,.58); }
+.bn-rs-delta { display: inline-block; justify-self: start; margin: 0; padding: 6px 9px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(255,255,255,.1); color: #f5f3ff; font-size: 12px; font-weight: 700; }
 .bn-rs-delta.is-up { color: #ffe1dc; background: rgba(169,45,39,.22); }
 .bn-rs-delta.is-down { color: #dcffea; background: rgba(12,89,53,.28); }
 .bn-rs-chart-card { gap: 9px; }
@@ -1476,3 +1489,13 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop 
   .bn-rs-compare-controls input { padding-inline: 6px; font-size: 12px; }
   .bn-rs-compare-category-head, .bn-rs-compare-categories > li { grid-template-columns: minmax(0,1fr) minmax(62px,auto) minmax(62px,auto); column-gap: 5px; }
 }
+
+/* Statistici: o categorie atinsă își arată produsele cumpărate în perioadă. */
+.bn-rs-category-count { grid-column: 1 / -1; display: block; margin-top: -3px; color: var(--bn-muted); font-size: 12px; }
+.bn-rs-items { grid-column: 1 / -1; display: grid; gap: 0; margin: 2px 0 4px; padding: 4px 10px; list-style: none; border: 1px solid var(--bn-edge); border-radius: 12px; background: var(--bn-glass-strong); }
+.bn-rs-items > li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; min-width: 0; padding: 8px 0; color: var(--bn-ink); font-size: 13px; }
+.bn-rs-items > li + li { border-top: 1px solid var(--bn-edge); }
+.bn-rs-items > li > span { min-width: 0; overflow-wrap: anywhere; }
+.bn-rs-items > li small { color: var(--bn-muted); font-size: 12px; }
+.bn-rs-items > li > b { flex: none; font-variant-numeric: tabular-nums; }
+.bn-rs-items > li.bn-rs-items-more { color: var(--bn-muted); }

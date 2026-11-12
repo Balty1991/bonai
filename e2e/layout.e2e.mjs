@@ -37,15 +37,16 @@ async function startVite() {
 const click = (label) => async (page) => { await page.getByRole("button", { name: label }).first().click(); await page.waitForTimeout(1000); };
 const seq = (...steps) => async (page) => { for (const step of steps) await step(page); };
 const dock = (index) => async (page) => { await page.locator(".os-dock-v2 > button").nth(index).click(); await page.waitForTimeout(1000); };
-const cont = (label) => seq(dock(4), click(label));
-// BonAI: Acasă · Cumpărături · Scanează · Prețuri · Cont, plus ecranele din Cont.
+const cont = (label) => seq(dock(5), click(label));
+// BonAI: Acasă · Listă · Statistici · Scanează · Prețuri · Cont, plus ecranele din Cont.
 const SCREENS = {
   "Acasă": null,
   "Cumpărături": dock(1),
-  "Scanează": dock(2),
-  "Prețuri": dock(3),
-  "Rapoarte": seq(dock(3), async (page) => { await page.getByRole("tab", { name: /^Rapoarte$/ }).or(page.getByRole("button", { name: /^Rapoarte$/ })).first().click(); await page.waitForTimeout(1000); }),
-  "Cont": dock(4),
+  "Statistici": dock(2),
+  "Scanează": dock(3),
+  "Prețuri": dock(4),
+  "Rapoarte": seq(dock(4), async (page) => { await page.getByRole("tab", { name: /^Rapoarte$/ }).or(page.getByRole("button", { name: /^Rapoarte$/ })).first().click(); await page.waitForTimeout(1000); }),
+  "Cont": dock(5),
   "Bonuri": cont(/^Bonuri/),
   "Abonamente": cont(/^Abonamente/),
   "Facturi": cont(/^Facturi/),
@@ -229,6 +230,7 @@ async function main() {
       if (open) await open(page);
       if (zoom !== 1) await page.evaluate(zoomText, zoom);
       await page.waitForTimeout(600);
+      if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/layout-${name}-${theme}-${width}${zoom !== 1 ? "-zoom" : ""}.png` });
       const problems = [...await page.evaluate(inspect), ...errors.map((message) => `eroare: ${message}`)];
       if (problems.length) found.push(`${name} · ${theme} · ${width}px${zoom !== 1 ? ` · font ${zoom * 100}%` : ""}\n    ${problems.join("\n    ")}`);
       await context.close();

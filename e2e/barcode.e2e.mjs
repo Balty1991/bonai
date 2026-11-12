@@ -50,7 +50,7 @@ async function open(browser, { theme = "white", width = 360, camera = true } = {
   return { context, page, errors };
 }
 const dock = async (page, index) => { await page.locator(".os-dock-v2 > button").nth(index).click(); await page.waitForTimeout(900); };
-const products = async (page) => { await dock(page, 3); await page.getByRole("tab", { name: /^Produse$/ }).click(); await page.waitForTimeout(500); };
+const products = async (page) => { await dock(page, 4); await page.getByRole("tab", { name: /^Produse$/ }).click(); await page.waitForTimeout(500); };
 const shot = async (page, name) => { if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/${name}.png`, fullPage: false }); };
 
 const vite = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "--port", String(PORT), "--strictPort", "--host", "127.0.0.1"], { stdio: "ignore" });

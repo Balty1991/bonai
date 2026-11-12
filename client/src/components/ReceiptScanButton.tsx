@@ -7,7 +7,7 @@ import { getActiveFamilyRoom } from "@/lib/billing";
 import { FREE_SCANS_PER_MONTH, readAiQuota, readAiScans, recordAiScan } from "@/lib/bonut-plans";
 import { isoToday } from "@/lib/finance-data";
 import type { AppData } from "@/lib/finance-data";
-import { t } from "@/lib/i18n";
+import { receiptsLabel, t } from "@/lib/i18n";
 import { askConfirm } from "@/lib/confirm-dialog";
 import { canScanReceipt } from "@/lib/entitlements";
 import { isOfflineOnly } from "@/lib/ui-prefs";
@@ -167,7 +167,7 @@ export function ReceiptScanButton({ data, memberId, onResult, hub, onManual }: {
       const free = currentBonutPlan(data, today) === "free";
       const aiUsed = readAiScans().filter((d) => d.startsWith(month)).length;
       return <div className="bn-hub">
-        <span className="bn-hub-pill">{free ? t("{used}/{limit} scanări AI luna asta", { used: Math.min(aiUsed, FREE_SCANS_PER_MONTH), limit: FREE_SCANS_PER_MONTH }) : t("{used} bonuri luna asta", { used })}</span>
+        <span className="bn-hub-pill">{free ? t("{used}/{limit} scanări AI luna asta", { used: Math.min(aiUsed, FREE_SCANS_PER_MONTH), limit: FREE_SCANS_PER_MONTH }) : t("{receipts} luna asta", { receipts: receiptsLabel(used) })}</span>
         {free && aiLeft <= 0 && <p className="bn-hub-note" role="note">{t("Ai folosit cele {limit} scanări AI ale lunii. Scanez în continuare gratuit pe telefon, fără AI; verifici produsele înainte de salvare.", { limit: FREE_SCANS_PER_MONTH })}</p>}
         <button type="button" className="bn-viewfinder" onClick={() => void pick("camera")}>
           <span className="bn-vf-corner is-tl" /><span className="bn-vf-corner is-tr" /><span className="bn-vf-corner is-bl" /><span className="bn-vf-corner is-br" />
