@@ -1499,3 +1499,67 @@ html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop 
 .bn-rs-items > li small { color: var(--bn-muted); font-size: 12px; }
 .bn-rs-items > li > b { flex: none; font-variant-numeric: tabular-nums; }
 .bn-rs-items > li.bn-rs-items-more { color: var(--bn-muted); }
+
+
+/* Dock BonAI mobile: six zones tactiles égales, icônes et libellés alignés. */
+@media (max-width: 760px) {
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-template-rows: 56px;
+    align-items: center !important;
+    justify-content: stretch !important;
+    gap: 0 !important;
+  }
+
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop > button {
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 34px 14px;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 56px !important;
+    height: 56px !important;
+    flex: none !important;
+    gap: 0 !important;
+    padding: 2px 1px !important;
+    transform: none !important;
+  }
+
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop > button > svg {
+    grid-area: 1 / 1;
+    align-self: center;
+    justify-self: center;
+    width: 18px;
+    height: 18px;
+  }
+
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop > button > span:not(.os-dock-add-disc) {
+    grid-area: 2 / 1;
+    display: block;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(8px, 2.55vw, 10px) !important;
+    line-height: 14px;
+  }
+
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop > .os-dock-add {
+    flex: none !important;
+  }
+
+  html[data-app="shop"] body .bf-app.os-shell nav.os-dock.os-dock-v2.os-dock-shop .os-dock-add-disc {
+    grid-area: 1 / 1;
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+    box-shadow: 0 0 0 2px var(--os-dock-bg, var(--os-surface));
+  }
+}
