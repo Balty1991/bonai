@@ -409,7 +409,9 @@ export async function requestReceiptScan(images: Array<{ data: string; mimeType:
   if (payload.quota) syncAiQuota(payload.quota);
   if (payload.code === "ai_quota") throw new AiQuotaError(payload.error || t("Ai folosit scanările AI ale lunii. Scanează gratuit cu „Offline”."));
   // Unde se duce timpul: tokenii pe telefon, apoi drumul + modelul (fără conținutul bonului).
-  console.info("[BonAI] scanare", JSON.stringify({ ...lastTiming, trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
+  const model = payload.receipt?.model;
+  const provider = model?.toLowerCase().startsWith("claude") ? "claude" : model?.toLowerCase().startsWith("gemini") ? "gemini" : model ? "other" : "unknown";
+  console.info("[BonAI] scanare", JSON.stringify({ provider, model, total_ms: Math.round(performance.now() - t0), ...lastTiming, trail: payload.receipt?.trail, usage: payload.receipt?.usage }));
   if (!response.ok || !payload.receipt) {
     // Codul tehnic, scurt, ca omul să-l poată trimite când citirea nu merge.
     const code = payload.reason ? ` (${payload.reason})` : !response.ok ? ` (HTTP ${response.status})` : "";

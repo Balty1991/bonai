@@ -1663,6 +1663,9 @@ export const readReceipt = onRequest(
       }
       // Cât a lucrat serverul pe bon (fără drumul pozei): aplicația arată unde se duce timpul.
       const startedAt = Date.now();
+      const logProviderEvent = (event: string, fields: Record<string, unknown>) => {
+        console.info(`[BonAI] readReceipt ${event}`, JSON.stringify({ event, ...fields }));
+      };
       if (request.method !== "POST") {
         response.status(405).json({ error: "Method not allowed" });
         return;
@@ -1731,7 +1734,10 @@ export const readReceipt = onRequest(
           return;
         }
         try {
-          response.json({ receipt: await readReceiptWithGroq(groqOnly, images, categories) });
+          const providerStartedAt = Date.now();
+          const receipt = await readReceiptWithGroq(groqOnly, images, categories);
+          logProviderEvent("provider_winner", { provider: "groq", model: receipt.model, mode: "explicit_test", image_count: images.length, provider_ms: Date.now() - providerStartedAt, request_ms: Date.now() - startedAt });
+          response.json({ receipt });
         } catch (error) {
           const err = error instanceof GuideCallError ? error : new GuideCallError("unknown", 500);
           response.status(502).json({ error: "Nu am putut citi bonul acum.", code: "upstream", reason: err.message.slice(0, 160) });
@@ -1746,7 +1752,10 @@ export const readReceipt = onRequest(
           return;
         }
         try {
-          response.json({ receipt: await readReceiptWithClaude(claudeOnly, images, categories, "claude-sonnet-5-5") });
+          const providerStartedAt = Date.now();
+          const receipt = await readReceiptWithClaude(claudeOnly, images, categories, "claude-sonnet-5-5");
+          logProviderEvent("provider_winner", { provider: "claude", model: receipt.model, mode: "explicit_test", image_count: images.length, provider_ms: Date.now() - providerStartedAt, request_ms: Date.now() - startedAt });
+          response.json({ receipt });
         } catch (error) {
           const err = error instanceof GuideCallError ? error : new GuideCallError("unknown", 500);
           response.status(502).json({ error: "Nu am putut citi bonul acum.", code: "upstream", reason: err.message.slice(0, 160) });
@@ -1763,18 +1772,85 @@ export const readReceipt = onRequest(
       // Gemini întâi; dacă nu răspunde în câteva secunde, pornește și Claude, iar primul bon citit câștigă.
       // Claude nu pornește deloc când Gemini răspunde la timp (de obicei 3–6 s), deci costul rămâne același.
       const hedged = async () => {
+        const raceStartedAt = Date.now();
         const hedgeMs = 9_000 + 4_000 * (images.length - 1);
-        const gemini = readReceiptWithGemini(geminiKey, images, categories, Date.now() + 45_000 + 5_000 * (images.length - 1));
+        let geminiOutcome: "pending" | "success" | "error" = "pending";
+        let geminiMs: number | undefined;
+        let claudeOutcome: "not_started" | "pending" | "success" | "error" = "not_started";
+        let claudeStarted = false;
+        let claudeTrigger: "hedge_timeout" | "gemini_error" | undefined;
+        let claudeMs: number | undefined;
+        logProviderEvent("provider_started", { provider: "gemini", mode: "hedged", image_count: images.length });
+        const gemini = readReceiptWithGemini(geminiKey, images, categories, Date.now() + 45_000 + 5_000 * (images.length - 1)).then(
+          (receipt) => {
+            geminiOutcome = "success";
+            geminiMs = Date.now() - raceStartedAt;
+            logProviderEvent("provider_result", { provider: "gemini", model: receipt.model, outcome: "success", mode: "hedged", provider_ms: geminiMs, image_count: images.length });
+            return receipt;
+          },
+          (error: unknown) => {
+            geminiOutcome = "error";
+            geminiMs = Date.now() - raceStartedAt;
+            logProviderEvent("provider_result", { provider: "gemini", outcome: "error", status: error instanceof GuideCallError ? error.status : undefined, mode: "hedged", provider_ms: geminiMs, image_count: images.length });
+            throw error;
+          },
+        );
         const claude = new Promise<Awaited<ReturnType<typeof readReceiptWithClaude>>>((resolve, reject) => {
           let started = false;
-          const go = () => { if (started) return; started = true; clearTimeout(timer); readReceiptWithClaude(claudeKey, images, categories).then(resolve, reject); };
-          const timer = setTimeout(go, hedgeMs);
+          let timer: ReturnType<typeof setTimeout>;
+          const go = (trigger: "hedge_timeout" | "gemini_error") => {
+            if (started) return;
+            started = true;
+            clearTimeout(timer);
+            claudeStarted = true;
+            claudeTrigger = trigger;
+            claudeOutcome = "pending";
+            const callStartedAt = Date.now();
+            logProviderEvent("provider_started", { provider: "claude", mode: "hedged", trigger, after_ms: callStartedAt - raceStartedAt, image_count: images.length });
+            readReceiptWithClaude(claudeKey, images, categories).then(
+              (receipt) => {
+                claudeOutcome = "success";
+                claudeMs = Date.now() - raceStartedAt;
+                logProviderEvent("provider_result", { provider: "claude", model: receipt.model, outcome: "success", mode: "hedged", call_ms: Date.now() - callStartedAt, provider_ms: claudeMs, image_count: images.length });
+                resolve(receipt);
+              },
+              (error: unknown) => {
+                claudeOutcome = "error";
+                claudeMs = Date.now() - raceStartedAt;
+                logProviderEvent("provider_result", { provider: "claude", outcome: "error", status: error instanceof GuideCallError ? error.status : undefined, mode: "hedged", call_ms: Date.now() - callStartedAt, provider_ms: claudeMs, image_count: images.length });
+                reject(error);
+              },
+            );
+          };
+          timer = setTimeout(() => go("hedge_timeout"), hedgeMs);
           // Gemini a răspuns: Claude nu mai pornește. Gemini a căzut: Claude pornește acum, nu după pauză.
-          gemini.then(() => clearTimeout(timer), go);
+          gemini.then(() => clearTimeout(timer), () => go("gemini_error"));
         });
         try {
-          return await Promise.any([gemini, claude]);
+          const winner = await Promise.any([gemini, claude]);
+          const winnerProvider = winner.model.toLowerCase().startsWith("claude") ? "claude" : "gemini";
+          logProviderEvent("provider_winner", {
+            provider: winnerProvider,
+            model: winner.model,
+            selection: "first_successful_response",
+            mode: "hedged",
+            priority: wanted,
+            available_providers: usable,
+            image_count: images.length,
+            hedge_ms: hedgeMs,
+            winner_provider_ms: winnerProvider === "claude" ? claudeMs : geminiMs,
+            race_ms: Date.now() - raceStartedAt,
+            request_ms: Date.now() - startedAt,
+            gemini_outcome: geminiOutcome,
+            gemini_ms: geminiMs,
+            claude_started: claudeStarted,
+            claude_trigger: claudeTrigger || "not_started",
+            claude_outcome: claudeOutcome,
+            claude_ms: claudeMs,
+          });
+          return winner;
         } catch (error) {
+          logProviderEvent("provider_race_failed", { mode: "hedged", priority: wanted, available_providers: usable, image_count: images.length, hedge_ms: hedgeMs, race_ms: Date.now() - raceStartedAt, gemini_outcome: geminiOutcome, gemini_ms: geminiMs, claude_started: claudeStarted, claude_trigger: claudeTrigger || "not_started", claude_outcome: claudeOutcome, claude_ms: claudeMs });
           const reasons = error instanceof AggregateError ? error.errors : [error];
           const failures = reasons.map((reason) => (reason instanceof GuideCallError ? reason : new GuideCallError("unknown", 500)));
           failures.forEach((failure, index) => console.warn("receipt provider failed", index ? "claude" : "gemini", failure.status, failure.message.slice(0, 200)));
@@ -1785,16 +1861,25 @@ export const readReceipt = onRequest(
         if (usable.length === 2 && usable[0] === "gemini") return hedged();
         const failures: string[] = [];
         let lastError: GuideCallError | undefined;
+        let attempt = 0;
         for (const name of usable) {
+          attempt += 1;
+          const providerStartedAt = Date.now();
+          logProviderEvent("provider_started", { provider: name, mode: "sequential", attempt, priority: wanted, available_providers: usable, image_count: images.length });
           try {
-            return name === "gemini"
+            const receipt = name === "gemini"
               // Gemini are cel mult 30 s (15 s pe model): un Gemini agățat trecea de 60 s, iar omul aștepta
               // un minut până la Claude. Lite răspunde de obicei în 3–5 s.
               ? await readReceiptWithGemini(geminiKey, images, categories, Date.now() + (usable.length > 1 ? 30_000 + 5_000 * (images.length - 1) : 80_000))
               : await readReceiptWithClaude(claudeKey, images, categories);
+            const providerMs = Date.now() - providerStartedAt;
+            logProviderEvent("provider_result", { provider: name, model: receipt.model, outcome: "success", mode: "sequential", attempt, provider_ms: providerMs, image_count: images.length });
+            logProviderEvent("provider_winner", { provider: name, model: receipt.model, selection: "first_successful_response", mode: "sequential", priority: wanted, available_providers: usable, attempt, fallback: attempt > 1, image_count: images.length, provider_ms: providerMs, request_ms: Date.now() - startedAt });
+            return receipt;
           } catch (error) {
             lastError = error instanceof GuideCallError ? error : new GuideCallError("unknown", 500);
             failures.push(lastError.message.slice(0, 160));
+            logProviderEvent("provider_result", { provider: name, outcome: "error", status: lastError.status, mode: "sequential", attempt, provider_ms: Date.now() - providerStartedAt, image_count: images.length });
             console.warn("receipt provider failed", name, lastError.status, lastError.message.slice(0, 200));
           }
         }
