@@ -1797,7 +1797,6 @@ export const readReceipt = onRequest(
         );
         const claude = new Promise<Awaited<ReturnType<typeof readReceiptWithClaude>>>((resolve, reject) => {
           let started = false;
-          let timer: ReturnType<typeof setTimeout>;
           const go = (trigger: "hedge_timeout" | "gemini_error") => {
             if (started) return;
             started = true;
@@ -1822,7 +1821,7 @@ export const readReceipt = onRequest(
               },
             );
           };
-          timer = setTimeout(() => go("hedge_timeout"), hedgeMs);
+          const timer = setTimeout(() => go("hedge_timeout"), hedgeMs);
           // Gemini a răspuns: Claude nu mai pornește. Gemini a căzut: Claude pornește acum, nu după pauză.
           gemini.then(() => clearTimeout(timer), () => go("gemini_error"));
         });
